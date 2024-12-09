@@ -1,0 +1,29 @@
+├─ Apache-2.0: 83
+├─ MIT: 37
+├─ ISC: 4
+├─ BSD-3-Clause: 2
+├─ Python-2.0: 1
+├─ (MIT OR GPL-3.0-or-later): 1
+├─ Custom: https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html: 1
+├─ 0BSD: 1
+└─ BSD-2-Clause: 1
+
+├─ MIT: 1188
+├─ Apache-2.0: 131
+├─ ISC: 61
+├─ CC0-1.0: 42
+├─ BSD-2-Clause: 37
+├─ BSD-3-Clause: 32
+├─ BlueOak-1.0.0: 3
+├─ (MIT OR CC0-1.0): 3
+├─ Unlicense: 2
+├─ 0BSD: 2
+├─ Python-2.0: 1
+├─ MPL-2.0: 1
+├─ CC-BY-4.0: 1
+├─ BSD: 1
+├─ Custom: https://github.com/facebook/create-react-app: 1
+├─ (Apache-2.0 OR MPL-1.1): 1
+├─ (AFL-2.1 OR BSD-3-Clause): 1
+└─ (BSD-3-Clause OR GPL-2.0): 1
+

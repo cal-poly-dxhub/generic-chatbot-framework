@@ -1,0 +1,159 @@
+{
+  "env": {
+    "jest": true,
+    "node": true
+  },
+  "root": true,
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "header",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "project": "./tsconfig.dev.json"
+  },
+  "extends": [
+    "plugin:import/typescript",
+    "plugin:prettier/recommended"
+  ],
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [
+        ".ts",
+        ".tsx"
+      ]
+    },
+    "import/resolver": {
+      "node": {},
+      "typescript": {
+        "project": "./tsconfig.dev.json",
+        "alwaysTryTypes": true
+      }
+    }
+  },
+  "ignorePatterns": [
+    "*.js",
+    "*.d.ts",
+    "node_modules/",
+    "*.generated.ts",
+    "coverage",
+    "samples/",
+    "scripts/"
+  ],
+  "rules": {
+    "@typescript-eslint/no-require-imports": 2,
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/src/**/*.test.tsx",
+          "**/src/setupTests.ts"
+        ],
+        "optionalDependencies": false,
+        "peerDependencies": true
+      }
+    ],
+    "import/no-unresolved": [
+      "error"
+    ],
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          "builtin",
+          "external"
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "no-duplicate-imports": [
+      "error"
+    ],
+    "no-shadow": [
+      "off"
+    ],
+    "@typescript-eslint/no-shadow": 2,
+    "key-spacing": [
+      "error"
+    ],
+    "no-multiple-empty-lines": [
+      "error"
+    ],
+    "@typescript-eslint/no-floating-promises": 2,
+    "no-return-await": [
+      "off"
+    ],
+    "@typescript-eslint/return-await": 2,
+    "no-trailing-spaces": [
+      "error"
+    ],
+    "dot-notation": [
+      "error"
+    ],
+    "no-bitwise": [
+      "error"
+    ],
+    "@typescript-eslint/member-ordering": [
+      "error",
+      {
+        "default": [
+          "public-static-field",
+          "public-static-method",
+          "protected-static-field",
+          "protected-static-method",
+          "private-static-field",
+          "private-static-method",
+          "field",
+          "constructor",
+          "method"
+        ]
+      }
+    ],
+    "header/header": [
+      2,
+      "block",
+      [
+        "",
+        "Copyright 2024 Amazon.com, Inc. or its affiliates. All Rights Reserved.",
+        "SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0",
+        "Licensed under the Amazon Software License http://aws.amazon.com/asl/",
+        ""
+      ]
+    ],
+    "import/no-cycle": "error"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.stories.*",
+        "**/.storybook/**/*.*"
+      ],
+      "rules": {
+        "import/no-extraneous-dependencies": "off"
+      }
+    },
+    {
+      "files": [
+        "**/*.ts",
+        "**/*.tsx"
+      ],
+      "rules": {
+        "prettier/prettier": [
+          "error",
+          {
+            "trailingComma": "all",
+            "singleQuote": true,
+            "printWidth": 120
+          }
+        ]
+      }
+    }
+  ]
+}

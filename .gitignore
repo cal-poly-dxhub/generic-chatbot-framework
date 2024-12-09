@@ -1,0 +1,23 @@
+*.js
+!jest.config.js
+!.eslintrc.js
+!frontend/src/**/*.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Frontend build
+frontend/build/
+
+# Config
+bin/config.yaml
+
+.DS_Store
+bin/config.yaml

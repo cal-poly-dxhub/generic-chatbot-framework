@@ -1,0 +1,5 @@
+langchain==0.2.3
+numpy==1.26.4
+pgvector==0.2.5
+pg8000==1.30.5
+boto3==1.34.143
