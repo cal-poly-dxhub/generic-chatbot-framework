@@ -19,8 +19,9 @@ import { WebSocket } from '../websocket';
 export interface ApiProps {
     readonly baseInfra: BaseInfra;
     readonly authentication: Authentication;
-    readonly rdsSecret: secretsmanager.ISecret;
-    readonly rdsEndpoint: string;
+    readonly rdsSecret?: secretsmanager.ISecret;
+    readonly rdsEndpoint?: string;
+    readonly knowledgeBaseId?: string;
     readonly conversationTable: ddb.ITable;
 }
 
@@ -119,9 +120,18 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
 
-        const chatApiHandler = this.createLambdaHandler('conversation', props);
+        const chatApiHandler = this.createLambdaHandler('conversation', props, {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            ...(props.rdsSecret && {
+                RDS_SECRET_ARN: props.rdsSecret.secretArn,
+            }),
+            ...(props.rdsEndpoint && { RDS_ENDPOINT: props.rdsEndpoint }),
+            CONVERSATION_TABLE_NAME: props.conversationTable.tableName,
+            CONVERSATION_INDEX_NAME: constants.CONVERSATION_STORE_GSI_INDEX_NAME,
+            /* eslint-enable @typescript-eslint/naming-convention */
+        });
         props.conversationTable.grantReadWriteData(chatApiHandler);
-        props.rdsSecret.grantRead(chatApiHandler);
+        props.rdsSecret?.grantRead(chatApiHandler);
 
         this.addMethod(chatResource, 'GET', chatApiHandler);
         this.addMethod(chatResource, 'PUT', chatApiHandler);
@@ -156,8 +166,25 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
 
-        const corpusApiHandler = this.createLambdaHandler('corpus', props);
-        props.rdsSecret.grantRead(corpusApiHandler);
+        const corpusApiHandler = this.createLambdaHandler('corpus', props, {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            ...(props.rdsSecret && {
+                RDS_SECRET_ARN: props.rdsSecret.secretArn,
+            }),
+            ...(props.rdsEndpoint && { RDS_ENDPOINT: props.rdsEndpoint }),
+            ...(props.knowledgeBaseId && { KNOWLEDGE_BASE_ID: props.knowledgeBaseId }),
+            /* eslint-enable @typescript-eslint/naming-convention */
+        });
+        corpusApiHandler.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['bedrock:Retrieve'],
+                resources: [
+                    `arn:aws:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:knowledge-base/${props.knowledgeBaseId}`,
+                ],
+            })
+        );
+        props.rdsSecret?.grantRead(corpusApiHandler);
         props.baseInfra.grantSagemakerEmbeddingsModelAccess(corpusApiHandler);
         props.baseInfra.grantBedrockEmbeddingsModelAccess(corpusApiHandler);
 
@@ -172,11 +199,6 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
         this.addMethod(embeddingQueryResource, 'POST', corpusApiHandler);
-
-        const modelInventoryResource = embeddingResource.addResource('model-inventory', {
-            defaultCorsPreflightOptions,
-        });
-        this.addMethod(modelInventoryResource, 'POST', corpusApiHandler);
 
         return corpusApiHandler;
     }
@@ -232,19 +254,13 @@ export class Api extends Construct {
             ],
             environment: {
                 ...constants.LAMBDA_COMMON_ENVIRONMENT,
-
                 /* eslint-disable @typescript-eslint/naming-convention */
                 POWERTOOLS_SERVICE_NAME: `${resourceName}-api`,
                 EMBEDDINGS_SAGEMAKER_MODELS: JSON.stringify(
                     props.baseInfra.systemConfig.ragConfig.embeddingsModels
                 ),
                 CONFIG_TABLE_NAME: props.baseInfra.configTable.tableName,
-                CONVERSATION_TABLE_NAME: props.conversationTable.tableName,
-                CONVERSATION_INDEX_NAME: constants.CONVERSATION_STORE_GSI_INDEX_NAME,
-                RDS_SECRET_ARN: props.rdsSecret.secretArn,
-                RDS_ENDPOINT: props.rdsEndpoint,
                 /* eslint-enable @typescript-eslint/naming-convention */
-
                 ...additionalEnvs,
             },
         });

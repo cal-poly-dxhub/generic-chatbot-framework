@@ -1,8 +1,8 @@
 {
   "name": "francis-genai-rag-chatbot-on-aws",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Francis GenAI RAG Chatbot on AWS",
-  "license": "ASL",
+  "license": "Apache 2.0",
   "bin": {
     "infra": "bin/infra.js"
   },

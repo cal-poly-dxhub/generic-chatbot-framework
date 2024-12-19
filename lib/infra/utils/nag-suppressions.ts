@@ -59,16 +59,6 @@ export const applyNagSuppressions = (stack: Stack): void => {
     );
 
     [
-        'IngestionPipeline/IngestionStateMachine/Role/DefaultPolicy/Resource',
-        'IngestionPipeline/embeddingsFunction/ServiceRole/DefaultPolicy/Resource',
-        'IngestionPipeline/inputValidationFunction/ServiceRole/DefaultPolicy/Resource',
-        'IngestionPipeline/embeddingsFunction/ServiceRole/Resource',
-        'IngestionPipeline/inputValidationFunction/ServiceRole/Resource',
-        'IngestionPipeline/cacheUpdateFunction/ServiceRole/DefaultPolicy/Resource',
-        'IngestionPipeline/cacheUpdateFunction/ServiceRole/Resource',
-        'IngestionPipeline/IngestionStateMachine/DistributedMapPolicy/Resource',
-        'IngestionPipeline/vectorStoreManagementFunction/ServiceRole/Resource',
-        'IngestionPipeline/vectorStoreManagementFunction/ServiceRole/DefaultPolicy/Resource',
         'Api/WebSocket/WsAuthorizerHandler/ServiceRole/Resource',
         'Api/WebSocket/WsApiHandler/ServiceRole/Resource',
         'Api/conversationApiHandler/ServiceRole/Resource',
@@ -84,12 +74,8 @@ export const applyNagSuppressions = (stack: Stack): void => {
         'Api/corpusApiHandler/ServiceRole/DefaultPolicy/Resource',
         'LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
         'LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
-        'PgVectorStore/rds-setup-handler/ServiceRole/Resource',
-        'PgVectorStore/rds-setup-handler/ServiceRole/DefaultPolicy/Resource',
         'BaseInfra/ConfigTableCustomResource/CustomResourcePolicy/Resource',
         'AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource',
-        'BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
-        'BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource',
     ].forEach((p) => {
         NagSuppressions.addResourceSuppressionsByPath(stack, `${stack.stackName}/${p}`, [
             {
@@ -104,17 +90,11 @@ export const applyNagSuppressions = (stack: Stack): void => {
     });
 
     [
-        'IngestionPipeline/inputValidationFunction/Resource',
-        'IngestionPipeline/embeddingsFunction/Resource',
-        'IngestionPipeline/cacheUpdateFunction/ServiceRole/Resource',
-        'IngestionPipeline/cacheUpdateFunction/Resource',
-        'IngestionPipeline/vectorStoreManagementFunction/Resource',
         'Api/WebSocket/WsAuthorizerHandler/Resource',
         'Api/WebSocket/WsApiHandler/Resource',
         'Api/conversationApiHandler/Resource',
         'Api/corpusApiHandler/Resource',
         'Api/inferenceApiHandler/Resource',
-        'PgVectorStore/rds-setup-handler/Resource',
     ].forEach((p) => {
         NagSuppressions.addResourceSuppressionsByPath(stack, `${stack.stackName}/${p}`, [
             {
@@ -198,16 +178,6 @@ export const applyNagSuppressions = (stack: Stack): void => {
 
     NagSuppressions.addResourceSuppressionsByPath(
         stack,
-        `/${stack.stackName}/PgVectorStore/rds-cluster/Secret/Resource`,
-        [
-            {
-                id: 'AwsSolutions-SMG4',
-                reason: 'The secret is created implicitly by CDK.',
-            },
-        ]
-    );
-    NagSuppressions.addResourceSuppressionsByPath(
-        stack,
         `/${stack.stackName}/Frontend/Distribution/Resource`,
         [
             {
@@ -217,17 +187,6 @@ export const applyNagSuppressions = (stack: Stack): void => {
             {
                 id: 'AwsSolutions-CFR2',
                 reason: 'The solution supports importing existing WAF for CloudFront distribution',
-            },
-        ]
-    );
-
-    NagSuppressions.addResourceSuppressionsByPath(
-        stack,
-        `/${stack.stackName}/PgVectorStore/rds-cluster/Resource`,
-        [
-            {
-                id: 'AwsSolutions-RDS10',
-                reason: 'This is subject to customer whether they want to retain the data or not.',
             },
         ]
     );

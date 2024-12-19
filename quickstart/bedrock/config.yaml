@@ -59,5 +59,7 @@ systemConfig:
         modelId: amazon.titan-embed-text-v1
         modelRefKey: titan-embed-text-v1
         dimensions: 1536
+    corpusConfig:
+      corpusType: knowledgebase
   wafConfig:
     enableApiGatewayWaf: true

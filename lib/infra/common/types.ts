@@ -4,12 +4,14 @@ SPDX-License-Identifier: Apache-2.0
 */
 /* eslint-disable @typescript-eslint/naming-convention */
 
+import { CfnDataSource } from 'aws-cdk-lib/aws-bedrock';
+
 export interface SolutionInfo {
     readonly solutionName: string;
     readonly solutionVersion: string;
 }
 
-export type VectorStoreType = 'pgvector';
+export type VectorStoreType = 'pgvector' | 'opensearch';
 
 export interface PgVectorStoreConfig {
     readonly vectorStoreType: 'pgvector';
@@ -30,7 +32,37 @@ export interface PgVectorStoreConfig {
     };
 }
 
-export type VectorStoreConfig = PgVectorStoreConfig;
+export interface OpenSearchVectorStoreConfig {
+    readonly vectorStoreType: 'opensearch';
+    readonly vectorStoreProperties?: {
+        readonly standbyReplicas: 'ENABLED' | 'DISABLED';
+    };
+}
+
+export type VectorStoreConfig = PgVectorStoreConfig | OpenSearchVectorStoreConfig;
+
+export type CorpusType = 'knowledgebase' | 'default';
+
+export interface BaseCorpusConfig {
+    readonly corpusType: CorpusType;
+}
+
+export interface KnowledgeBaseCorpusConfig extends BaseCorpusConfig {
+    readonly corpusType: 'knowledgebase';
+    readonly corpusProperties?: {
+        chunkingConfiguration?: CfnDataSource.ChunkingConfigurationProperty;
+    };
+}
+
+export interface DefaultCorpusConfig extends BaseCorpusConfig {
+    readonly corpusType: 'default';
+    readonly corpusProperties?: {
+        chunkingConfiguration?: {
+            chunkSize?: number;
+            chunkOverlap?: number;
+        };
+    };
+}
 
 export type ModelProvider = 'sagemaker' | 'bedrock';
 
@@ -106,6 +138,7 @@ export interface SystemConfig {
     ragConfig: {
         vectorStoreConfig: VectorStoreConfig;
         embeddingsModels: EmbeddingModel[];
+        corpusConfig?: KnowledgeBaseCorpusConfig | DefaultCorpusConfig;
     };
     chatHistoryConfig?: {
         storeType: 'dynamodb' | 'aurora_postgres';

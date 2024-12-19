@@ -1,8 +1,8 @@
 ### Table of contents
 
 -   [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
--   [Key features](#key-features)
 -   [Licence](#icence)
+-   [Key features](#key-features)
 -   [Architecture overview](#architecture-overview)
     -   [Architecture reference diagram](#architecture-reference-diagram)
     -   [Solution components](#solution-components)
@@ -14,6 +14,7 @@
     -   [Configuration](#configuration)
     -   [Build and deploy](#build-and-deploy)
 -   [How to handle promotion-related questions](#how-to-handle-promotion-related-questions)
+-   [Choosing Ingestion Method](#choosing-ingestion-method)
 -   [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
 -   [Access the solution web UI](#access-the-solution-web-ui)
 -   [Uninstall the solution](#uninstall-the-solution)
@@ -35,14 +36,31 @@ Licensed under the Apache License Version 2.0 (the "License"). You may not use t
 or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ## Key Features
+1. **Flexible Document Ingestion Pipeline**: The chatbot offers two powerful ingestion paths:
+   - **Default Pipeline**: A customizable pipeline that processes various document formats (CSV, plain text) using Lambda functions and stores embeddings in Aurora PostgreSQL.
+   - **Amazon Bedrock Knowledge Base**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in OpenSearch Serverless.
 
-1. **Document Ingestion Pipeline**: The chatbot incorporates a flexible document ingestion pipeline that can ingest and process various document formats, including but not limited to PDF, and plain text files. This feature allows you to easily incorporate existing knowledge bases or documentation into your chatbot's understanding.
+2. **Dual Vector Store Support**: 
+   - **Postgres pgvector**: Efficient vector similarity search using Aurora PostgreSQL with the pgvector extension, ideal for smaller to medium-sized datasets and cost-sensitive deployments.
+   - **OpenSearch Serverless**: Managed vector search solution that seamlessly integrates with Amazon Bedrock Knowledge Base, offering better scalability for larger datasets.
 
-1. **Postgres pgvector for Embeddings Store**: The project utilizes Postgres pgvector, a powerful extension for vector similarity searches, to store and manage document embeddings efficiently. This approach enables fast and accurate retrieval of relevant information from the ingested documents, enhancing the chatbot's ability to provide contextual and meaningful responses.
+3. **AWS Bedrock Integration**: 
+   - Direct access to state-of-the-art foundation models through AWS Bedrock
+   - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
+   - Support for various embedding models and text generation models
+   - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
 
-1. **AWS Bedrock and SageMaker Integration**: The chatbot seamlessly integrates with AWS Bedrock, a managed service for building and deploying machine learning models, as well as SageMaker, Amazon's fully managed machine learning service. This integration allows you to leverage pre-trained large language models hosted on Amazon Bedrock or deploy custom models trained on SageMaker, providing flexibility and scalability for your chatbot's language understanding capabilities.
+4. **Interactive Chatbot Interface**: User-friendly interface supporting:
+   - Natural language conversations
+   - Context-aware responses
+   - Real-time document querying
+   - Follow-up questions and clarifications
 
-1. **Interactive Chatbot Interface**: The project includes a user-friendly chatbot interface that allows users to engage in natural language conversations with the chatbot. The interface provides a seamless experience for users to ask questions, receive contextual responses, and engage in follow-up conversations.
+5. **Enterprise-Ready Features**:
+   - High availability options with OpenSearch Serverless standby replicas
+   - Scalable architecture supporting both serverless and provisioned resources
+   - Comprehensive security controls and encryption
+   - Flexible deployment options to match your requirements
 
 ---
 
@@ -63,21 +81,51 @@ The solution deploys the following components:
 
 - **Amazon CloudFront Distribution**: Amazon CloudFront distribution is used to serve the ChatBot Web UI. CloudFront delivers low latency, high performance, and secure static web hosting. An Amazon Simple Storage Service (Amazon S3) web UI bucket hosts the static web application artifacts.
 
-- **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution’s functionalities without extensive configuration.
+- **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution's functionalities without extensive configuration.
 
 - **Amazon API Gateway**: It exposes a set of RESTful APIs and routes incoming requests to the backend lambda functions.
 
 - **Chat Lambda Function**: This lambda function stores and retrieves chat messages for user's chat sessions in a DynamoDB table, enabling the maintenance of conversational context.
 
-- **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with the similarity search function to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
+- **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with either the similarity search function or Bedrock Knowledge Base to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
 
-- **Similarity Search Lambda Function**: The Similarity Search Lambda Function handles semantic search queries. It consults an embeddings model to convert the user's question into embeddings, a dense vector representation. Using these embeddings, the function fetches the most relevant documents from the vector store by performing a similarity search. This process ensures that the retrieved documents are highly relevant to the user's query, enabling accurate and contextual responses.
+- **Vector Store**: The solution supports two vector store options:
+  - **Amazon Aurora PostgreSQL**: A serverless cluster with the PGVector extension to store document chunks and embeddings when using the default ingestion pipeline.
+  - **Amazon OpenSearch Serverless**: A managed vector search service that integrates with Bedrock Knowledge Base, offering enhanced scalability and built-in high availability through standby replicas.
+
+- **Document Ingestion**: The solution provides two ingestion paths:
+  - **Default Pipeline**: An AWS Step Function that orchestrates document processing, including:
+    - Document chunking and preprocessing
+    - Embedding generation
+    - Vector store ingestion (Aurora PostgreSQL)
+  - **Amazon Bedrock Knowledge Base**: A managed document ingestion service that provides:
+    - Built-in document processing and chunking
+    - Automatic embedding generation
+    - Direct integration with OpenSearch Serverless
+    - Simplified management through Bedrock console
 
 - **Chat History Data Store**: A DynamoDB table which stores the user's chat session messages.
 
-- **Ingestion Pipeline**: An AWS Step Function that encapsulates the logic to ingest documents stored in an S3 bucket, split the documents into small chunks, convert the chunks into embeddings, and store the chunks and embeddings into the vector store.
+- **Amazon Bedrock**: Provides access to:
+  - Foundation Models for text generation
+  - Embedding Models for vector generation
+  - Knowledge Base for document ingestion and retrieval
+  - Built-in RAG capabilities when using Knowledge Base
 
-- **Vector Store**: An Amazon Aurora PostgreSQL serverless cluster with the PGVector extension to store the chunks of documents and embeddings.
+The solution architecture adapts based on the chosen ingestion path and vector store configuration:
+
+1. **Default Pipeline with Aurora PostgreSQL**:
+   - Uses Step Functions for document processing
+   - Stores vectors in Aurora PostgreSQL
+   - Provides full control over the ingestion process
+
+2. **Bedrock Knowledge Base with OpenSearch Serverless**:
+   - Leverages managed document processing
+   - Stores vectors in OpenSearch Serverless
+   - Offers simplified management and scalability
+   - Enables built-in Bedrock RAG capabilities
+
+Both configurations maintain the same high-level architecture while offering different trade-offs in terms of management overhead, scalability, and control.
 
 ---
 
@@ -193,9 +241,9 @@ Specify settings for the large language models, including streaming, conversatio
           Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language. 
           If there is no chat history, just rephrase the question to be a standalone question.
 
-        Chat History:
-        ${chat_history}
-        Follow Up Input: ${question}
+          Chat History:
+          ${chat_history}
+          Follow Up Input: ${question}
         ```
     
     -   **promptVariables**: The list of variables used in the prompt template.
@@ -264,13 +312,35 @@ Specify settings for the large language models, including streaming, conversatio
 
 **RAG configuration**
 
--   **vectorStoreConfig**: Configuration for the vector store. Currently, it supports Amazon Aurora PostgreSQL only.
+-   **vectorStoreConfig**: Configuration for the vector store. This solution supports two types of vector stores: Amazon Aurora PostgreSQL and Amazon OpenSearch Serverless.
+
     ```yaml
-    vectorStoreType: <The type of vector store used (e.g., pgvector).>
-    vectorStoreProperties:
-      minCapacity: <The minimum capacity (in Aurora Capacity Units) for the vector store.>
-      maxCapacity: <The maximum capacity (in Aurora Capacity Units) for the vector store.>
-      useRDSProxy: <Boolean flag indicating if RDS proxy is used for database connections.>
+    vectorStoreConfig:
+      vectorStoreType: '<pgvector | opensearch>'
+      vectorStoreProperties:
+        # For pgvector (Aurora PostgreSQL)
+        minCapacity: <The minimum capacity (in Aurora Capacity Units) for the vector store.>
+        maxCapacity: <The maximum capacity (in Aurora Capacity Units) for the vector store.>
+        useRDSProxy: <Boolean flag indicating if RDS proxy is used for database connections.>
+
+        # For OpenSearch Serverless
+        standbyReplicas: <'ENABLED' | 'DISABLED', Indicates whether to use standby replicas for the collection. Default is ENABLED>
+    ```
+    Example for pgvector:
+    ```yaml
+    vectorStoreConfig:
+      vectorStoreType: 'pgvector'
+      vectorStoreProperties:
+        minCapacity: 2
+        maxCapacity: 8
+        useRDSProxy: true
+    ```
+    Example for OpenSearch Serverless:
+    ```yaml
+    vectorStoreConfig:
+      vectorStoreType: 'opensearch'
+      vectorStoreProperties:
+        standbyReplicas: 'ENABLED'  # Enable high availability with standby replicas
     ```
 
 -   **embeddingsModels**: A list of embeddings models used for generating document embeddings. 
@@ -283,6 +353,41 @@ Specify settings for the large language models, including streaming, conversatio
         modelEndpointName: <The name of the SageMaker endpoint for the embeddings model (required for SageMaker models).>
     ```
     If multiple embedding models are configured, the first model in the list will be chosen by default unless modelRefKey is specified.
+
+-  **corpusConfig**: Configuration for the document corpus and ingestion settings. The solution provides two ingestion paths:
+    1. **Default Pipeline**: Uses Aurora PostgreSQL as the vector store
+      - Automatically provisions an ingestion pipeline
+      - Processes documents through Lambda functions
+      - Stores embeddings in Aurora PostgreSQL
+
+    2. **Amazon Bedrock Knowledge Base**: Uses OpenSearch Serverless as the vector store
+      - Leverages Amazon Bedrock's built-in ingestion capabilities
+      - Requires OpenSearch Serverless as the vector store
+      - Provides managed chunking and processing
+
+    > **Important**: To use Amazon Bedrock Knowledge Base, you must configure OpenSearch Serverless as your vector store in the `vectorStoreConfig` section. To use default ingestion pipeline, you must configure Aurora PostgreSQL as the vector store in the `vectorStoreConfig`.
+
+    ```yaml
+    corpusConfig:
+      corpusType: <'default' | 'knowledgebase'>
+      corpusProperties:
+        # chunking configuration for default
+        chunkingConfiguration:
+          chunkSize: <Number of characters per chunk, default is 1000>
+          chunkOverlap: <Number of characters overlapping between chunks, default is 200>
+        # chunk configuration for knowledgebase
+        chunkingConfiguration:
+          chunkingStrategy: <'FIXED_SIZE' | 'SEMANTIC', default is 'FIXED_SIZE'>
+            # For FIXED_SIZE strategy
+            fixedSizeChunkingConfiguration:
+              maxTokens: <Maximum tokens per chunk (1-1000), default is 512>
+              overlapPercentage: <Overlap between chunks (0-100), default is 20>
+            # For SEMANTIC strategy
+            semanticChunkingConfiguration: 
+              maxTokens: <Maximum tokens per chunk (1-1000)>
+              overlapPercentage: <Overlap between chunks (0-100)>
+              boundaryType: <'SENTENCE' | 'PARAGRAPH'>
+    ```
 
 **Chat history configuration (optional)**
 By default, this solution uses DynamoDB to store chat history. Alternatively, it supports storing chat history in the same PostgreSQL database as the vector store.
@@ -320,9 +425,33 @@ wafConfig:
 4. Build the code: `npm run build`
 5. Deploy the solution: `npm run cdk deploy -- --parameters adminUserEmail=<ADMIN_EMAIL_ADDRESS>`
 
----
+## Choosing ingestion method
+
+The solution provides two methods for document ingestion. Here's a guide to help you choose the right method for your use case:
+
+### Default Pipeline (Aurora PostgreSQL)
+Uses AWS Step Functions and Lambda functions for document processing, with Aurora PostgreSQL as the vector store.
+
+**Best For:**
+- Custom document preprocessing requirements
+- Fine-grained control over the ingestion process
+- Integration with existing PostgreSQL workflows
+- Cost-sensitive deployments
+- Smaller to medium-sized document collections
+
+### Amazon Bedrock Knowledge Base (OpenSearch Serverless)
+Uses Amazon Bedrock's built-in capabilities for document processing, with OpenSearch Serverless as the vector store.
+
+**Best For:**
+- Simplified operations and management
+- Large-scale document collections
+- Quick setup and deployment
+- Integration with other Bedrock features
+- Production workloads requiring high availability
 
 ## How to ingest the documents into vector store
+
+### Method 1: Default Pipeline (Aurora PostgreSQL)
 This section provides instructions on how to ingest documents into the vector store using our AWS Step Function-based ingestion pipeline. 
 1. Find the input bucket name from deployment output starting with `InputBucket`. Upload the documents from local directory to the input bucket.
 
@@ -345,6 +474,22 @@ aws stepfunctions describe-execution --execution-arn <execution-arn>
 
 4. Review the logs generated by the Lambda functions for any errors or issues during the ingestion process. Logs can be accessed through AWS CloudWatch.
 
+### Method 2: Amazon Bedrock Knowledge Base (OpenSearch Serverless)
+This section provides instructions on how to ingest documents into Amazon Bedrock Knowledge Base using the AWS CLI. 
+1. Find the input bucket name from deployment output starting with `InputBucket`. Upload the documents from local directory to the input bucket.
+```bash
+aws s3 cp <local_dir> s3://<input_bucket>/<input_prefix>/ --recursive
+```
+
+2. Find the knowledge base id from deployment output starting with 'KnowledgeBase'. Start the ingestion job using the AWS CLI.
+```bash
+aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id>
+```
+
+3. Monitor the ingestion job status with the AWS CLI.
+```bash
+aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --ingestion-job-id <job-id>
+```
 
 ## Access the solution web UI
 

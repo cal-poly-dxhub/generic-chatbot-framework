@@ -19,8 +19,8 @@ import { applyNagSuppressions } from '../lib/infra/utils/nag-suppressions';
 process.env.DOCKER_DEFAULT_PLATFORM = constants.LAMBDA_ARCHITECTURE.dockerPlatform;
 
 const solutionInfo = {
-    solutionName: 'Retrieval Augmented Chatbot on AWS',
-    solutionVersion: 'v0.0.1',
+    solutionName: 'Francis GenAI RAG Chatbot on AWS',
+    solutionVersion: 'v1.0.1',
 };
 
 const app = new cdk.App();

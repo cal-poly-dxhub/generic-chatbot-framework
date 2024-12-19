@@ -16,17 +16,17 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as constants from '../common/constants';
 import { BaseInfra } from '../base-infra';
 import { Construct } from 'constructs';
+import { NagSuppressions } from 'cdk-nag';
+import { DefaultCorpusConfig } from '../common/types';
 
 export interface IngestionPipelineProps {
     readonly baseInfra: BaseInfra;
     readonly rdsSecret: secretsmanager.ISecret;
     readonly rdsEndpoint: string;
-    readonly inferenceLambda: lambda.IFunction;
+    readonly inputAssetsBucket: s3.IBucket;
 }
 
 export class IngestionPipeline extends Construct {
-    public readonly inputAssetsBucket: s3.Bucket;
-
     public readonly ingestionStateMachine: stepfn.StateMachine;
 
     public readonly embeddingsFunction: lambda.IFunction;
@@ -98,21 +98,14 @@ export class IngestionPipeline extends Construct {
         });
         cacheTable.grantReadWriteData(cacheUpdateLambda);
 
-        // Bucket containing the inputs assets (documents - multiple modalities) uploaded by the user
-        const inputAssetsBucket = new s3.Bucket(this, 'inputAssetsBucket', {
-            ...constants.BUCKET_COMMON_PROPERTIES,
-            serverAccessLogsBucket: props.baseInfra.serverAccessLogsBucket,
-        });
-        inputAssetsBucket.grantRead(cacheUpdateLambda);
-        inputAssetsBucket.grantRead(props.inferenceLambda);
-        inputAssetsBucket.addEventNotification(
+        props.inputAssetsBucket.grantRead(cacheUpdateLambda);
+        props.inputAssetsBucket.addEventNotification(
             s3.EventType.OBJECT_CREATED,
             new s3n.LambdaDestination(cacheUpdateLambda)
         );
         cacheTable.grantWriteData(cacheUpdateLambda);
-        this.inputAssetsBucket = inputAssetsBucket;
 
-        // Bucket containing the processed assets (documents - text format) uploaded by the user
+        // Bucket containing the artifacts of ingestion pipeline
         const processedAssetsBucket = new s3.Bucket(this, 'processedAssetsBucket', {
             ...constants.BUCKET_COMMON_PROPERTIES,
             serverAccessLogsBucket: props.baseInfra.serverAccessLogsBucket,
@@ -148,9 +141,13 @@ export class IngestionPipeline extends Construct {
                 },
             }
         );
-        inputAssetsBucket.grantRead(inputValidationFunction);
+        props.inputAssetsBucket.grantRead(inputValidationFunction);
         processedAssetsBucket.grantWrite(inputValidationFunction);
         cacheTable.grantReadData(inputValidationFunction);
+
+        const corpusConfig = props.baseInfra.systemConfig.ragConfig.corpusConfig as
+            | DefaultCorpusConfig
+            | undefined;
 
         // Lambda function performing the embedding job
         const embeddingsFunction = new lambda.Function(this, 'embeddingsFunction', {
@@ -166,14 +163,20 @@ export class IngestionPipeline extends Construct {
                 POWERTOOLS_SERVICE_NAME: 'ingestion-embeddings',
                 RDS_SECRET_ARN: props.rdsSecret.secretArn,
                 RDS_ENDPOINT: props.rdsEndpoint,
-                CHUNK_SIZE_DOC_SPLIT: constants.CHUNK_SIZE_DOC_SPLIT,
-                OVERLAP_FOR_DOC_SPLIT: constants.OVERLAP_FOR_DOC_SPLIT,
+                CHUNK_SIZE_DOC_SPLIT: (
+                    corpusConfig?.corpusProperties?.chunkingConfiguration?.chunkSize ||
+                    constants.CHUNK_SIZE_DOC_SPLIT
+                ).toString(),
+                OVERLAP_FOR_DOC_SPLIT: (
+                    corpusConfig?.corpusProperties?.chunkingConfiguration?.chunkOverlap ||
+                    constants.OVERLAP_FOR_DOC_SPLIT
+                ).toString(),
 
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         });
         processedAssetsBucket.grantRead(embeddingsFunction);
-        inputAssetsBucket.grantRead(embeddingsFunction);
+        props.inputAssetsBucket.grantRead(embeddingsFunction);
         props.baseInfra.configTable.grantReadData(embeddingsFunction);
         props.baseInfra.grantBedrockEmbeddingsModelAccess(embeddingsFunction);
         props.baseInfra.grantSagemakerEmbeddingsModelAccess(embeddingsFunction);
@@ -293,8 +296,67 @@ export class IngestionPipeline extends Construct {
             }
         );
 
+        new cdk.CfnOutput(this, 'StateMachineArn', {
+            value: ingestionStateMachine.stateMachineArn,
+        });
+
+        this.applyNagSuppressions();
+
         this.ingestionStateMachine = ingestionStateMachine;
         this.embeddingsFunction = embeddingsFunction;
         this.inputValidationFunction = inputValidationFunction;
+    }
+
+    private applyNagSuppressions(): void {
+        const stack = cdk.Stack.of(this);
+
+        [
+            'IngestionPipeline/IngestionStateMachine/Role/DefaultPolicy/Resource',
+            'IngestionPipeline/embeddingsFunction/ServiceRole/DefaultPolicy/Resource',
+            'IngestionPipeline/inputValidationFunction/ServiceRole/DefaultPolicy/Resource',
+            'IngestionPipeline/embeddingsFunction/ServiceRole/Resource',
+            'IngestionPipeline/inputValidationFunction/ServiceRole/Resource',
+            'IngestionPipeline/cacheUpdateFunction/ServiceRole/DefaultPolicy/Resource',
+            'IngestionPipeline/cacheUpdateFunction/ServiceRole/Resource',
+            'IngestionPipeline/IngestionStateMachine/DistributedMapPolicy/Resource',
+            'IngestionPipeline/vectorStoreManagementFunction/ServiceRole/Resource',
+            'IngestionPipeline/vectorStoreManagementFunction/ServiceRole/DefaultPolicy/Resource',
+            'BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
+            'BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource',
+        ].forEach((p) => {
+            NagSuppressions.addResourceSuppressionsByPath(
+                stack,
+                `${stack.stackName}/${p}`,
+                [
+                    {
+                        id: 'AwsSolutions-IAM4',
+                        reason: 'The only managed policy that is used is the AWSLambdaBasicExecutionRole which is provided by default by CDK',
+                    },
+                    {
+                        id: 'AwsSolutions-IAM5',
+                        reason: 'CDK deployment resources are managed by CDK',
+                    },
+                ]
+            );
+        });
+
+        [
+            'IngestionPipeline/inputValidationFunction/Resource',
+            'IngestionPipeline/embeddingsFunction/Resource',
+            'IngestionPipeline/cacheUpdateFunction/ServiceRole/Resource',
+            'IngestionPipeline/cacheUpdateFunction/Resource',
+            'IngestionPipeline/vectorStoreManagementFunction/Resource',
+        ].forEach((p) => {
+            NagSuppressions.addResourceSuppressionsByPath(
+                stack,
+                `${stack.stackName}/${p}`,
+                [
+                    {
+                        id: 'AwsSolutions-L1',
+                        reason: 'The selected runtime version, Python 3.11, has been intentionally chosen to align with specific project requirements',
+                    },
+                ]
+            );
+        });
     }
 }

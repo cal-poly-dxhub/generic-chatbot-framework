@@ -8,9 +8,11 @@ from typing import Any, List, Literal, Optional, Tuple
 
 import botocore
 from langchain_core.embeddings import Embeddings
+from langchain_core.retrievers import BaseRetriever
 from langchain_core.vectorstores import VectorStore
 
 from .clients import (
+    bedrock_agent_client,
     bedrock_client,
     dynamodb_resource_client,
     lambda_client,
@@ -20,6 +22,7 @@ from .clients import (
 from .embeddings.bedrock_embeddings import BedrockEmbeddings
 from .embeddings.sagemaker_embeddings import SagemakerEndpointEmbeddings
 from .pgvector.vectorstores import PGVector
+from .retrievers.knowledgebase_retriever import AmazonKnowledgeBasesRetriever, RetrievalConfig
 from .types import EmbeddingModel
 
 
@@ -70,6 +73,33 @@ def get_vector_store(embedding_model: EmbeddingModel, **kwargs: Any) -> VectorSt
     )
 
     return vector_store
+
+
+def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) -> BaseRetriever:
+    _retriever: BaseRetriever
+
+    system_config = load_config_from_dynamodb(os.getenv("CONFIG_TABLE_NAME", ""), "system_configuration")
+
+    corpus_config = system_config["ragConfig"].get("corpusConfig")
+
+    embedding_model = find_embedding_model_by_ref_key(modelRefKey)
+    if not embedding_model:
+        raise ValueError(f"InvalidPayload: no embedding model found for ref key {corpus_config['embeddingModelRefKey']}.")
+
+    if corpus_config and corpus_config["corpusType"] == "knowledgebase":
+        _retriever = AmazonKnowledgeBasesRetriever(
+            client=bedrock_agent_client,
+            knowledge_base_id=os.getenv("KNOWLEDGE_BASE_ID", ""),
+            retrieval_config=RetrievalConfig.parse_obj({"vectorSearchConfiguration": {"numberOfResults": k}}),
+            min_score_confidence=score_threshold,
+        )
+    else:
+        vector_store = get_vector_store(embedding_model)
+        _retriever = vector_store.as_retriever(
+            search_type="similarity_score_threshold", search_kwargs={"score_threshold": score_threshold, "k": k}
+        )
+
+    return _retriever
 
 
 def get_rds_connection_string() -> str:

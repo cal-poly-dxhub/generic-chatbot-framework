@@ -4,10 +4,7 @@ from typing import Any, Dict, Optional
 
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler.api_gateway import Router
-from francis_toolkit.utils import (
-    find_embedding_model_by_ref_key,
-    get_vector_store,
-)
+from francis_toolkit.utils import get_retriever
 from pydantic import BaseModel
 
 tracer = Tracer()
@@ -28,29 +25,20 @@ class SimilaritySearchRequest(BaseModel):
 def similarity_search_handler() -> Dict:
     request = SimilaritySearchRequest(**router.current_event.body)  # type: ignore
 
-    embedding_model = find_embedding_model_by_ref_key(request.modelRefKey)
-    if not embedding_model:
-        raise ValueError(f"InvalidPayload: no embedding model found for ref key {request.modelRefKey}.")
-
-    vector_store = get_vector_store(embedding_model)
-
     kw_params: Dict[str, Any] = {}
 
     if request.limit:
         kw_params["k"] = int(request.limit)
 
     if request.threshold:
-        kw_params["threshold"] = float(request.threshold)
+        kw_params["score_threshold"] = float(request.threshold)
 
-    response = vector_store.similarity_search_with_score(
-        # TODO: filter / metadata
-        query=request.question,
-        **kw_params,
-    )
+    retriever = get_retriever(request.modelRefKey, **kw_params)
+    response = retriever.invoke(request.question)
 
     documents = []
-    for doc, score in response:
-        documents.append({"pageContent": doc.page_content, "metadata": doc.metadata, "score": score})
+    for doc in response:
+        documents.append({"pageContent": doc.page_content, "metadata": doc.metadata})
 
     return {
         "data": {

@@ -34,6 +34,8 @@ export const COGNITO_ADMIN_GROUP_NAME = 'Administrators';
 
 export const LAMBDA_COMMON_PROPERTIES = {
     architecture: LAMBDA_ARCHITECTURE,
+    runtime: LAMBDA_PYTHON_RUNTIME,
+    memorySize: 256,
     timeout: cdk.Duration.minutes(5),
     tracing: lambda.Tracing.ACTIVE,
     vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },

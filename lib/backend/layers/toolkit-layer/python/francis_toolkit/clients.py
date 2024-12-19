@@ -11,6 +11,8 @@ s3_client = boto3.client("s3")
 
 bedrock_client = boto3.client("bedrock-runtime")
 
+bedrock_agent_client = boto3.client("bedrock-agent-runtime")
+
 dynamodb_resource_client = boto3.resource("dynamodb")
 
 dynamodb_client = boto3.client("dynamodb")

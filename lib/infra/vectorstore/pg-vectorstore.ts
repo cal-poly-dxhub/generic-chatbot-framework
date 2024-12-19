@@ -12,6 +12,8 @@ import * as path from 'path';
 
 import { CustomResource } from 'aws-cdk-lib';
 import { BaseInfra } from '../base-infra';
+import { PgVectorStoreConfig } from '../common/types';
+import { NagSuppressions } from 'cdk-nag';
 
 export interface PgVectorStoreProps {
     readonly baseInfra: BaseInfra;
@@ -35,8 +37,8 @@ export class PgVectorStore extends Construct {
             'Allow VPC resources access'
         );
 
-        const vectorStoreConfig =
-            props.baseInfra.systemConfig.ragConfig.vectorStoreConfig;
+        const vectorStoreConfig = props.baseInfra.systemConfig.ragConfig
+            .vectorStoreConfig as PgVectorStoreConfig;
 
         this.cluster = new rds.DatabaseCluster(this, 'rds-cluster', {
             engine: rds.DatabaseClusterEngine.auroraPostgres({
@@ -57,6 +59,21 @@ export class PgVectorStore extends Construct {
             storageEncrypted: true,
             iamAuthentication: true,
         });
+
+        NagSuppressions.addResourceSuppressions(
+            this.cluster,
+            [
+                {
+                    id: 'AwsSolutions-RDS10',
+                    reason: 'The RDS cluster deletion protection is controlled by configuration',
+                },
+                {
+                    id: 'AwsSolutions-SMG4',
+                    reason: 'The secret is automtically created by CDK. The rotation is documented in path to production.',
+                },
+            ],
+            true
+        );
 
         if (vectorStoreConfig.vectorStoreProperties?.useRDSProxy) {
             this.rdsProxy = this.cluster.addProxy('rds-proxy', {
@@ -106,6 +123,25 @@ export class PgVectorStore extends Construct {
             },
         });
         this.cluster.secret!.grantRead(setupHandler);
+
+        NagSuppressions.addResourceSuppressions(
+            [setupHandler],
+            [
+                {
+                    id: 'AwsSolutions-L1',
+                    reason: 'The selected runtime version, Python 3.11, has been intentionally chosen to align with specific project requirements',
+                },
+                {
+                    id: 'AwsSolutions-IAM4',
+                    reason: 'The AWS managed policies AWSLambdaBasicExecutionRole and AWSLambdaVPCAccessExecutionRole are automatically managed by CDK',
+                },
+                {
+                    id: 'AwsSolutions-IAM5',
+                    reason: 'The wildcard is used to allow access to all log groups and streams',
+                },
+            ],
+            true
+        );
 
         const cr = new CustomResource(this, 'cr-rds-setup', {
             serviceToken: setupHandler.functionArn,

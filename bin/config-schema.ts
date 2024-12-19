@@ -66,7 +66,7 @@ const configSchema = {
                         vectorStoreType: {
                             description: 'Type of vector store',
                             type: 'string',
-                            enum: ['pgvector'],
+                            enum: ['pgvector', 'opensearch'],
                         },
                         vectorStoreProperties: {
                             description: 'Properties of the vector store',
@@ -91,6 +91,21 @@ const configSchema = {
                         },
                     },
                     required: ['vectorStoreType'],
+                },
+                corpusConfig: {
+                    description: 'Configuration for the document corpus and ingestion',
+                    type: 'object',
+                    properties: {
+                        corpusProperties: {
+                            description: 'Properties for corpus configuration',
+                            type: 'object',
+                        },
+                        corpusType: {
+                            description: 'Type of corpus',
+                            type: 'string',
+                            enum: ['default', 'knowledgebase'],
+                        },
+                    },
                 },
                 embeddingsModels: {
                     description: 'List of embeddings models',

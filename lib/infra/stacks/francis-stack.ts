@@ -4,7 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3deployment from 'aws-cdk-lib/aws-s3-deployment';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { SolutionInfo, SystemConfig } from '../common/types';
 import { BaseInfra } from '../base-infra';
@@ -13,8 +15,11 @@ import { Authentication } from '../auth';
 import { Frontend } from '../frontend';
 import { Api } from '../api';
 import * as path from 'path';
+import * as constants from '../common/constants';
 import { IngestionPipeline } from '../ingestion/pipeline';
 import { ConversationStore } from '../conversation-store';
+import { OpenSearchVectorStore } from '../vectorstore/opensearch-vectorstore';
+import { KnowledgeBase } from '../knowledgebase';
 
 export interface FrancisChatbotStackProps extends cdk.StackProps {
     readonly systemConfig: SystemConfig;
@@ -48,10 +53,6 @@ export class FrancisChatbotStack extends cdk.Stack {
             accessLogsBucket: baseInfra.serverAccessLogsBucket,
         });
 
-        const vectorStore = new PgVectorStore(this, 'PgVectorStore', {
-            baseInfra,
-        });
-
         const conversationStore = new ConversationStore(this, 'ConversationStore', {
             baseInfra,
         });
@@ -63,20 +64,67 @@ export class FrancisChatbotStack extends cdk.Stack {
             removalPolicy,
         });
 
+        // Bucket containing the inputs assets (documents - multiple modalities) uploaded by the user
+        const inputAssetsBucket = new s3.Bucket(this, 'InputAssetsBucket', {
+            ...constants.BUCKET_COMMON_PROPERTIES,
+            serverAccessLogsBucket: baseInfra.serverAccessLogsBucket,
+        });
+
+        const apiProps = {};
+
+        if (
+            baseInfra.systemConfig.ragConfig.corpusConfig?.corpusType == 'knowledgebase'
+        ) {
+            const bedrockRole = new iam.Role(this, 'BedrockExecutionRole', {
+                assumedBy: new iam.ServicePrincipal('bedrock.amazonaws.com'),
+            });
+
+            const vectorStore = new OpenSearchVectorStore(this, 'OpenSearchVectorStore', {
+                baseInfra,
+                dataAccessRoles: [bedrockRole],
+            });
+
+            const knowledgeBase = new KnowledgeBase(this, 'KnolwedgeBase', {
+                baseInfra,
+                bedrockRole,
+                vectorStore,
+                inputAssetsBucket,
+            });
+
+            knowledgeBase.knowledgeBase.node.addDependency(
+                vectorStore.opensearchSetupHandler
+            );
+
+            Object.assign(apiProps, {
+                knowledgeBaseId: knowledgeBase.knowledgeBase.attrKnowledgeBaseId,
+            });
+        } else {
+            const vectorStore = new PgVectorStore(this, 'PgVectorStore', {
+                baseInfra,
+            });
+
+            new IngestionPipeline(this, 'IngestionPipeline', {
+                baseInfra,
+                inputAssetsBucket,
+                rdsSecret: vectorStore.cluster.secret!,
+                rdsEndpoint: vectorStore.rdsEndpoint,
+            });
+
+            Object.assign(apiProps, {
+                rdsSecret: vectorStore.cluster.secret!,
+                rdsEndpoint: vectorStore.rdsEndpoint,
+            });
+        }
+
         const api = new Api(this, 'Api', {
             baseInfra,
             authentication,
-            rdsSecret: vectorStore.cluster.secret!,
-            rdsEndpoint: vectorStore.rdsEndpoint,
             conversationTable: conversationStore.conversationTable,
+            ...apiProps,
         });
 
-        const ingestionPipeline = new IngestionPipeline(this, 'IngestionPipeline', {
-            baseInfra,
-            rdsSecret: vectorStore.cluster.secret!,
-            rdsEndpoint: vectorStore.rdsEndpoint,
-            inferenceLambda: api.inferenceLambda,
-        });
+        // Allow inference lambda to read the promotion image in the input asset
+        inputAssetsBucket.grantRead(api.inferenceLambda);
 
         new s3deployment.BucketDeployment(this, 'FrontendDeployment', {
             sources: [
@@ -104,16 +152,11 @@ export class FrancisChatbotStack extends cdk.Stack {
             value: authentication.userPool.userPoolId,
         });
         new cdk.CfnOutput(this, 'InputBucket', {
-            value: ingestionPipeline.inputAssetsBucket.bucketName,
+            value: inputAssetsBucket.bucketName,
         });
-        new cdk.CfnOutput(this, 'StateMachineArn', {
-            value: ingestionPipeline.ingestionStateMachine.stateMachineArn,
-        });
+
         new cdk.CfnOutput(this, 'WebSocketApiUrl', {
             value: api.webSocket.webSocketApiUrl,
-        });
-        new cdk.CfnOutput(this, 'RdsEndpoint', {
-            value: vectorStore.rdsEndpoint,
         });
     }
 }
