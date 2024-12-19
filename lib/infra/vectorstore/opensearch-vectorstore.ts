@@ -82,7 +82,8 @@ export class OpenSearchVectorStore extends Construct {
                             Resource: [`collection/${collectionName}`],
                         },
                     ],
-                    AllowFromPublic: true,
+                    AllowFromPublic:
+                        vectorStoreConfig.vectorStoreProperties?.allowFromPublic ?? false,
                 },
             ]),
         });

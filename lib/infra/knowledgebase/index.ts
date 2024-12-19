@@ -20,6 +20,7 @@ export interface KnowledgeBaseProps {
 
 export class KnowledgeBase extends Construct {
     public readonly knowledgeBase: bedrock.CfnKnowledgeBase;
+    public readonly dataSource: bedrock.CfnDataSource;
 
     public constructor(scope: Construct, id: string, props: KnowledgeBaseProps) {
         super(scope, id);
@@ -91,7 +92,7 @@ export class KnowledgeBase extends Construct {
         });
 
         // Create knowledgebase datasource
-        new bedrock.CfnDataSource(this, id, {
+        this.dataSource = new bedrock.CfnDataSource(this, id, {
             knowledgeBaseId: this.knowledgeBase.attrKnowledgeBaseId,
             name: `fr-ds-${applicationName}`,
             dataSourceConfiguration: {
@@ -114,6 +115,9 @@ export class KnowledgeBase extends Construct {
 
         new cdk.CfnOutput(this, 'KnowledgeBaseId', {
             value: this.knowledgeBase.attrKnowledgeBaseId,
+        });
+        new cdk.CfnOutput(this, 'DataSourceId', {
+            value: this.dataSource.attrDataSourceId,
         });
     }
 }

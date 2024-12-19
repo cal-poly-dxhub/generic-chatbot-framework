@@ -36,6 +36,7 @@ export interface OpenSearchVectorStoreConfig {
     readonly vectorStoreType: 'opensearch';
     readonly vectorStoreProperties?: {
         readonly standbyReplicas: 'ENABLED' | 'DISABLED';
+        readonly allowFromPublic: boolean;
     };
 }
 

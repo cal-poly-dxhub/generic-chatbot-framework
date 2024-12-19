@@ -325,6 +325,7 @@ Specify settings for the large language models, including streaming, conversatio
 
         # For OpenSearch Serverless
         standbyReplicas: <'ENABLED' | 'DISABLED', Indicates whether to use standby replicas for the collection. Default is ENABLED>
+        allowFromPublic: <Boolean flag determining whether the collection is accessible over the internet from public networks, default is false>
     ```
     Example for pgvector:
     ```yaml
@@ -341,6 +342,7 @@ Specify settings for the large language models, including streaming, conversatio
       vectorStoreType: 'opensearch'
       vectorStoreProperties:
         standbyReplicas: 'ENABLED'  # Enable high availability with standby replicas
+        allowFromPublic: false
     ```
 
 -   **embeddingsModels**: A list of embeddings models used for generating document embeddings. 
@@ -481,14 +483,16 @@ This section provides instructions on how to ingest documents into Amazon Bedroc
 aws s3 cp <local_dir> s3://<input_bucket>/<input_prefix>/ --recursive
 ```
 
-2. Find the knowledge base id from deployment output starting with 'KnowledgeBase'. Start the ingestion job using the AWS CLI.
+2. Find the knowledge base ID and data source ID from deployment output starting with 'KnowledgeBase'. Start the ingestion job using the AWS CLI.
 ```bash
-aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id>
+aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id>
 ```
+
+Capture the ID of ingestion job.
 
 3. Monitor the ingestion job status with the AWS CLI.
 ```bash
-aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --ingestion-job-id <job-id>
+aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id> --ingestion-job-id <job-id>
 ```
 
 ## Access the solution web UI
