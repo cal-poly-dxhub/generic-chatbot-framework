@@ -355,7 +355,7 @@ Specify settings for the large language models, including streaming, conversatio
     ```
     If multiple embedding models are configured, the first model in the list will be chosen by default unless modelRefKey is specified.
 
--  **corpusConfig**: Configuration for the document corpus and ingestion settings. The solution provides two ingestion paths:
+-  **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution provides two ingestion paths:
     1. **Default Pipeline**: Uses Aurora PostgreSQL as the vector store
       - Automatically provisions an ingestion pipeline
       - Processes documents through Lambda functions
