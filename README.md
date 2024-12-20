@@ -13,7 +13,6 @@
 -   [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
     -   [Configuration](#configuration)
     -   [Build and deploy](#build-and-deploy)
--   [How to handle promotion-related questions](#how-to-handle-promotion-related-questions)
 -   [Choosing Ingestion Method](#choosing-ingestion-method)
 -   [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
 -   [Access the solution web UI](#access-the-solution-web-ui)
