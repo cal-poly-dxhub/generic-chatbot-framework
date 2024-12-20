@@ -217,8 +217,8 @@ systemConfig:
   ragConfig:
     vectorStoreConfig:
       vectorStoreType: opensearch
-    vectorStoreProperties:
-      allowFromPublic: false
+      vectorStoreProperties:
+        allowFromPublic: false
     embeddingsModels:
       - provider: bedrock
         modelId: cohere.embed-multilingual-v3
