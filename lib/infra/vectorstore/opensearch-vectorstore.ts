@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as aoss from 'aws-cdk-lib/aws-opensearchserverless';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as constants from '../common/constants';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
@@ -69,6 +70,31 @@ export class OpenSearchVectorStore extends Construct {
             }),
         });
 
+        const allowFromPublic =
+            vectorStoreConfig.vectorStoreProperties?.allowFromPublic ?? false;
+
+        const vpceSecurityGroup = new ec2.SecurityGroup(
+            this,
+            'VpcEndpointSecurityGroup',
+            {
+                vpc: props.baseInfra.vpc,
+                allowAllOutbound: true,
+            }
+        );
+        vpceSecurityGroup.addIngressRule(
+            ec2.Peer.ipv4(props.baseInfra.vpc.vpcCidrBlock),
+            ec2.Port.allTcp(),
+            'Allow all TCP traffic from VPC'
+        );
+        const vpcEndpoint = new aoss.CfnVpcEndpoint(this, 'VpcEndpoint', {
+            name: `${collectionName}-vpce`,
+            subnetIds: props.baseInfra.vpc.selectSubnets({
+                subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+            }).subnetIds,
+            vpcId: props.baseInfra.vpc.vpcId,
+            securityGroupIds: [vpceSecurityGroup.securityGroupId],
+        });
+
         // Create network policy (defaults to public access)
         const networkPolicy = new aoss.CfnSecurityPolicy(this, 'NetworkPolicy', {
             name: `${collectionName}-net-pl`,
@@ -82,8 +108,13 @@ export class OpenSearchVectorStore extends Construct {
                             Resource: [`collection/${collectionName}`],
                         },
                     ],
-                    AllowFromPublic:
-                        vectorStoreConfig.vectorStoreProperties?.allowFromPublic ?? false,
+                    AllowFromPublic: allowFromPublic,
+                    ...(allowFromPublic
+                        ? {}
+                        : {
+                              SourceVPCEs: [vpcEndpoint.attrId],
+                              SourceServices: ['bedrock.amazonaws.com'],
+                          }),
                 },
             ]),
         });
@@ -128,6 +159,7 @@ export class OpenSearchVectorStore extends Construct {
         });
 
         // Add dependencies
+        networkPolicy.addDependency(vpcEndpoint);
         this.collection.addDependency(encryptionPolicy);
         this.collection.addDependency(networkPolicy);
         this.collection.addDependency(dataAccessPolicy);
@@ -164,6 +196,7 @@ export class OpenSearchVectorStore extends Construct {
         const setupHandler = new lambda.Function(this, 'opensearch-setup-handler', {
             ...constants.LAMBDA_COMMON_PROPERTIES,
             vpc: props.baseInfra.vpc,
+            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
             role: indexCreatorRole,
             code: lambda.Code.fromAsset(
                 path.join(constants.BACKEND_DIR, 'custom-resources', 'setup-opensearch')

@@ -216,16 +216,16 @@ systemConfig:
           You are a chat assistant (chatbot) for Vietnam company information. You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
   ragConfig:
     vectorStoreConfig:
-      vectorStoreType: pgvector
-      vectorStoreProperties:
-        minCapacity: 1
-        maxCapacity: 3
-        useRDSProxy: True
+      vectorStoreType: opensearch
+    vectorStoreProperties:
+      allowFromPublic: false
     embeddingsModels:
       - provider: bedrock
         modelId: cohere.embed-multilingual-v3
         modelRefKey: cohere.embed-multilingual-v3
         dimensions: 1024
+    corpusConfig:
+      corpusType: knowledgebase
   wafConfig:
     enableApiGatewayWaf: true
   

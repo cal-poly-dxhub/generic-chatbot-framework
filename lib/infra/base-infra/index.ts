@@ -152,11 +152,25 @@ export class BaseInfra extends Construct {
 
         vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
             service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+            privateDnsEnabled: true,
             open: true,
         });
 
         vpc.addInterfaceEndpoint('SageMakerRuntimeEndpoint', {
             service: ec2.InterfaceVpcEndpointAwsService.SAGEMAKER_RUNTIME,
+            privateDnsEnabled: true,
+            open: true,
+        });
+
+        vpc.addInterfaceEndpoint('BedrockEndpoint', {
+            service: ec2.InterfaceVpcEndpointAwsService.BEDROCK,
+            privateDnsEnabled: true,
+            open: true,
+        });
+
+        vpc.addInterfaceEndpoint('BedrockRuntimeEndpoint', {
+            service: ec2.InterfaceVpcEndpointAwsService.BEDROCK_RUNTIME,
+            privateDnsEnabled: true,
             open: true,
         });
     }

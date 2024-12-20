@@ -316,7 +316,7 @@ Specify settings for the large language models, including streaming, conversatio
 
     ```yaml
     vectorStoreConfig:
-      vectorStoreType: '<pgvector | opensearch>'
+      vectorStoreType: <pgvector | opensearch>
       vectorStoreProperties:
         # For pgvector (Aurora PostgreSQL)
         minCapacity: <The minimum capacity (in Aurora Capacity Units) for the vector store.>
@@ -325,12 +325,12 @@ Specify settings for the large language models, including streaming, conversatio
 
         # For OpenSearch Serverless
         standbyReplicas: <'ENABLED' | 'DISABLED', Indicates whether to use standby replicas for the collection. Default is ENABLED>
-        allowFromPublic: <Boolean flag determining whether the collection is accessible over the internet from public networks, default is false>
+        allowFromPublic: <Boolean flag determining whether the collection is accessible over the internet from public networks. Default is false>
     ```
     Example for pgvector:
     ```yaml
     vectorStoreConfig:
-      vectorStoreType: 'pgvector'
+      vectorStoreType: pgvector
       vectorStoreProperties:
         minCapacity: 2
         maxCapacity: 8
@@ -339,9 +339,9 @@ Specify settings for the large language models, including streaming, conversatio
     Example for OpenSearch Serverless:
     ```yaml
     vectorStoreConfig:
-      vectorStoreType: 'opensearch'
+      vectorStoreType: opensearch
       vectorStoreProperties:
-        standbyReplicas: 'ENABLED'  # Enable high availability with standby replicas
+        standbyReplicas: ENABLED
         allowFromPublic: false
     ```
 
