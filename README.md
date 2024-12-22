@@ -490,11 +490,6 @@ Capture the ID of ingestion job.
 ```bash
 aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id> --ingestion-job-id <job-id>
 ```
-## RAG Processing Flows
-
-The GenAI RAG chatbot supports three primary data flows: `Classification Flow`, `Condensing Flow`, and `Question/Answer Flow`. In the Classification Flow, the chatbot analyzes the incoming user query to determine its type and the appropriate processing path. The Condensing Flow is designed to enhance context understanding by rephrasing follow-up questions and the chat history into a standalone, contextually complete question, ensuring accurate downstream processing. Finally, the Question/Answer Flow retrieves relevant information from the knowledge corpus and generates precise, context-aware responses to user queries, leveraging retrieved documents and advanced generative capabilities. Together, these flows enable seamless and intelligent interactions.
-
-![Diagram](docs/images/sequence_diagram.png)
 
 ## Access the solution web UI
 
