@@ -22,7 +22,9 @@ export const LAMBDA_PYTHON_RUNTIME = lambda.Runtime.PYTHON_3_11;
 
 export const LAMBDA_ARCHITECTURE = lambda.Architecture.ARM_64;
 
-export const LAMBDA_POWERTOOLS_LAYER_VERSION = '73';
+export const LAMBDA_POWERTOOLS_LAYER_VERSION = '5';
+
+export const LAMBDA_POWERTOOLS_PYTHON_VERSION = 'python311';
 
 export const CHUNK_SIZE_DOC_SPLIT = '1000';
 

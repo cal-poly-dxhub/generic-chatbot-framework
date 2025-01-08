@@ -6,7 +6,7 @@ from typing import Any, Dict, Generic, Iterator, List, Optional, TypeVar, Union
 
 from aws_lambda_powertools import Logger
 from langchain_core.embeddings import Embeddings
-from langchain_core.pydantic_v1 import BaseModel, Extra, root_validator
+from pydantic import BaseModel, ConfigDict
 
 INPUT_TYPE = TypeVar("INPUT_TYPE", bound=Union[str, List[str]])
 OUTPUT_TYPE = TypeVar("OUTPUT_TYPE", bound=Union[str, List[List[float]], Iterator])
@@ -94,37 +94,6 @@ class SagemakerEndpointEmbeddings(BaseModel, Embeddings):
     access the Sagemaker endpoint.
     See: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html
     """
-
-    """
-    Example:
-        .. code-block:: python
-
-            from langchain_community.embeddings import SagemakerEndpointEmbeddings
-            endpoint_name = (
-                "my-endpoint-name"
-            )
-            region_name = (
-                "us-west-2"
-            )
-            credentials_profile_name = (
-                "default"
-            )
-            se = SagemakerEndpointEmbeddings(
-                endpoint_name=endpoint_name,
-                region_name=region_name,
-                credentials_profile_name=credentials_profile_name
-            )
-
-            #Use with boto3 client
-            client = boto3.client(
-                        "sagemaker-runtime",
-                        region_name=region_name
-                    )
-            se = SagemakerEndpointEmbeddings(
-                endpoint_name=endpoint_name,
-                client=client
-            )
-    """
     client: Any = None
 
     endpoint_name: str = ""
@@ -148,25 +117,6 @@ class SagemakerEndpointEmbeddings(BaseModel, Embeddings):
     and the endpoint.
     """
 
-    """
-     Example:
-        .. code-block:: python
-
-        from langchain_community.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
-
-        class ContentHandler(EmbeddingsContentHandler):
-                content_type = "application/json"
-                accepts = "application/json"
-
-                def transform_input(self, prompts: List[str], model_kwargs: Dict) -> bytes:
-                    input_str = json.dumps({prompts: prompts, **model_kwargs})
-                    return input_str.encode('utf-8')
-
-                def transform_output(self, output: bytes) -> List[List[float]]:
-                    response_json = json.loads(output.read().decode("utf-8"))
-                    return response_json["vectors"]
-    """
-
     model_kwargs: Optional[Dict] = None
     """Keyword arguments to pass to the model."""
 
@@ -176,41 +126,9 @@ class SagemakerEndpointEmbeddings(BaseModel, Embeddings):
     .. _boto3: <https://boto3.amazonaws.com/v1/documentation/api/latest/index.html>
     """
 
-    class Config:
-        """Configuration for this pydantic object."""
-
-        extra = Extra.forbid
-        arbitrary_types_allowed = True
-
-    @root_validator()
-    def validate_environment(cls, values: Dict) -> Dict:
-        """Dont do anything if client provided externally."""
-        if values.get("client") is not None:
-            return values
-
-        """Validate that AWS credentials to and python package exists in environment."""
-        try:
-            import boto3
-
-            try:
-                if values["credentials_profile_name"] is not None:
-                    session = boto3.Session(profile_name=values["credentials_profile_name"])
-                else:
-                    # use default credentials
-                    session = boto3.Session()
-
-                values["client"] = session.client("sagemaker-runtime", region_name=values["region_name"])
-
-            except Exception as e:
-                raise ValueError(
-                    "Could not load credentials to authenticate with AWS client. "
-                    "Please check that credentials in the specified "
-                    f"profile name are valid. {e}"
-                ) from e
-
-        except ImportError:
-            raise ImportError("Could not import boto3 python package. " "Please install it with `pip install boto3`.")  # noqa: B904
-        return values
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, extra="forbid", protected_namespaces=()
+    )
 
     def _embedding_func(self, texts: List[str]) -> List[List[float]]:
         """Call out to SageMaker Inference embedding endpoint."""

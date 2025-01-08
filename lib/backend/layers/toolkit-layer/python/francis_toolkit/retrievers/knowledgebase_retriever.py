@@ -59,11 +59,6 @@ class AmazonKnowledgeBasesRetriever(BaseRetriever):
             client: boto3 client for bedrock agent runtime.
             retrieval_config: Configuration for retrieval.
 
-        Example:
-            .. code-block:: python
-
-                from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
-
     retriever = AmazonKnowledgeBasesRetriever(
         knowledge_base_id="<knowledge-base-id>",
         retrieval_config={

@@ -82,9 +82,8 @@ export class BaseInfra extends Construct {
 
         const powerToolsArn =
             constants.LAMBDA_ARCHITECTURE === lambda.Architecture.X86_64
-                ? `arn:${cdk.Aws.PARTITION}:lambda:${cdk.Aws.REGION}:017000801446:layer:AWSLambdaPowertoolsPythonV2:${constants.LAMBDA_POWERTOOLS_LAYER_VERSION}`
-                : `arn:${cdk.Aws.PARTITION}:lambda:${cdk.Aws.REGION}:017000801446:layer:AWSLambdaPowertoolsPythonV2-Arm64:${constants.LAMBDA_POWERTOOLS_LAYER_VERSION}`;
-
+                ? `arn:${cdk.Aws.PARTITION}:lambda:${cdk.Aws.REGION}:017000801446:layer:AWSLambdaPowertoolsPythonV3-${constants.LAMBDA_POWERTOOLS_PYTHON_VERSION}-x86_64:${constants.LAMBDA_POWERTOOLS_LAYER_VERSION}`
+                : `arn:${cdk.Aws.PARTITION}:lambda:${cdk.Aws.REGION}:017000801446:layer:AWSLambdaPowertoolsPythonV3-${constants.LAMBDA_POWERTOOLS_PYTHON_VERSION}-arm64:${constants.LAMBDA_POWERTOOLS_LAYER_VERSION}`;
         this.powerToolsLayer = lambda.LayerVersion.fromLayerVersionArn(
             this,
             'PowertoolsLayer',

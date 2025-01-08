@@ -948,17 +948,6 @@ class PGVector(VectorStore):
         -------
             PGVector: PGVector instance.
 
-        Example:
-        -------
-            .. code-block:: python
-
-                from langchain_postgres.vectorstores import PGVector
-                from langchain_openai.embeddings import OpenAIEmbeddings
-
-                embeddings = OpenAIEmbeddings()
-                text_embeddings = embeddings.embed_documents(texts)
-                text_embedding_pairs = list(zip(texts, text_embeddings))
-                vectorstore = PGVector.from_embeddings(text_embedding_pairs, embeddings)
         """
         texts = [t[0] for t in text_embeddings]
         embeddings = [t[1] for t in text_embeddings]
