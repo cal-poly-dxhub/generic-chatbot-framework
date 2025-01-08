@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -51,7 +52,8 @@ def create_vector_index(client: OpenSearch, index_name: str, dims: int = 1536) -
         },
     }
 
-    response = client.indices.create(index=index_name, body=index_body)
+    response = client.indices.create(index=index_name, body=index_body, params={"wait_for_active_shards": "all"})
+    time.sleep(10)
 
     return response  # type: ignore
 
