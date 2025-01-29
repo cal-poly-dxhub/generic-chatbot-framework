@@ -227,6 +227,7 @@ export class Api extends Construct {
         });
         props.baseInfra.grantBedrockTextModelAccess(inferenceLambda);
         props.baseInfra.grantSagemakerTextModelAccess(inferenceLambda);
+        props.baseInfra.grantBedrockRerankingAccess(inferenceLambda);
 
         conversationLambda.grantInvoke(inferenceLambda);
         corpusLambda.grantInvoke(inferenceLambda);

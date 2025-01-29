@@ -18,7 +18,7 @@ from common.utils import (
 from common.websocket_utils import stream_llm_response
 from francis_toolkit.types import EmbeddingModel
 
-from .models import get_llm_class
+from .models import get_llm_class, get_reranker_class
 
 logger = Logger()
 tracer = Tracer()
@@ -54,7 +54,7 @@ def run_rag_chain(
 
         app_trace.add("classification_response", classification_response)
         if "classification_type" in classification_response:
-            classification_type = classification_response["classification_type"]  # type: ignore
+            classification_type = classification_response["classification_type"]  # type: ignore 
 
         if classification_type == ClassificationType.GREETINGS_FAREWELLS or classification_type == ClassificationType.UNRELATED:
             answer = classification_response.get("response", "")
@@ -93,12 +93,14 @@ def run_rag_chain(
         )
         app_trace.add("standalone_question", standalone_q)
 
+
     answer, documents = run_qa_step(
         chain_config=llm_config["qaChainConfig"],
         corpus_limit=llm_config.get("maxCorpusDocuments", 5),
         corpus_similarity_threshold=llm_config.get("corpusSimilarityThreshold", 0.25),
         question=standalone_q,
         embedding_model=embedding_model,
+        reranking_config=llm_config.get("rerankingConfig"),
         classification_type=classification_type,
         streaming_context=streaming_context,
     )
@@ -125,6 +127,7 @@ def run_qa_step(
     embedding_model: EmbeddingModel,
     corpus_limit: int,
     corpus_similarity_threshold: float,
+    reranking_config: dict = {},
     classification_type: ClassificationType = ClassificationType.QUESTION,
     streaming_context: Optional[StreamingContext] = None,
 ) -> tuple[str, list]:
@@ -132,7 +135,6 @@ def run_qa_step(
     kwargs = chain_config.get("kwargs", {})
 
     llm = get_llm_class(model_config.get("provider"), model_config.get("region", None))
-
     documents = []
     context = "No context document found"
 
@@ -145,8 +147,21 @@ def run_qa_step(
             corpus_similarity_threshold=corpus_similarity_threshold,
             model_ref_key=embedding_model.modelRefKey,
         )
-
+        
         if documents:
+            if reranking_config.get("enabled"):
+                reranking_model_config = reranking_config.get("modelConfig", {})
+                reranker = get_reranker_class(
+                    model_config.get("provider"),
+                    model_config.get("region")
+                )
+                reranked_documents = reranker.rerank_text(
+                    reranker_config=reranking_model_config,
+                    query=question,
+                    documents=documents,
+                    **reranking_config.get("kwargs", {})
+                )
+                documents = reranked_documents
             context = format_documents(documents)
 
     kwargs["context"] = context

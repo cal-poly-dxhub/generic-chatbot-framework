@@ -86,6 +86,16 @@ export interface SageMakerLLMModel extends LLMModelBase {
     readonly modelEndpointName: string;
 }
 
+export interface RerankingModelBase extends ModelBase {
+    readonly modelKwargs?: {
+        topK?: number;
+    };
+}
+
+export interface BedRockRerankingModel extends RerankingModelBase {
+    readonly provider: 'bedrock';
+}
+
 export interface EmbeddingModelBase extends ModelBase {
     readonly dimensions: number;
     readonly modelRefKey: string;
@@ -103,6 +113,8 @@ export interface BedRockEmbeddingModel extends EmbeddingModelBase {
 export type EmbeddingModel = SageMakerEmbeddingModel | BedRockEmbeddingModel;
 
 export type LLMModel = SageMakerLLMModel | BedRockLLMModel;
+
+export type RerankingModel = BedRockRerankingModel;
 
 export interface ModelKwargs {
     maxTokens?: number;
@@ -124,8 +136,17 @@ export interface LLMConfig {
     maxCorpusDocuments?: number;
     corpusSimilarityThreshold?: number;
     qaChainConfig: LLMChainConfig;
+    rerankingConfig?: RerankingConfig;
     standaloneChainConfig?: LLMChainConfig;
     classificationChainConfig?: LLMChainConfig;
+}
+
+export interface RerankingConfig {
+    enabled: boolean;
+    modelConfig: RerankingModel;
+    kwargs?: {
+        topK?: number;
+    };
 }
 
 export interface SystemConfig {

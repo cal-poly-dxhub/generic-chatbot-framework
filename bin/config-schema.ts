@@ -26,6 +26,40 @@ const configSchema = {
                     type: 'boolean',
                     description: 'Whether to enable streaming for the LLM response',
                 },
+                rerankingConfig: {
+                    type: 'object',
+                    description: 'Configuration for document reranking',
+                    properties: {
+                        enabled: {
+                            type: 'boolean',
+                            description:
+                                'Whether to enable reranking of retrieved documents',
+                        },
+                        modelConfig: {
+                            type: 'object',
+                            description: 'Configuration for reranking model',
+                            properties: {
+                                provider: {
+                                    type: 'string',
+                                    enum: ['bedrock'],
+                                    description: 'Provider of the reranking model',
+                                },
+                                modelId: {
+                                    type: 'string',
+                                    description: 'ID of the reranking model',
+                                },
+                                topK: {
+                                    type: 'number',
+                                    description:
+                                        'Number of documents to return after reranking',
+                                    default: 10,
+                                },
+                            },
+                            required: ['provider', 'modelId'],
+                        },
+                    },
+                    required: ['enabled', 'modelConfig'],
+                },
                 maxConversationHistory: {
                     type: 'number',
                     description:
