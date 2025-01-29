@@ -1,22 +1,25 @@
 ### Table of contents
 
--   [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
--   [Licence](#icence)
--   [Key features](#key-features)
--   [Architecture overview](#architecture-overview)
-    -   [Architecture reference diagram](#architecture-reference-diagram)
-    -   [Solution components](#solution-components)
--   [Prerequisites](#prerequisites)
-    -   [Build environment specifications](#build-environment-specifications)
-    -   [AWS account](#aws-account)
-    -   [Tools](#tools)
--   [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
-    -   [Configuration](#configuration)
-    -   [Build and deploy](#build-and-deploy)
--   [RAG processing flows](#rag-processing-flows)
--   [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
--   [Access the solution web UI](#access-the-solution-web-ui)
--   [Uninstall the solution](#uninstall-the-solution)
+- [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
+- [Licence](#licence)
+- [Key Features](#key-features)
+- [Architecture overview](#architecture-overview)
+  - [Architecture reference diagram](#architecture-reference-diagram)
+  - [Solution components](#solution-components)
+- [Prerequisites](#prerequisites)
+  - [Build environment specifications](#build-environment-specifications)
+  - [AWS account](#aws-account)
+  - [Tools](#tools)
+- [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
+  - [Configuration](#configuration)
+  - [Build and deploy](#build-and-deploy)
+- [RAG Processing Flows](#rag-processing-flows)
+- [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
+  - [Method 1: Default Pipeline (Aurora PostgreSQL)](#method-1-default-pipeline-aurora-postgresql)
+  - [Method 2: Amazon Bedrock Knowledge Base (OpenSearch Serverless)](#method-2-amazon-bedrock-knowledge-base-opensearch-serverless)
+- [Access the solution web UI](#access-the-solution-web-ui)
+- [File structure](#file-structure)
+- [Uninstall the solution](#uninstall-the-solution)
 
 ---
 
@@ -307,7 +310,33 @@ Specify settings for the large language models, including streaming, conversatio
         kwargs:
           promotion_image_url: <s3>
         ```
+-   **rerankingConfig (optional)**: Configuration for reranking retrieved documents to improve relevance and accuracy of responses. Reranking helps refine the initial similarity search results by applying a more sophisticated model to assess document relevance.
+    ```yaml
+    rerankingConfig:
+      modelConfig:
+        provider: <the provider of the reranking model (currently supports 'bedrock')>
+        modelId: <the ID of the reranking model>
+      kwargs:
+        numberOfResults: <the number of top results to return after reranking>
+        additionalModelRequestFields: <model-specific parameters for reranking requests>
+          <key>: <value>
+    ```
 
+    Example:
+    ```yaml
+    rerankingConfig:
+      modelConfig:
+        provider: bedrock
+        modelId: cohere.rerank-v3-5:0
+      kwargs:
+        numberOfResults: 10
+        additionalModelRequestFields:
+          max_tokens_per_doc: 4000
+    ```
+
+    When enabled, reranking is applied after the initial vector similarity search and before sending context to the LLM. This can significantly improve the quality of retrieved documents, especially for complex queries.
+
+    > **Note**: Reranking may increase latency and costs as it involves an additional model inference step.
 
 **RAG configuration**
 

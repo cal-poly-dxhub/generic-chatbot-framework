@@ -30,11 +30,6 @@ const configSchema = {
                     type: 'object',
                     description: 'Configuration for document reranking',
                     properties: {
-                        enabled: {
-                            type: 'boolean',
-                            description:
-                                'Whether to enable reranking of retrieved documents',
-                        },
                         modelConfig: {
                             type: 'object',
                             description: 'Configuration for reranking model',
@@ -48,17 +43,29 @@ const configSchema = {
                                     type: 'string',
                                     description: 'ID of the reranking model',
                                 },
-                                topK: {
-                                    type: 'number',
+                                modelKwargs: {
+                                    type: 'object',
                                     description:
-                                        'Number of documents to return after reranking',
-                                    default: 10,
+                                        'Additional keyword arguments for the reranking model',
+                                    properties: {
+                                        numberOfResults: {
+                                            type: 'number',
+                                            description:
+                                                'Number of documents to return after reranking',
+                                            default: 10,
+                                        },
+                                        additionalModelRequestFields: {
+                                            type: 'object',
+                                            description:
+                                                'Additional model-specific request parameters',
+                                        },
+                                    },
                                 },
                             },
                             required: ['provider', 'modelId'],
                         },
                     },
-                    required: ['enabled', 'modelConfig'],
+                    required: ['modelConfig'],
                 },
                 maxConversationHistory: {
                     type: 'number',

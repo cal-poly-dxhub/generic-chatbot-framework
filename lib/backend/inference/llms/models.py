@@ -95,7 +95,7 @@ class BedrockReranker(RerankerBase):
             app_trace.add("reranking_query", query)
             app_trace.add("reranker_config", reranker_config)
 
-            model_id = reranker_config.get("modelId")
+            model_id = reranker_config.get("modelConfig", {}).get("modelId")
             model_arn = f"arn:aws:bedrock:{self.region_name}::foundation-model/{model_id}"
 
             formatted_docs = self._format_documents_for_reranking(documents)
@@ -111,8 +111,9 @@ class BedrockReranker(RerankerBase):
                 rerankingConfiguration={
                     "type": "BEDROCK_RERANKING_MODEL",
                     "bedrockRerankingConfiguration": {
-                        "numberOfResults": min(len(formatted_docs), kwargs.get("topK", 10)),
+                        "numberOfResults": min(len(formatted_docs), kwargs.get("numberOfResults", 10)),  
                         "modelConfiguration": {
+                            "additionalModelRequestFields": kwargs.get("additionalModelRequestFields", {}),
                             "modelArn": model_arn,
                         }
                     }

@@ -127,7 +127,7 @@ def run_qa_step(
     embedding_model: EmbeddingModel,
     corpus_limit: int,
     corpus_similarity_threshold: float,
-    reranking_config: dict = {},
+    reranking_config: Optional[dict] = None,
     classification_type: ClassificationType = ClassificationType.QUESTION,
     streaming_context: Optional[StreamingContext] = None,
 ) -> tuple[str, list]:
@@ -149,17 +149,18 @@ def run_qa_step(
         )
         
         if documents:
-            if reranking_config.get("enabled"):
+            if reranking_config:
                 reranking_model_config = reranking_config.get("modelConfig", {})
                 reranker = get_reranker_class(
-                    model_config.get("provider"),
-                    model_config.get("region")
+                    reranking_model_config.get("provider"),
+                    reranking_model_config.get("region")
                 )
+                reranking_kwargs = reranking_config.get("modelConfig", {}).get("modelKwargs", {})
                 reranked_documents = reranker.rerank_text(
-                    reranker_config=reranking_model_config,
+                    reranker_config=reranking_config,
                     query=question,
                     documents=documents,
-                    **reranking_config.get("kwargs", {})
+                    **reranking_kwargs
                 )
                 documents = reranked_documents
             context = format_documents(documents)

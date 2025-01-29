@@ -88,7 +88,8 @@ export interface SageMakerLLMModel extends LLMModelBase {
 
 export interface RerankingModelBase extends ModelBase {
     readonly modelKwargs?: {
-        topK?: number;
+        numberOfResults?: number;
+        additionalModelRequestFields?: Record<string, unknown>;
     };
 }
 
@@ -142,11 +143,7 @@ export interface LLMConfig {
 }
 
 export interface RerankingConfig {
-    enabled: boolean;
     modelConfig: RerankingModel;
-    kwargs?: {
-        topK?: number;
-    };
 }
 
 export interface SystemConfig {
