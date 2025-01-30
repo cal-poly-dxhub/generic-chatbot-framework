@@ -43,26 +43,25 @@ const configSchema = {
                                     type: 'string',
                                     description: 'ID of the reranking model',
                                 },
-                                modelKwargs: {
-                                    type: 'object',
-                                    description:
-                                        'Additional keyword arguments for the reranking model',
-                                    properties: {
-                                        numberOfResults: {
-                                            type: 'number',
-                                            description:
-                                                'Number of documents to return after reranking',
-                                            default: 10,
-                                        },
-                                        additionalModelRequestFields: {
-                                            type: 'object',
-                                            description:
-                                                'Additional model-specific request parameters',
-                                        },
-                                    },
-                                },
                             },
                             required: ['provider', 'modelId'],
+                        },
+                        kwargs: {
+                            type: 'object',
+                            description:
+                                'Additional configuration parameters for reranking',
+                            properties: {
+                                numberOfResults: {
+                                    type: 'number',
+                                    description:
+                                        'Number of results to return from reranking',
+                                },
+                                additionalModelRequestFields: {
+                                    type: 'object',
+                                    description:
+                                        'Model-specific configuration parameters',
+                                },
+                            },
                         },
                     },
                     required: ['modelConfig'],

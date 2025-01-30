@@ -155,7 +155,7 @@ def run_qa_step(
                     reranking_model_config.get("provider"),
                     reranking_model_config.get("region")
                 )
-                reranking_kwargs = reranking_config.get("modelConfig", {}).get("modelKwargs", {})
+                reranking_kwargs = reranking_config.get("kwargs", {})
                 reranked_documents = reranker.rerank_text(
                     reranker_config=reranking_config,
                     query=question,

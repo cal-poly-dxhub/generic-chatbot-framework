@@ -86,12 +86,7 @@ export interface SageMakerLLMModel extends LLMModelBase {
     readonly modelEndpointName: string;
 }
 
-export interface RerankingModelBase extends ModelBase {
-    readonly modelKwargs?: {
-        numberOfResults?: number;
-        additionalModelRequestFields?: Record<string, unknown>;
-    };
-}
+export type RerankingModelBase = ModelBase;
 
 export interface BedRockRerankingModel extends RerankingModelBase {
     readonly provider: 'bedrock';
@@ -144,6 +139,10 @@ export interface LLMConfig {
 
 export interface RerankingConfig {
     modelConfig: RerankingModel;
+    kwargs?: {
+        numberOfResults?: number;
+        additionalModelRequestFields?: Record<string, unknown>;
+    };
 }
 
 export interface SystemConfig {
