@@ -37,6 +37,102 @@ class LLMBase(ABC):
     ) -> str:
         pass
 
+class RerankerBase(ABC):
+    """Base class for document reranking implementations."""
+    def __init__(self, region_name: str) -> None:
+        self.region_name = region_name
+    
+    @abstractmethod
+    def rerank_text(
+        self,
+        reranker_config: dict,
+        query: str,
+        documents: list[dict],
+        **kwargs: dict,
+    ) -> list[dict]:
+        pass
+
+class BedrockReranker(RerankerBase):
+    def __init__(self, region_name: str) -> None:
+        super().__init__(region_name)
+        self.client = boto3.client("bedrock-agent-runtime", region_name=region_name)
+
+    def _format_documents_for_reranking(self, documents: list[dict]) -> list:
+        return [
+            {
+                "type": "INLINE",
+                "inlineDocumentSource": {
+                    "type": "TEXT",
+                    "textDocument": {
+                        "text": document.get("pageContent", ""),
+                    }
+                }
+            }
+            for document in documents
+        ]
+    
+    def _apply_reranking_order(
+            self,
+            reranking_response: dict,
+            original_documents: list
+    ) -> list[dict]:
+        reranked_documents = []
+
+        for result in reranking_response.get('results', []):
+            idx = int(result['index'])
+            reranked_documents.append(original_documents[idx])
+
+        return reranked_documents
+
+    def rerank_text(
+        self,
+        reranker_config: dict,
+        query: str,
+        documents: list,
+        **kwargs: dict,
+    ) -> list[dict]:
+        try: 
+            app_trace.add("reranking_query", query)
+            app_trace.add("reranker_config", reranker_config)
+
+            model_id = reranker_config.get("modelConfig", {}).get("modelId")
+            model_arn = f"arn:aws:bedrock:{self.region_name}::foundation-model/{model_id}"
+
+            formatted_docs = self._format_documents_for_reranking(documents)
+            
+            response = self.client.rerank(
+                queries=[{
+                    "type": "TEXT",
+                    "textQuery": {
+                        "text": query
+                    }
+                }],
+                sources=formatted_docs,
+                rerankingConfiguration={
+                    "type": "BEDROCK_RERANKING_MODEL",
+                    "bedrockRerankingConfiguration": {
+                        "numberOfResults": min(len(formatted_docs), kwargs.get("numberOfResults", 10)),  
+                        "modelConfiguration": {
+                            "additionalModelRequestFields": kwargs.get("additionalModelRequestFields", {}),
+                            "modelArn": model_arn,
+                        }
+                    }
+                }
+            )
+            app_trace.add("reranker_response", response)
+            
+            logger.debug(f"Reranking completed for query: {query}")
+
+            reranked_documents = self._apply_reranking_order(response, documents)
+            return reranked_documents
+        
+        except botocore.exceptions.ClientError as err:
+            logger.error("A client error occurred: %s", err.response["Error"]["Message"])
+            return documents
+        except Exception as err:
+            logger.error("An error occurred: %s", err)
+            return documents
+        
 
 class BedrockLLM(LLMBase):
     def __init__(self, region_name: str) -> None:
@@ -231,3 +327,14 @@ def get_llm_class(provider: str, region_name: Optional[str] = None) -> LLMBase:
         llm_class = SagemakerLLM(region_name=region_name)  # type: ignore
 
     return llm_class
+
+def get_reranker_class(provider: str, region_name: Optional[str] = None) -> RerankerBase:
+    region_name = region_name or os.getenv("AWS_DEFAULT_REGION")
+
+    if provider == ModelHosting.BEDROCK:
+        reranker_class = BedrockReranker(region_name=region_name)  # type: ignore
+    else:
+        # No current implementation for non-bedrock rerankers
+        raise ValueError(f"Unsupported reranker provider: %s", provider)
+
+    return reranker_class

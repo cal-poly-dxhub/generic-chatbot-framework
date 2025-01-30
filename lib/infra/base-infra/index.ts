@@ -299,6 +299,31 @@ export class BaseInfra extends Construct {
         this.grantBedrockModelAccess(lambdaFunc, regionModelIds);
     }
 
+    public grantBedrockRerankingAccess(lambdaFunc: lambda.IFunction): void {
+        if (
+            this.systemConfig.llmConfig.rerankingConfig?.modelConfig.provider !==
+            'bedrock'
+        ) {
+            return;
+        }
+
+        const config = this.systemConfig.llmConfig.rerankingConfig;
+        const region = config.modelConfig.region ?? cdk.Aws.REGION;
+
+        lambdaFunc.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['bedrock:Rerank'],
+                resources: ['*'],
+            })
+        );
+
+        const regionModelIds = new Map<string, Set<string>>([
+            [region, new Set([config.modelConfig.modelId])],
+        ]);
+        this.grantBedrockModelAccess(lambdaFunc, regionModelIds);
+    }
+
     public grantBedrockTextModelAccess(lambdaFunc: lambda.IFunction): void {
         const regionModelIds = new Map<string, Set<string>>();
 

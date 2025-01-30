@@ -26,6 +26,46 @@ const configSchema = {
                     type: 'boolean',
                     description: 'Whether to enable streaming for the LLM response',
                 },
+                rerankingConfig: {
+                    type: 'object',
+                    description: 'Configuration for document reranking',
+                    properties: {
+                        modelConfig: {
+                            type: 'object',
+                            description: 'Configuration for reranking model',
+                            properties: {
+                                provider: {
+                                    type: 'string',
+                                    enum: ['bedrock'],
+                                    description: 'Provider of the reranking model',
+                                },
+                                modelId: {
+                                    type: 'string',
+                                    description: 'ID of the reranking model',
+                                },
+                            },
+                            required: ['provider', 'modelId'],
+                        },
+                        kwargs: {
+                            type: 'object',
+                            description:
+                                'Additional configuration parameters for reranking',
+                            properties: {
+                                numberOfResults: {
+                                    type: 'number',
+                                    description:
+                                        'Number of results to return from reranking',
+                                },
+                                additionalModelRequestFields: {
+                                    type: 'object',
+                                    description:
+                                        'Model-specific configuration parameters',
+                                },
+                            },
+                        },
+                    },
+                    required: ['modelConfig'],
+                },
                 maxConversationHistory: {
                     type: 'number',
                     description:

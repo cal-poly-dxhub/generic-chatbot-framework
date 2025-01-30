@@ -307,7 +307,33 @@ Specify settings for the large language models, including streaming, conversatio
         kwargs:
           promotion_image_url: <s3>
         ```
+-   **rerankingConfig (optional)**: Configuration for reranking retrieved documents to improve relevance and accuracy of responses. Reranking helps refine the initial similarity search results by applying a more sophisticated model to assess document relevance.
+    ```yaml
+    rerankingConfig:
+      modelConfig:
+        provider: <the provider of the reranking model (currently supports 'bedrock')>
+        modelId: <the ID of the reranking model>
+      kwargs:
+        numberOfResults: <the number of top results to return after reranking>
+        additionalModelRequestFields: <model-specific parameters for reranking requests>
+          <key>: <value>
+    ```
 
+    Example:
+    ```yaml
+    rerankingConfig:
+      modelConfig:
+        provider: bedrock
+        modelId: cohere.rerank-v3-5:0
+      kwargs:
+        numberOfResults: 10
+        additionalModelRequestFields:
+          max_tokens_per_doc: 4000
+    ```
+
+    When enabled, reranking is applied after the initial vector similarity search and before sending context to the LLM. This can significantly improve the quality of retrieved documents, especially for complex queries.
+
+    > **Note**: Reranking may increase latency and costs as it involves an additional model inference step.
 
 **RAG configuration**
 
