@@ -1,0 +1,238 @@
+systemConfig:
+    retainData: false
+    applicationName: handoff-dev
+    llmConfig:
+        streaming: true
+        maxConversationHistory: 5
+        maxCorpusDocuments: 5
+        corpusSimilarityThreshold: 0.5
+        classificationChainConfig:
+            modelConfig:
+                provider: bedrock
+                modelId: anthropic.claude-3-haiku-20240307-v1:0
+                modelKwargs:
+                    maxTokens: 1024
+                    temperature: 0.1
+                    topP: 0.99
+            promptTemplate: |
+                Your task is to analyze a customer query, classify it based on customer intention and language, then write corresponding responses if needed.
+                Your answer will be parse programmatically by codes, so it must strictly be only a JSON object.
+
+                Here are the 3 classification types that the query should be classified into, along with instruction for the response (if any):
+                <types>
+                <type_1>
+                    <name>greetings_farewells</name>
+                    <description>Greetings and farewells</description>
+                    <response>yes</response>
+                    <instruction>Politely greet back and offer assistance in case greeting, say good bye in case farewell. Use the language of the query to answer</instruction>
+                </type_1>
+                <type_2>
+                    <name>question</name>
+                    <description>Question related to company landscape and companies in Vietnam. This can be a follow up question to a previous question.</description>
+                    <response>no</response>
+                </type_2>
+                <type_3>
+                    <name>unrelated</name>
+                    <description>
+                    Queries unrelated to company landscape and companies in Vietnam.
+                    Some examples of unrelated queries include, but NOT limited to:
+                    - Queries about date, time, weather, holidays or generic location
+                    - Subjects involving programming languages, mathematical calculations, or language translations
+                    - Topics like politics, terrorism, violence, war, weapons, sports, stocks trading, ...
+                    - Inputs comprising random, nonsensical words, curse words
+                    </description>
+                    <response>yes</response>
+                    <instruction>Politely reply that you cannot answer this question. Use the language of the query to answer</instruction>
+                </type_3>
+                </types>
+
+                ###
+
+                If a response is needed, you must follow these rules while writing the response as guided in the <instruction>
+                <rules>
+                - Respond exclusively in query language
+                - Maintain a balance between professionalism and conversational tone, prioritizing conciseness and politeness
+                - Do NOT process or talk about any customer personal information
+                </rules>
+
+                ###
+
+                Here are some query examples and corresponding output:
+                <examples>
+                    <example>
+                    H: Xin chào bạn
+                    A: {"classification_type": "greetings_farewells", "language": "Vietnamese", "response": "Chào bạn. Chúc bạn một ngày tốt lành. Tôi là AI Chatbot. Tôi rất vui được hỗ trợ bạn."}
+                    </example>
+                    <example>
+                    H: Help me calculate this: 2 multiply by 2
+                    A: {"classification_type": "unrelated", "language": "English", "response": "Sorry, I cannot adhere to this request. I am an AI Chatbot to answer only Vietnam company information."}
+                    </example>
+                </examples>
+
+                ###
+                Here are the steps for you to follow:
+
+                1. Read the customer query carefully:
+                <query>${question}</query>
+
+                2. Categorize the query into one of the 3 types predefined above and the query language.
+
+                3. For types requiring a response (where <response> is "yes"), adhere to the corresponding <instruction> to write a response to the customer. Follow the <rules> listed above when writing the response
+
+                4. Structure the output as a JSON object comprising these key-value pairs:
+                "classification_type": the <name> of the type you classified this customer query into
+                "language": The language of the query
+                "response": The response string you wrote if the <response> is "yes"; "None" if the <response> is "no"
+
+                Here is the final response format:
+                {
+                "classification_type": "[type_name]",
+                "language": "[language]",
+                "response": "[your response string]" or "None"
+                }
+
+                5. Review your response to ensure compliance with all instructions, and strictly follow the JSON format, do NOT add any other wording, do NOT repeat the question.
+                Revise the response if it fails to meet all specified criteria.
+            promptVariables:
+                - question
+            kwargs:
+                system_prompt: |
+                    You are a chat assistant (chatbot). You are honest, polite and helpful when answering. Pay attention and follow every instruction carefully.
+        standaloneChainConfig:
+            modelConfig:
+                provider: bedrock
+                modelId: anthropic.claude-3-haiku-20240307-v1:0
+                modelKwargs:
+                    maxTokens: 1024
+                    temperature: 0.1
+                    topP: 0.99
+            promptTemplate: |
+                Your task is to create a condensed, standalone query in ${language} language based on the provided conversation history and current question.
+                This standalone query is used for information retrieval from a vector database in ${language} language, then will be answered by a LLM.
+
+                You MUST follows these rules when writing the new standalone query:
+                <rules>
+                1. Always write the question in ${language} language
+                2. Be concise, without any unnecessary filter words
+                3. Make sure the new standalone query is exactly the same in semantic with the current question: no entity name is removed, keeping the same question type (e.g., yes/no, open-ended, multiple choice...) and same queried objective (e.g.: NOT rephrasing from how to what, NOT rephrasing from command to question...)
+                4. Incorporate all the relevant context, details and entity names from the <chat_history>, such that it can be understood without needing the original history.
+                Ensure there is no pronoun (such as "này", "đó"...) left. Instead, replace pronoun with explicit entity name to clarify what is being asked.
+                5. Only rewrite the question, do NOT attempt to answer it.
+                </rules>
+
+                ###
+                Here are the data:
+
+                <chat_history>
+                ${chat_history}
+                </chat_history>
+
+                <question>${question}</question>
+
+                ###
+
+                Here are the steps to follow:
+                <steps>
+                1. Review the conversation history in <chat_history> section. This history may provide relevant context and background information for the current question.
+                Prioritize entities in the last question as preferred main topic.
+
+                2. Examine carefully the current <question>.
+
+                4.a. If the <question> is self-contained (can be understood without additional context), or if the <chat_history> is unrelated to this question: reproduce the question verbatim in ${language} language, do NOT rephrase or alter its content.
+
+                4.b. If contextual information from the <chat_history> is necessary to fully understand the question: synthesize key information from the conversation history with the current question to create a comprehensive standalone question. Follow guidances in <rules> section in your writing.
+
+                5. Review your standalone question. Compare it with the current <question>, make sure:
+                a. If no contextual information was added, the new standalone question is identical to the current <question> (translated if necessary).
+                b. Otherwise, it still has the same question type, and same queried objective with current <question>, all the entities mentioned in current <question> are present.
+                Re-write your answer to fit this requirement if needed. Remember NOT answer the question, ONLY rewrite.
+
+                6. Format your final standalone question as a JSON object:
+                {"standalone_question" : "[Standalone question in ${language} language]"}
+
+                7. Provide only the JSON object as your response. Do not include any additional text or explanations.
+                </steps>
+            promptVariables:
+                - chat_history
+                - question
+                - language
+            kwargs:
+                language: English
+                system_prompt: |
+                    You are a chat assistant (chatbot) for Vietnam company information. You are an expert about Retrieval Augmented Generation, which is the architecture this chatbot is based on. You are honest, polite and helpful. Pay attention and follow every instruction carefully.
+        qaChainConfig:
+            modelConfig:
+                provider: bedrock
+                modelId: anthropic.claude-3-haiku-20240307-v1:0
+                modelKwargs:
+                    maxTokens: 1024
+                    temperature: 0.1
+                    topP: 0.99
+            promptTemplate: |
+                Your task is to answer a customer's question based on provided knowldge base.
+
+                Here are the rules you must follow:
+                1. Always answer in ${language} languague
+                2. Use only information provided in the context documents or associated image, do NOT use your own knowledge to answer
+                3. If no relevant information is found in the context, apologize and state that you don't have sufficient information to answer the question
+                4. For instructional, guidance questions or answers about an address, make sure to answer exactly as stated in the context documents, do NOT rephrase the step-by-step instruction or shorten the address.
+                5. When using content from the context, integrate them seamlessly into the answer WITHOUT explicitly citing the context section. Rather, answer confidently and do NOT reveal in the answer where you get information from.
+                6. Provide concise answer, focused on the specific ask of the question. Use bullet points if more than 3-4 sentences is necessary. Avoid redundancy and do NOT repeat the question.
+                7. Be professional and conversational. Respond naturally and directly like a human chat agent.
+
+                ###
+                Here are all the context documents you will base on:
+                ${context}
+
+                ###
+
+                This is the question to answer:
+                ${question}
+
+                ###
+
+                To answer this question, follow these steps:
+
+                1. Read through the context carefully and think about:
+                - whether or not there is any point related to the question
+                - if yes, how those points can be used to answer the question.
+
+                2. Compose a comprehensive answer to the question, following above rules.
+
+                3. Review your draft answer. Make sure it:
+                - Answers to the point of the question
+                - Adhere to every rules above, especially that it's in ${language} language
+                Re-write your answer to fit these requirements if needed.
+
+                4. Finally, output your final answer.
+                Only response with the answer, do not include any additional text or explanations.
+            promptVariables:
+                - question
+                - context
+                - language
+            kwargs:
+                language: English
+                system_prompt: |
+                    You are a chat assistant (chatbot) for Vietnam company information. You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
+    ragConfig:
+        vectorStoreConfig:
+            vectorStoreType: pgvector
+            vectorStoreProperties:
+                minCapacity: 1
+                maxCapacity: 1
+                useRDSProxy: true
+        embeddingsModels:
+            - provider: bedrock
+              modelId: cohere.embed-multilingual-v3
+              modelRefKey: cohere.embed-multilingual-v3
+              dimensions: 1024
+        corpusConfig:
+            corpusType: knowledgebase
+    handoffConfig:
+        enableHandoff: true
+        summaryBufferMessageLimit: 10
+        handoffModelConfig:
+            provider: bedrock
+            modelId: 'test-model-id'
+    wafConfig:
+        enableApiGatewayWaf: true
