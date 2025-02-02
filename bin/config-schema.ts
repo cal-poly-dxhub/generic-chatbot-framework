@@ -194,6 +194,56 @@ const configSchema = {
                 },
             },
         },
+        handoffConfig: {
+            type: 'object',
+            description: 'Configuration for chat handoff',
+            properties: {
+                enableHandoff: {
+                    type: 'boolean',
+                    description: 'Flag to enable or disable chat handoff feature',
+                    default: false,
+                },
+                summaryBufferMessageLimit: {
+                    type: 'number',
+                    // TODO: Does this guarantee a token limit?
+                    description:
+                        'Number of messages to allow in the conversation history before summarization condensation',
+                    default: 5,
+                },
+                handoffModelConfig: {
+                    type: 'object',
+                    description:
+                        'Configuration for the LLM that summarizes chat history when a handoff occurs',
+                    properties: {
+                        provider: {
+                            type: 'string',
+                            enum: ['bedrock'],
+                            description:
+                                'Provider of the handoff model (currently only bedrock)',
+                        },
+                        modelId: {
+                            type: 'string',
+                            description: 'Bedrock ID of the handoff model',
+                        },
+                    },
+                    required: ['provider', 'modelId'],
+                },
+            },
+            required: ['enableHandoff'],
+            default: {
+                enableHandoff: false,
+            },
+            if: {
+                type: 'object',
+                properties: {
+                    enableHandoff: { const: true },
+                },
+            },
+            then: {
+                type: 'object',
+                required: ['handoffModelConfig'],
+            },
+        },
         wafConfig: {
             type: 'object',
             description: 'Configuration for AWS WAF (Web Application Firewall)',
