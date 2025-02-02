@@ -145,6 +145,17 @@ export interface RerankingConfig {
     };
 }
 
+interface HandoffModelConfig {
+    provider: 'bedrock';
+    modelId: string;
+}
+
+interface HandoffConfig {
+    enableHandoff: boolean;
+    summaryBufferMessageLimit?: number;
+    handoffModelConfig?: HandoffModelConfig;
+}
+
 export interface SystemConfig {
     retainData?: boolean;
     applicationName?: string;
@@ -161,6 +172,7 @@ export interface SystemConfig {
     chatHistoryConfig?: {
         storeType: 'dynamodb' | 'aurora_postgres';
     };
+    handoffConfig: HandoffConfig;
     wafConfig?: WafConfig;
 }
 
