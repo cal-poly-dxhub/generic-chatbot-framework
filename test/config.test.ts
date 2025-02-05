@@ -1,3 +1,7 @@
+/*
+Copyright 2024 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+SPDX-License-Identifier: Apache-2.0
+*/
 import Ajv from 'ajv';
 import * as yaml from 'js-yaml';
 import configSchema from '../bin/config-schema';
@@ -6,14 +10,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 test('config-with-summarizer', () => {
-    let systemConfig: SystemConfig;
     const configFilePath = path.join(__dirname, './test_config_summarizer.yaml');
 
     const config = yaml.load(fs.readFileSync(configFilePath, 'utf8')) as Record<
         string,
         unknown
     >;
-    systemConfig = config.systemConfig as SystemConfig;
+    const systemConfig = config.systemConfig as SystemConfig;
 
     // Validity
     const ajv = new Ajv();
@@ -33,14 +36,13 @@ test('config-no-summarizer', () => {
     // Config files without chatSummarizerConfig are also valid. By default
     // handoff is disabled.
 
-    let systemConfig: SystemConfig;
     const configFilePath = path.join(__dirname, './test_config_no_summarizer.yaml');
 
     const config = yaml.load(fs.readFileSync(configFilePath, 'utf8')) as Record<
         string,
         unknown
     >;
-    systemConfig = config.systemConfig as SystemConfig;
+    const systemConfig = config.systemConfig as SystemConfig;
 
     const ajv = new Ajv({ useDefaults: true });
     const validate = ajv.compile(configSchema);
@@ -55,14 +57,13 @@ test('config-missing-settings', () => {
      * reject through AJV
      */
 
-    let systemConfig: SystemConfig;
     const configFilePath = path.join(__dirname, './test_config_missing_model.yaml');
 
     const config = yaml.load(fs.readFileSync(configFilePath, 'utf8')) as Record<
         string,
         unknown
     >;
-    systemConfig = config.systemConfig as SystemConfig;
+    const systemConfig = config.systemConfig as SystemConfig;
 
     const ajv = new Ajv({ useDefaults: true });
     const validate = ajv.compile(configSchema);
