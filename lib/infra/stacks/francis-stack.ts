@@ -116,6 +116,10 @@ export class FrancisChatbotStack extends cdk.Stack {
             });
         }
 
+        Object.assign(apiProps, {
+            modelId: props.systemConfig.handoffConfig.handoffModelConfig?.modelId ?? '',
+        });
+
         const api = new Api(this, 'Api', {
             baseInfra,
             authentication,

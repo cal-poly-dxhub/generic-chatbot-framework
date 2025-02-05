@@ -23,6 +23,7 @@ export interface ApiProps {
     readonly rdsEndpoint?: string;
     readonly knowledgeBaseId?: string;
     readonly conversationTable: ddb.ITable;
+    readonly handoffModelId?: string;
 }
 
 const defaultCorsPreflightOptions = {
@@ -35,6 +36,7 @@ export class Api extends Construct {
     public readonly restApi: apigw.RestApi;
     public readonly webSocket: WebSocket;
     public readonly inferenceLambda: lambda.IFunction;
+    public readonly summarizationLambda: lambda.IFunction;
 
     public constructor(scope: Construct, id: string, props: ApiProps) {
         super(scope, id);
@@ -69,6 +71,10 @@ export class Api extends Construct {
             conversationLambda,
             corpusLambda
         );
+
+        const summarizationLambda = this.createSummarizationLambda(api, props);
+        this.summarizationLambda = summarizationLambda;
+
         this.inferenceLambda = inferenceLambda;
         this.webSocket = new WebSocket(this, 'WebSocket', {
             baseInfra: props.baseInfra,
@@ -234,6 +240,40 @@ export class Api extends Construct {
         this.addMethod(sendMessageResource, 'PUT', inferenceLambda);
 
         return inferenceLambda;
+    }
+
+    private createSummarizationLambda(
+        api: apigw.RestApi,
+        props: ApiProps
+    ): lambda.Function {
+        const summarizationResource = api.root.addResource('summaries', {
+            defaultCorsPreflightOptions,
+        });
+
+        const summarizationLambda = this.createLambdaHandler('summaries', props, {});
+
+        // TODO: handle missing model IDs at the top config-parsing level
+        const modelId = props.handoffModelId ?? '';
+
+        summarizationLambda.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['bedrock:InvokeModel', 'bedrock:ListModels'],
+                resources: [
+                    `arn:aws:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:model/${modelId}`,
+                ],
+            })
+        );
+
+        props.baseInfra.grantBedrockTextModelAccess(summarizationLambda);
+        props.baseInfra.grantSagemakerTextModelAccess(summarizationLambda);
+        props.baseInfra.grantBedrockRerankingAccess(summarizationLambda);
+
+        props.conversationTable.grantReadData(summarizationLambda);
+
+        this.addMethod(summarizationResource, 'GET', summarizationLambda);
+
+        return summarizationLambda;
     }
 
     private createLambdaHandler(
