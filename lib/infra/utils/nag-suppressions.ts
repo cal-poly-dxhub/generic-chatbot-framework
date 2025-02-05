@@ -72,6 +72,8 @@ export const applyNagSuppressions = (stack: Stack): void => {
         'Api/RestApi/CloudWatchRole/Resource',
         'Authentication/UserPool/smsRole/Resource',
         'Api/corpusApiHandler/ServiceRole/DefaultPolicy/Resource',
+        'Api/summariesApiHandler/ServiceRole/Resource',
+        'Api/summariesApiHandler/ServiceRole/DefaultPolicy/Resource',
         'LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
         'LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
         'BaseInfra/ConfigTableCustomResource/CustomResourcePolicy/Resource',
@@ -95,6 +97,7 @@ export const applyNagSuppressions = (stack: Stack): void => {
         'Api/conversationApiHandler/Resource',
         'Api/corpusApiHandler/Resource',
         'Api/inferenceApiHandler/Resource',
+        'Api/summariesApiHandler/Resource',
     ].forEach((p) => {
         NagSuppressions.addResourceSuppressionsByPath(stack, `${stack.stackName}/${p}`, [
             {
