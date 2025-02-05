@@ -49,6 +49,7 @@ def _depaginated_history(
             break
 
 
+@router.get("/internal/user/<user_id>/chat/<chat_id>/handoff")
 def handoff_chat(chat_id: str, user_id: str) -> dict:
     if not (table_name := os.getenv("CONFIG_TABLE_NAME")):
         raise ValueError("CONFIG_TABLE_NAME environment variable not set")
