@@ -116,8 +116,10 @@ class Summarizer:
         return content_types - {"text"}
 
     def summarize(self, francis_messages: Iterator[ChatMessage]) -> Optional[str]:
+        # Create a prompt for the model (instructions + annotated conversation)
         prompt = self._create_summarization_prompt(francis_messages)
 
+        # API request setup
         modelKwargs = self.handoff_config.modelKwargs if self.handoff_config.modelKwargs else DEFAULT_KWARGS
         inference_config = {
             "maxTokens": modelKwargs.maxTokens or DEFAULT_KWARGS.maxTokens,
@@ -137,12 +139,14 @@ class Summarizer:
         system_prompts = prompt.get("system_prompts", None)
         converse_kwargs |= {"systemPrompts": system_prompts} if system_prompts else {}
 
+        # Make the Bedrock call
         try:
             response = self.bedrock.converse(**converse_kwargs)
         except Exception as e:
             print(f"Error while summarizing messages: {e}")
             return FAILED_TO_SUMMARIZE
 
+        # Check for unexpected stop reasons or non-text content
         if response.get("stopReason") not in [
             "end_turn",
             "stop_sequence",
@@ -158,5 +162,6 @@ class Summarizer:
         # Aggregate all text outputs from the response
         response_content = response["output"]["message"]["content"]
         text_outputs = [content.get("text") for content in response_content if "text" in content]
+        summary = "\n\n".join(text_outputs)
 
-        return "\n\n".join(text_outputs)
+        return summary
