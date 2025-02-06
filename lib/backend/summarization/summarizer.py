@@ -1,38 +1,7 @@
-from typing import Optional, Iterator, Literal
+from typing import Optional, Iterator
 import boto3
-from pydantic import BaseModel
 from conversation.conversation_store.base import ChatMessage
-
-
-ModelProvider = Literal["sagemaker", "bedrock"]
-
-
-# TODO: where do these types belong?
-class ModelKwargs(BaseModel):
-    maxTokens: Optional[int] = None
-    temperature: Optional[float] = None
-    topP: Optional[float] = None
-    stopSequences: Optional[list[str]] = None
-
-
-class ModelBase(BaseModel):
-    provider: ModelProvider
-    modelId: str
-    region: Optional[str] = None
-
-
-class LLMModelBase(ModelBase):
-    modelKwargs: Optional[ModelKwargs] = None
-
-
-class BedRockLLMModel(LLMModelBase):
-    provider = "bedrock"
-
-
-class HandoffConfig(BedRockLLMModel):
-    details: Optional[list[str]] = None
-    windowSize: Optional[int] = None
-    windowOverlap: Optional[int] = None
+from .types import ModelKwargs, HandoffConfig
 
 
 FAILED_TO_SUMMARIZE = "Summarizer failed to generate a response."
