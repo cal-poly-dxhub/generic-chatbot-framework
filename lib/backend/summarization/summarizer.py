@@ -118,11 +118,7 @@ class Summarizer:
     def summarize(self, francis_messages: Iterator[ChatMessage]) -> Optional[str]:
         prompt = self._create_summarization_prompt(francis_messages)
 
-        messages = [{"role": "user", "content": [{"text": prompt["prompt"]}]}]
-        system_prompts = prompt.get("system_prompts", None)
-
         modelKwargs = self.handoff_config.modelKwargs if self.handoff_config.modelKwargs else DEFAULT_KWARGS
-
         inference_config = {
             "maxTokens": modelKwargs.maxTokens or DEFAULT_KWARGS.maxTokens,
             "temperature": modelKwargs.temperature or DEFAULT_KWARGS.temperature,
@@ -132,11 +128,13 @@ class Summarizer:
         # inference_config |= {"region": self.handoff_config.region} if self.handoff_config.region else {}
         # TODO: is region important?
 
+        messages = [{"role": "user", "content": [{"text": prompt["prompt"]}]}]
         converse_kwargs = {
             "modelId": self.handoff_config.modelId,
             "messages": messages,
             "inferenceConfig": inference_config,
         }
+        system_prompts = prompt.get("system_prompts", None)
         converse_kwargs |= {"systemPrompts": system_prompts} if system_prompts else {}
 
         try:
