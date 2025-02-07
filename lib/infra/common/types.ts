@@ -145,6 +145,10 @@ export interface RerankingConfig {
     };
 }
 
+export interface HandoffConfig extends BedRockLLMModel {
+    details?: string[];
+}
+
 export interface SystemConfig {
     retainData?: boolean;
     applicationName?: string;
@@ -161,6 +165,7 @@ export interface SystemConfig {
     chatHistoryConfig?: {
         storeType: 'dynamodb' | 'aurora_postgres';
     };
+    handoffConfig?: HandoffConfig; // TODO: make handoff config optional
     wafConfig?: WafConfig;
 }
 

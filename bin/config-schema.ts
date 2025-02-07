@@ -194,6 +194,44 @@ const configSchema = {
                 },
             },
         },
+        handoffConfig: {
+            type: 'object',
+            description: 'Configuration for handing off conversations to a human agent',
+            required: ['provider', 'modelId'],
+            properties: {
+                provider: {
+                    type: 'string',
+                    const: 'bedrock',
+                },
+                modelId: {
+                    type: 'string',
+                    description:
+                        'Bedrock ID of the LLM to use for summarizing a conversation',
+                },
+                modelKwArgs: {
+                    $ref: '#/definitions/ModelKwargs',
+                    default: {
+                        maxTokens: 1024,
+                        temperature: 0.1,
+                        topP: 0.95,
+                        stopSequences: [],
+                    },
+                },
+                details: {
+                    type: 'array',
+                    description:
+                        'Details for the handoff summarizer LLM to focus on (e.g., "Questions the user asked")',
+                    default: [
+                        'The main issue the user is trying to solve',
+                        'Questions the user asked',
+                        'Places where the user got stuck',
+                        'Instances where the user asked for help',
+                        'Instances where the user asked for a human',
+                        'Whether the user reported the issue as resolved',
+                    ],
+                },
+            },
+        },
         wafConfig: {
             type: 'object',
             description: 'Configuration for AWS WAF (Web Application Firewall)',
