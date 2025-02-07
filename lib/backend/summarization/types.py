@@ -28,5 +28,3 @@ class BedRockLLMModel(LLMModelBase):
 
 class HandoffConfig(BedRockLLMModel):
     details: Optional[list[str]] = None
-    windowSize: Optional[int] = None
-    windowOverlap: Optional[int] = None
