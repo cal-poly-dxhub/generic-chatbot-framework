@@ -23,7 +23,7 @@ class LLMModelBase(ModelBase):
 
 
 class BedRockLLMModel(LLMModelBase):
-    provider = "bedrock"
+    provider: ModelProvider = "bedrock"
 
 
 class HandoffConfig(BedRockLLMModel):

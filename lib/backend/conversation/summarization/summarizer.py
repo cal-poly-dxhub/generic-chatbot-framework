@@ -1,7 +1,8 @@
 from typing import Optional, Iterator
 import boto3
-from conversation.conversation_store.base import ChatMessage
+from conversation_store.base import ChatMessage
 from .types import ModelKwargs, HandoffConfig
+from aws_lambda_powertools import Logger
 
 
 FAILED_TO_SUMMARIZE = "Summarizer failed to generate a response."
@@ -16,6 +17,8 @@ DEFAULT_KWARGS = ModelKwargs(
 
 class Summarizer:
     def __init__(self, handoff_config: HandoffConfig):
+
+        self.logger = Logger()
         self.handoff_config = handoff_config
 
         self.bedrock = boto3.client("bedrock-runtime")
