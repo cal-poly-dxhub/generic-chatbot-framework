@@ -143,7 +143,7 @@ class Summarizer:
         try:
             response = self.bedrock.converse(**converse_kwargs)
         except Exception as e:
-            print(f"Error while summarizing messages: {e}")
+            self.logger.error(f"Error while summarizing messages: {e}")
             return FAILED_TO_SUMMARIZE
 
         # Check for unexpected stop reasons or non-text content
@@ -152,12 +152,12 @@ class Summarizer:
             "stop_sequence",
             "max_tokens",
         ]:
-            print(f"Unexpected stop reason from model {self.model_id}: {response.get('stop_reason')}")
+            self.logger.error(f"Unexpected stop reason from model {self.model_id}: {response.get('stop_reason')}")
             return FAILED_TO_SUMMARIZE
 
         if non_text_types := self._non_text_response_types(response):
             # TODO: log this
-            print(f"Unexpected response mode; did not expect non-text content: {non_text_types}")
+            self.logger.error(f"Unexpected response mode; did not expect non-text content: {non_text_types}")
 
         # Aggregate all text outputs from the response
         response_content = response["output"]["message"]["content"]
