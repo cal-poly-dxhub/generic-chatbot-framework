@@ -1,7 +1,7 @@
 from typing import Optional, Iterator
 import boto3
 from conversation_store.base import ChatMessage
-from .types import ModelKwargs, HandoffConfig
+from .types import ModelKwargs, HandoffConfig, BedRockLLMModel
 from aws_lambda_powertools import Logger
 
 
@@ -23,6 +23,8 @@ class Summarizer:
 
         self.bedrock = boto3.client("bedrock-runtime")
         self.model_id = handoff_config.modelId
+
+        self.inference_config = self._create_inference_config(handoff_config)
 
         # A model prompt consists of a role definition, a prompt describing the summarization task,
         # a conversation, and a tail prompt (which includes a list of types of details to focus on)
@@ -79,6 +81,11 @@ class Summarizer:
     def _create_conversation_string(self, messages: Iterator[ChatMessage]) -> str:
         return "\n\n".join([f"{self._conversator_name(m.messageType)}: {m.content}" for m in messages])
 
+    def _create_inference_config(self, model_config: BedRockLLMModel) -> dict:
+        model_kwargs = model_config.modelKwargs
+        inference_config = model_kwargs.model_dump(mode="python") if model_kwargs else {}
+        return inference_config
+
     def _create_summarization_prompt(
         self,
         messages: Iterator[ChatMessage],
@@ -122,24 +129,14 @@ class Summarizer:
         # Create a prompt for the model (instructions + annotated conversation)
         prompt = self._create_summarization_prompt(francis_messages)
 
-        # API request setup
-        modelKwargs = self.handoff_config.modelKwargs if self.handoff_config.modelKwargs else DEFAULT_KWARGS
-        inference_config = {
-            "maxTokens": modelKwargs.maxTokens or DEFAULT_KWARGS.maxTokens,
-            "temperature": modelKwargs.temperature or DEFAULT_KWARGS.temperature,
-            "topP": modelKwargs.topP or DEFAULT_KWARGS.topP,
-            "stopSequences": modelKwargs.stopSequences or DEFAULT_KWARGS.stopSequences,
-        }
-        # inference_config |= {"region": self.handoff_config.region} if self.handoff_config.region else {}
-        # TODO: is region important?
-
+        # Bedrock request setup
         messages = [{"role": "user", "content": [{"text": prompt["prompt"]}]}]
+        system_prompts = prompt.get("system_prompts", None)
         converse_kwargs = {
             "modelId": self.handoff_config.modelId,
             "messages": messages,
-            "inferenceConfig": inference_config,
+            "inferenceConfig": self.inference_config,
         }
-        system_prompts = prompt.get("system_prompts", None)
         converse_kwargs |= {"systemPrompts": system_prompts} if system_prompts else {}
 
         # Make the Bedrock call
