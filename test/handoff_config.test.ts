@@ -33,6 +33,7 @@ test('config-with-summarizer', () => {
     expect(systemConfig.handoffConfig?.modelKwargs?.topP).toBe(0.9);
     expect(systemConfig.handoffConfig?.modelKwargs?.stopSequences).toStrictEqual([]);
     expect(systemConfig.handoffConfig?.details).toBeDefined();
+    expect(systemConfig.handoffConfig?.supportsSystemPrompt).toBe(true);
 });
 
 test('config-default-kwargs', () => {
@@ -52,6 +53,8 @@ test('config-default-kwargs', () => {
     expect(validate(systemConfig)).toBe(true);
     expect(systemConfig.handoffConfig).toBeDefined();
     expect(systemConfig.handoffConfig?.provider).toBe('bedrock');
+    expect(systemConfig.handoffConfig?.modelKwargs).toBeUndefined();
+    expect(systemConfig.handoffConfig?.supportsSystemPrompt).toBe(false);
 });
 
 test('no-handoff', () => {

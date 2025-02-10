@@ -208,6 +208,12 @@ const configSchema = {
                     description:
                         'Bedrock ID of the LLM to use for summarizing a conversation',
                 },
+                supportsSystemPrompt: {
+                    type: 'boolean',
+                    description:
+                        'Whether the LLM model supports system prompts via the Converse API',
+                    default: false,
+                },
                 modelKwArgs: {
                     $ref: '#/definitions/ModelKwargs',
                     default: {
@@ -331,6 +337,12 @@ const configSchema = {
                 modelId: {
                     type: 'string',
                     description: 'ID of the LLM model',
+                },
+                supportsSystemPrompt: {
+                    type: 'boolean',
+                    description:
+                        'Whether the LLM model supports system prompts via the Converse API',
+                    default: false,
                 },
                 modelKwArgs: {
                     $ref: '#/definitions/ModelKwargs',

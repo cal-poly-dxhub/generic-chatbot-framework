@@ -234,6 +234,7 @@ systemConfig:
             temperature: 0.1
             topP: 0.9
             stopSequences: []
+        supportsSystemPrompt: true
         details:
             - The main issue the user is trying to solve
             - Questions the user asked

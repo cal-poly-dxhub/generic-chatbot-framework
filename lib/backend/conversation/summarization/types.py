@@ -24,6 +24,7 @@ class LLMModelBase(ModelBase):
 
 class BedRockLLMModel(LLMModelBase):
     provider: ModelProvider = "bedrock"
+    supportsSystemPrompt: bool = False
 
 
 class HandoffConfig(BedRockLLMModel):

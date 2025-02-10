@@ -23,6 +23,7 @@ class Summarizer:
 
         self.bedrock = boto3.client("bedrock-runtime")
         self.model_id = handoff_config.modelId
+        self.use_system_prompt = handoff_config.supportsSystemPrompt
 
         self.inference_config = self._create_inference_config(handoff_config)
 
@@ -90,7 +91,6 @@ class Summarizer:
         self,
         messages: Iterator[ChatMessage],
         existing_summary=None,
-        supports_system_prompt=False,
     ) -> dict:
         if existing_summary:
             task_prompt = self.recursive_prompt(existing_summary)
@@ -109,7 +109,7 @@ class Summarizer:
         if self.tail_prompt:
             complete_prompt_components.append(self.tail_prompt)
 
-        if supports_system_prompt:
+        if self.use_system_prompt:
             # Add the role definition to the system prompts
             complete_prompt = "\n\n".join(complete_prompt_components)
             return {"prompt": complete_prompt, "system_prompts": [self.role_definition]}

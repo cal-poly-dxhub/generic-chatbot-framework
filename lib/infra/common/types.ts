@@ -147,6 +147,7 @@ export interface RerankingConfig {
 
 export interface HandoffConfig extends BedRockLLMModel {
     details?: string[];
+    supportsSystemPrompt: boolean;
 }
 
 export interface SystemConfig {
