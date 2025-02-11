@@ -7,13 +7,6 @@ from aws_lambda_powertools import Logger
 
 FAILED_TO_SUMMARIZE = "Summarizer failed to generate a response."
 
-DEFAULT_KWARGS = ModelKwargs(
-    maxTokens=1024,
-    temperature=0.1,
-    topP=0.9,
-    stopSequences=[],
-)
-
 
 class Summarizer:
     def __init__(self, handoff_config: HandoffConfig):
@@ -84,6 +77,7 @@ class Summarizer:
 
     def _create_inference_config(self, model_config: BedRockLLMModel) -> dict:
         model_kwargs = model_config.modelKwargs
+        self.logger.info(f"Model kwargs: {model_kwargs}")
         inference_config = model_kwargs.model_dump(mode="python") if model_kwargs else {}
         return inference_config
 
