@@ -39,7 +39,8 @@ if (fs.existsSync(configFilePath)) {
 }
 
 // Validate system config
-const ajv = new Ajv();
+// NOTE: note to reviewer: Francis hasn't been using defaults up to this point
+const ajv = new Ajv({ useDefaults: true });
 const validate = ajv.compile(configSchema);
 if (!validate(systemConfig)) {
     throw new Error(`Invalid config: ${JSON.stringify(validate.errors)}`);
