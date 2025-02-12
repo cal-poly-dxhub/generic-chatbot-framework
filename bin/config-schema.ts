@@ -371,6 +371,7 @@ const configSchema = {
                 stopSequences: {
                     type: 'array',
                     description: 'Stop sequences for the LLM model output',
+                    default: [],
                     items: {
                         type: 'string',
                     },
