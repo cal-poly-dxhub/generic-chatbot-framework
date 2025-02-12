@@ -150,7 +150,6 @@ class Summarizer:
             return FAILED_TO_SUMMARIZE
 
         if non_text_types := self._non_text_response_types(response):
-            # TODO: log this
             self.logger.error(f"Unexpected response mode; did not expect non-text content: {non_text_types}")
 
         # Aggregate all text outputs from the response
