@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import {
     CognitoIdentityProviderClient,
     InitiateAuthCommand,
@@ -9,8 +11,6 @@ import { HttpRequest } from '@aws-sdk/protocol-http';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { writeFile } from 'fs/promises';
 import * as readline from 'readline';
-
-// RUN THIS WITH tsx scripts/invoke_api.ts
 
 // POPULATE THESE -------
 
@@ -28,7 +28,7 @@ const password = '<password>';
 
 // ----------------------
 
-async function getCognitoToken() {
+async function getCognitoToken(): Promise<string | undefined> {
     const client = new CognitoIdentityProviderClient({ region });
     const command = new InitiateAuthCommand({
         AuthFlow: 'USER_PASSWORD_AUTH',
@@ -82,7 +82,7 @@ function promptForMfaCode(): Promise<string> {
     });
 }
 
-async function invokeApi(idToken: string) {
+async function invokeApi(idToken: string): Promise<void> {
     const { default: fetch } = await import('node-fetch');
     const credentials = defaultProvider();
     const signer = new SignatureV4({
@@ -124,7 +124,7 @@ async function invokeApi(idToken: string) {
     }
 }
 
-async function main() {
+async function main(): Promise<void> {
     try {
         const idToken = await getCognitoToken();
         console.log('ID Token:', idToken);
@@ -135,3 +135,5 @@ async function main() {
 }
 
 main();
+
+/* eslint-enable @typescript-eslint/naming-convention */
