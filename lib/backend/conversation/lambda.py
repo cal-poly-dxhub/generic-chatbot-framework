@@ -33,6 +33,8 @@ app.include_router(summarization_router)
 def handler(event: Dict, context: LambdaContext) -> Dict:
     if not event.get("path", "").startswith("/internal"):
         rest_api_event = APIGatewayProxyEvent(event)
+        # See https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+        logger.info(f"API GATEWAY EVENT: {rest_api_event}")
         _, user_id = get_calling_identity(rest_api_event.request_context.identity.cognito_authentication_provider)
         if not user_id:
             raise ValueError("No userId was found in context")
