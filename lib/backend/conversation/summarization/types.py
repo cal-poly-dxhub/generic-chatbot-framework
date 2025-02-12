@@ -9,7 +9,7 @@ class ModelKwargs(BaseModel):
     maxTokens: Optional[int] = None
     temperature: Optional[float] = None
     topP: Optional[float] = None
-    stopSequences: Optional[list[str]] = None
+    stopSequences: list[str] = []
 
 
 class ModelBase(BaseModel):
