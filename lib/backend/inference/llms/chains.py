@@ -54,9 +54,17 @@ def run_rag_chain(
 
         app_trace.add("classification_response", classification_response)
         if "classification_type" in classification_response:
-            classification_type = classification_response["classification_type"]  # type: ignore 
+            classification_type = classification_response["classification_type"]  # type: ignore
 
-        if classification_type == ClassificationType.GREETINGS_FAREWELLS or classification_type == ClassificationType.UNRELATED:
+        if (
+            classification_type == ClassificationType.GREETINGS_FAREWELLS
+            or classification_type == ClassificationType.UNRELATED
+            or classification_type == ClassificationType.HANDOFF_REQUEST
+        ):
+            if classification_type == ClassificationType.HANDOFF_REQUEST:
+                # TODO: call handoff accountant here
+                logger.info("Handoff requested", extra={"event": "handoff_request"})
+
             answer = classification_response.get("response", "")
             app_trace.add("answer", answer)
 
@@ -92,7 +100,6 @@ def run_rag_chain(
             user_id=user_id,
         )
         app_trace.add("standalone_question", standalone_q)
-
 
     answer, documents = run_qa_step(
         chain_config=llm_config["qaChainConfig"],
@@ -180,6 +187,19 @@ def run_qa_step(
     answer = parse_qa_response(llm_response)
 
     return (answer, documents)
+
+
+@tracer.capture_method(capture_response=False)
+def run_handoff_step(chain_config: dict, history_limit: int, user_q: str, chat_id: str, user_id: str) -> str:
+    # TODO: update chat history here
+
+    return run_standalone_step(
+        chain_config=chain_config,
+        history_limit=history_limit,
+        user_q=user_q,
+        chat_id=chat_id,
+        user_id=user_id,
+    )
 
 
 @tracer.capture_method(capture_response=False)
