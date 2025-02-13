@@ -27,5 +27,7 @@ class BedRockLLMModel(LLMModelBase):
     supportsSystemPrompt: bool = False
 
 
-class HandoffConfig(BedRockLLMModel):
+class HandoffConfig(BaseModel):
+    model: BedRockLLMModel
     details: Optional[list[str]] = None
+    handoffThreshold: int

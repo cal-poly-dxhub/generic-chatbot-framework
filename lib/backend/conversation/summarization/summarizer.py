@@ -15,10 +15,10 @@ class Summarizer:
         self.handoff_config = handoff_config
 
         self.bedrock = boto3.client("bedrock-runtime")
-        self.model_id = handoff_config.modelId
-        self.use_system_prompt = handoff_config.supportsSystemPrompt
+        self.model_id = handoff_config.model.modelId
+        self.use_system_prompt = handoff_config.model.supportsSystemPrompt
 
-        self.inference_config = self._create_inference_config(handoff_config)
+        self.inference_config = self._create_inference_config(handoff_config.model)
 
         # A model prompt consists of a role definition, a prompt describing the summarization task,
         # a conversation, and a tail prompt (which includes a list of types of details to focus on)
@@ -127,7 +127,7 @@ class Summarizer:
         messages = [{"role": "user", "content": [{"text": prompt["prompt"]}]}]
         system_prompts = prompt.get("system_prompts", None)
         converse_kwargs = {
-            "modelId": self.handoff_config.modelId,
+            "modelId": self.handoff_config.model.modelId,
             "messages": messages,
             "inferenceConfig": self.inference_config,
         }
