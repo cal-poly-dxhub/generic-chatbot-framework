@@ -79,6 +79,8 @@ export interface LLMModelBase extends ModelBase {
 
 export interface BedRockLLMModel extends LLMModelBase {
     readonly provider: 'bedrock';
+    // NOTE: for review: this allows passing system prompts via Converse API when available
+    readonly supportsSystemPrompt: boolean;
 }
 
 export interface SageMakerLLMModel extends LLMModelBase {
@@ -145,9 +147,10 @@ export interface RerankingConfig {
     };
 }
 
-export interface HandoffConfig extends BedRockLLMModel {
+export interface HandoffConfig {
     details?: string[];
-    supportsSystemPrompt: boolean;
+    model: BedRockLLMModel;
+    handoffThreshold: number;
 }
 
 export interface SystemConfig {

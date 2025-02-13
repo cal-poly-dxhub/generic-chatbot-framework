@@ -197,31 +197,43 @@ const configSchema = {
         handoffConfig: {
             type: 'object',
             description: 'Configuration for handing off conversations to a human agent',
-            required: ['provider', 'modelId'],
+            required: ['model', 'handoffThreshold'],
             properties: {
-                provider: {
-                    type: 'string',
-                    const: 'bedrock',
-                },
-                modelId: {
-                    type: 'string',
-                    description:
-                        'Bedrock ID of the LLM to use for summarizing a conversation',
-                },
-                supportsSystemPrompt: {
-                    type: 'boolean',
-                    description:
-                        'Whether the LLM model supports system prompts via the Converse API',
-                    default: false,
-                },
-                modelKwArgs: {
-                    $ref: '#/definitions/ModelKwargs',
-                    default: {
-                        maxTokens: 1024,
-                        temperature: 0.1,
-                        topP: 0.95,
-                        stopSequences: [],
+                model: {
+                    type: 'object',
+                    description: 'Configuration for the handoff summarizer LLM model',
+                    properties: {
+                        provider: {
+                            type: 'string',
+                            const: 'bedrock',
+                        },
+                        modelId: {
+                            type: 'string',
+                            description:
+                                'Bedrock ID of the LLM to use for summarizing a conversation',
+                        },
+                        supportsSystemPrompt: {
+                            type: 'boolean',
+                            description:
+                                'Whether the LLM model supports system prompts via the Converse API',
+                            default: false,
+                        },
+                        modelKwArgs: {
+                            $ref: '#/definitions/ModelKwargs',
+                            default: {
+                                maxTokens: 1024,
+                                temperature: 0.1,
+                                topP: 0.95,
+                                stopSequences: [],
+                            },
+                        },
                     },
+                },
+                handoffThreshold: {
+                    type: 'number',
+                    description:
+                        'Number of times the user requests a human before handoff',
+                    default: 1,
                 },
                 details: {
                     type: 'array',

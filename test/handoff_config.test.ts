@@ -27,18 +27,22 @@ test('config-with-summarizer', () => {
     expect(systemConfig.handoffConfig).toBeDefined();
 
     // Access some properties
-    expect(systemConfig.handoffConfig?.provider).toBe('bedrock');
-    expect(systemConfig.handoffConfig?.modelKwargs?.maxTokens).toBe(1024);
-    expect(systemConfig.handoffConfig?.modelKwargs?.temperature).toBe(0.1);
-    expect(systemConfig.handoffConfig?.modelKwargs?.topP).toBe(0.9);
-    expect(systemConfig.handoffConfig?.modelKwargs?.stopSequences).toStrictEqual([]);
-    expect(systemConfig.handoffConfig?.details).toBeDefined();
-    expect(systemConfig.handoffConfig?.supportsSystemPrompt).toBe(true);
+    const handoffConfig = systemConfig.handoffConfig;
+    const modelConfig = handoffConfig?.model;
+    expect(modelConfig?.provider).toBe('bedrock');
+    expect(modelConfig?.modelKwargs?.maxTokens).toBe(1024);
+    expect(modelConfig?.modelKwargs?.temperature).toBe(0.1);
+    expect(modelConfig?.modelKwargs?.topP).toBe(0.9);
+    expect(modelConfig?.modelKwargs?.stopSequences).toStrictEqual([]);
+
+    expect(handoffConfig?.details).toBeDefined();
+    expect(handoffConfig?.model.supportsSystemPrompt).toBe(true);
+    expect(handoffConfig?.handoffThreshold).toBe(1);
 });
 
 test('config-default-kwargs', () => {
-    // Configs without modelKwargs or details are valid; we just don't pass them during the
-    // LLM API call
+    // Configs without modelKwargs, handoffThreshold, or details are valid; they're either
+    // filled with defaults or not used
 
     const configFilePath = path.join(__dirname, './test_config_defaults.yaml');
 
@@ -52,9 +56,10 @@ test('config-default-kwargs', () => {
     const validate = ajv.compile(configSchema);
     expect(validate(systemConfig)).toBe(true);
     expect(systemConfig.handoffConfig).toBeDefined();
-    expect(systemConfig.handoffConfig?.provider).toBe('bedrock');
-    expect(systemConfig.handoffConfig?.modelKwargs).toBeUndefined();
-    expect(systemConfig.handoffConfig?.supportsSystemPrompt).toBe(false);
+    expect(systemConfig.handoffConfig?.model.provider).toBe('bedrock');
+    expect(systemConfig.handoffConfig?.model.modelKwargs).toBeUndefined();
+    expect(systemConfig.handoffConfig?.model.supportsSystemPrompt).toBe(false);
+    expect(systemConfig.handoffConfig?.handoffThreshold).toBe(1);
 });
 
 test('no-handoff', () => {

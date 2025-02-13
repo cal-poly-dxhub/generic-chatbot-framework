@@ -227,7 +227,8 @@ systemConfig:
         corpusConfig:
             corpusType: knowledgebase
     handoffConfig:
-        provider: bedrock
-        modelId: us.amazon.nova-lite-v1:0
+        model:
+            provider: bedrock
+            modelId: us.amazon.nova-lite-v1:0
     wafConfig:
         enableApiGatewayWaf: true
