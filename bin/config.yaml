@@ -9,7 +9,7 @@ systemConfig:
     classificationChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: us.anthropic.claude-3-haiku-20240307-v1:0
+        modelId: us:anthropic.claude-3-haiku-20240307-v1:0
         modelKwargs:
           maxTokens: 1024
           temperature: 0.1
@@ -116,7 +116,7 @@ systemConfig:
     standaloneChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: us.anthropic.claude-3-haiku-20240307-v1:0
+        modelId: us:anthropic.claude-3-haiku-20240307-v1:0
         modelKwargs:
           maxTokens: 1024
           temperature: 0.1
@@ -178,7 +178,7 @@ systemConfig:
     qaChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: us.anthropic.claude-3-haiku-20240307-v1:0
+        modelId: us:anthropic.claude-3-haiku-20240307-v1:0
         modelKwargs:
           maxTokens: 1024
           temperature: 0.1
