@@ -244,19 +244,23 @@ systemConfig:
     corpusConfig:
       corpusType: knowledgebase
   handoffConfig:
-    provider: bedrock
-    modelId: us.amazon.nova-lite-v1:0
-    modelKwargs:
-      maxTokens: 1024
-      temperature: 0.1
-      topP: 0.99
-    details:
-      - The main issue the user is trying to solve
-      - Questions the user asked
-      - Places where the user got stuck
-      - Instances where the user asked for help
-      - Instances where the user asked for a human
-      - Whether the user reported the issue as resolved
+      model:
+          provider: bedrock
+          modelId: us.amazon.nova-lite-v1:0
+          modelKwargs:
+              maxTokens: 1024
+              temperature: 0.1
+              topP: 0.9
+              stopSequences: []
+          supportsSystemPrompt: true
+      handoffThreshold: 1
+      details:
+          - The main issue the user is trying to solve
+          - Questions the user asked
+          - Places where the user got stuck
+          - Instances where the user asked for help
+          - Instances where the user asked for a human
+          - Whether the user reported the issue as resolved
   wafConfig:
     enableApiGatewayWaf: true
   
