@@ -63,7 +63,7 @@ def run_rag_chain(
         ):
             if classification_type == ClassificationType.HANDOFF_REQUEST:
                 # TODO: call handoff accountant here
-                logger.info("Handoff requested", extra={"event": "handoff_request"})
+                logger.info("Handoff requested", extra={"event": "handoff_request", "question": user_q})
 
             answer = classification_response.get("response", "")
             app_trace.add("answer", answer)
@@ -154,20 +154,14 @@ def run_qa_step(
             corpus_similarity_threshold=corpus_similarity_threshold,
             model_ref_key=embedding_model.modelRefKey,
         )
-        
+
         if documents:
             if reranking_config:
                 reranking_model_config = reranking_config.get("modelConfig", {})
-                reranker = get_reranker_class(
-                    reranking_model_config.get("provider"),
-                    reranking_model_config.get("region")
-                )
+                reranker = get_reranker_class(reranking_model_config.get("provider"), reranking_model_config.get("region"))
                 reranking_kwargs = reranking_config.get("kwargs", {})
                 reranked_documents = reranker.rerank_text(
-                    reranker_config=reranking_config,
-                    query=question,
-                    documents=documents,
-                    **reranking_kwargs
+                    reranker_config=reranking_config, query=question, documents=documents, **reranking_kwargs
                 )
                 documents = reranked_documents
             context = format_documents(documents)
