@@ -1,6 +1,6 @@
 systemConfig:
   retainData: false
-  applicationName: dev
+  applicationName: handoff-dev
   llmConfig:
     streaming: true
     maxConversationHistory: 5
@@ -9,7 +9,7 @@ systemConfig:
     classificationChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: anthropic.claude-3-haiku-20240307-v1:0
+        modelId: us.anthropic.claude-3-haiku-20240307-v1:0
         modelKwargs:
           maxTokens: 1024
           temperature: 0.1
@@ -18,7 +18,7 @@ systemConfig:
         Your task is to analyze a customer query, classify it based on customer intention and language, then write corresponding responses if needed.
         Your answer will be parse programmatically by codes, so it must strictly be only a JSON object.
 
-        Here are the 3 classification types that the query should be classified into, along with instruction for the response (if any):
+        Here are the 4 classification types that the query should be classified into, along with instruction for the response (if any):
         <types>
         <type_1>
             <name>greetings_farewells</name>
@@ -44,6 +44,21 @@ systemConfig:
             <response>yes</response>
             <instruction>Politely reply that you cannot answer this question. Use the language of the query to answer</instruction>
         </type_3>
+        <type_4>
+            <name>handoff_request</name>
+            <description>
+            Any requests to speak to a human. This includes (BUT IS NOT LIMITED TO) the following:
+            - "Speak to a real person"
+            - "I want to speak to a human"
+            - "human"
+            - "real person"
+
+            Count explicit requests to talk to a person, but do NOT count implicit requests like getting frustrated with the 
+            chatbot or the solution provided by the chatbot not working.
+            </description>
+            <response>yes</response>
+            <instruction>Politely explain that you would like to try and address the problem. Ask if the user would like a different solution or route.</instruction>
+        </type_4>
         </types>
 
         ###
@@ -101,7 +116,7 @@ systemConfig:
     standaloneChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: anthropic.claude-3-haiku-20240307-v1:0
+        modelId: us.anthropic.claude-3-haiku-20240307-v1:0
         modelKwargs:
           maxTokens: 1024
           temperature: 0.1
@@ -163,7 +178,7 @@ systemConfig:
     qaChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: anthropic.claude-3-haiku-20240307-v1:0
+        modelId: us.anthropic.claude-3-haiku-20240307-v1:0
         modelKwargs:
           maxTokens: 1024
           temperature: 0.1
@@ -216,16 +231,32 @@ systemConfig:
           You are a chat assistant (chatbot) for Vietnam company information. You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
   ragConfig:
     vectorStoreConfig:
-      vectorStoreType: opensearch
+      vectorStoreType: pgvector
       vectorStoreProperties:
-        allowFromPublic: false
+        minCapacity: 2
+        maxCapacity: 2
+        useRDSProxy: true
     embeddingsModels:
       - provider: bedrock
-        modelId: cohere.embed-multilingual-v3
-        modelRefKey: cohere.embed-multilingual-v3
+        modelId: amazon.titan-embed-text-v2:0
+        modelRefKey: amazon.titan-embed-text-v2:0
         dimensions: 1024
     corpusConfig:
       corpusType: knowledgebase
+  handoffConfig:
+    provider: bedrock
+    modelId: us.amazon.nova-lite-v1:0
+    modelKwargs:
+      maxTokens: 1024
+      temperature: 0.1
+      topP: 0.99
+    details:
+      - The main issue the user is trying to solve
+      - Questions the user asked
+      - Places where the user got stuck
+      - Instances where the user asked for help
+      - Instances where the user asked for a human
+      - Whether the user reported the issue as resolved
   wafConfig:
     enableApiGatewayWaf: true
   
