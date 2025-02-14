@@ -106,7 +106,10 @@ class Summarizer:
         if self.use_system_prompt:
             # Add the role definition to the system prompts
             complete_prompt = "\n\n".join(complete_prompt_components)
-            return {"prompt": complete_prompt, "system_prompts": [self.role_definition]}
+            return {
+                "prompt": complete_prompt,
+                "system_prompts": [{"text": self.role_definition}],
+            }
         else:
             # Add the role definition to the user prompt
             complete_prompt = "\n\n".join([self.role_definition] + complete_prompt_components)
@@ -131,14 +134,17 @@ class Summarizer:
             "messages": messages,
             "inferenceConfig": self.inference_config,
         }
-        converse_kwargs |= {"systemPrompts": system_prompts} if system_prompts else {}
+        converse_kwargs |= {"system": system_prompts} if system_prompts else {}
+
+        input_tokens = 0
+        output_tokens = 0
 
         # Make the Bedrock call
         try:
             response = self.bedrock.converse(**converse_kwargs)
         except Exception as e:
             self.logger.error(f"Error while summarizing messages: {e}")
-            return FAILED_TO_SUMMARIZE
+            return {"summary": FAILED_TO_SUMMARIZE, "input_tokens": input_tokens, "output_tokens": output_tokens}
 
         # Check for unexpected stop reasons or non-text content
         if response.get("stopReason") not in [
