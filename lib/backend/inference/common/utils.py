@@ -240,7 +240,7 @@ def _perform_handoff(user_id: str, chat_id: str) -> None:
 
 
 @tracer.capture_method
-def check_for_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> bool:
+def add_and_check_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> bool:
     handoff_requests = _account_handoff(user_id, chat_id)
     if handoff_requests >= handoff_threshold:
         _perform_handoff(user_id, chat_id)
