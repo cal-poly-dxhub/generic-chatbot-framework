@@ -122,7 +122,7 @@ class Summarizer:
             content_types.update(content.keys())
         return content_types - {"text"}
 
-    def summarize(self, francis_messages: Iterator[ChatMessage]) -> Optional[str]:
+    def summarize(self, francis_messages: Iterator[ChatMessage]) -> dict:
         # Create a prompt for the model (instructions + annotated conversation)
         prompt = self._create_summarization_prompt(francis_messages)
 
@@ -153,7 +153,14 @@ class Summarizer:
             "max_tokens",
         ]:
             self.logger.error(f"Unexpected stop reason from model {self.model_id}: {response.get('stop_reason')}")
-            return FAILED_TO_SUMMARIZE
+            if response.get("usage"):
+                if response["usage"].get("inputTokens"):
+                    input_tokens = response["usage"]["inputTokens"]
+
+                if response["usage"].get("outputTokens"):
+                    output_tokens = response["usage"]["outputTokens"]
+
+            return {"summary": FAILED_TO_SUMMARIZE, "input_tokens": input_tokens, "output_tokens": output_tokens}
 
         if non_text_types := self._non_text_response_types(response):
             self.logger.error(f"Unexpected response mode; did not expect non-text content: {non_text_types}")
@@ -163,4 +170,10 @@ class Summarizer:
         text_outputs = [content.get("text") for content in response_content if "text" in content]
         summary = "\n\n".join(text_outputs)
 
-        return summary
+        response = {
+            "summary": summary,
+            "input_tokens": response["usage"]["inputTokens"],
+            "output_tokens": response["usage"]["outputTokens"],
+        }
+
+        return response

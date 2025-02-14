@@ -7,6 +7,7 @@ from summarization.summarizer import Summarizer
 from aws_lambda_powertools.event_handler.api_gateway import Router
 from summarization.types import HandoffConfig
 from aws_lambda_powertools import Logger
+import json
 
 
 MESSAGES_PAGE_SIZE = 50
@@ -42,7 +43,21 @@ def _depaginated_history(store: BaseChatHistoryStore, chat_id: str, user_id: str
 _depaginated_history.num_messages = 0  # type: ignore
 
 
-@router.get("/chat/<chat_id>/user/<user_id>/handoff")
+@router.post("/internal/chat/<chat_id>/user/<user_id>/handoff")
+def increment_handoff_requests(chat_id: str, user_id: str) -> dict:
+    extra = {"chat_id": chat_id, "user_id": user_id, "event": "increment_handoff_requests"}
+    logger.info("Count handoff requests triggered", extra=extra)
+
+    store = get_chat_history_store()
+    num_handoff_requests = store.increment_handoff_counter(user_id, chat_id)
+    return {
+        "data": {
+            "numHandoffRequests": num_handoff_requests,
+        },
+    }
+
+
+@router.put("/internal/chat/<chat_id>/user/<user_id>/handoff")
 def handoff_chat(chat_id: str, user_id: str) -> dict:
     print("handoff_chat")
     extra = {"chat_id": chat_id, "user_id": user_id, "event": "handoff_chat"}
@@ -62,12 +77,23 @@ def handoff_chat(chat_id: str, user_id: str) -> dict:
     messages = _depaginated_history(store, chat_id, user_id)
 
     summarizer = Summarizer(handoff_config=handoff_config)
-    summary = summarizer.summarize(messages)
+    summary_response = summarizer.summarize(messages)
+
     handoff_ticket = {
-        "chatId": chat_id,
-        "userId": user_id,
-        "numMessages": _depaginated_history.num_messages,  # type: ignore
-        "summary": summary,
+        "data": {
+            "chatId": chat_id,
+            "userId": user_id,
+            "numMessages": _depaginated_history.num_messages,  # type: ignore
+            "summary": summary_response["summary"],
+        }
     }
 
-    return handoff_ticket
+    store.populate_handoff(user_id, chat_id, json.dumps(handoff_ticket))
+
+    return {
+        "data": {
+            "statusCode": 200,
+            "input_tokens": summary_response["input_tokens"],
+            "output_tokens": summary_response["output_tokens"],
+        },
+    }

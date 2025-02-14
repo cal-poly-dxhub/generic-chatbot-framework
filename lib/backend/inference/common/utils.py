@@ -217,6 +217,38 @@ def get_message_history(user_id: str, chat_id: str, history_limit: int = 5) -> l
 
 
 @tracer.capture_method
+def _account_handoff(user_id: str, chat_id: str) -> int:
+    request_payload = {
+        "path": f"/internal/chat/{chat_id}/user/{user_id}/handoff",
+        "httpMethod": "POST",
+        "pathParameters": {"user_id": user_id, "chat_id": chat_id},
+    }
+    response = invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
+    return int(response["numHandoffRequests"])
+
+
+@tracer.capture_method
+def _perform_handoff(user_id: str, chat_id: str) -> None:
+    request_payload = {
+        "path": f"/internal/chat/{chat_id}/user/{user_id}/handoff",
+        "httpMethod": "PUT",
+        "pathParameters": {"user_id": user_id, "chat_id": chat_id},
+    }
+    invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
+    # TODO: Account for tokens from summarization here. The call above returns
+    # a dict like "{'data': {'input_tokens': <m>, 'output_tokens': <n>}}"
+
+
+@tracer.capture_method
+def check_for_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> bool:
+    handoff_requests = _account_handoff(user_id, chat_id)
+    if handoff_requests >= handoff_threshold:
+        _perform_handoff(user_id, chat_id)
+        return True
+    return False
+
+
+@tracer.capture_method
 def get_corpus_documents(
     question: str,
     model_ref_key: str,
