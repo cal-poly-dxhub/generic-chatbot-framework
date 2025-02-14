@@ -48,6 +48,8 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             "title": title,
             "createdAt": timestamp,
             "userId": user_id,
+            "handoffRequests": 0,
+            "handoffObject": None,
             **keys,
             **gsi_keys,
             "entity": "CHAT",
@@ -63,6 +65,29 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             createdAt=timestamp,
             updatedAt=timestamp,
             userId=user_id,
+        )
+
+    def increment_handoff_counter(self, user_id: str, chat_id: str) -> int:
+        """
+        Counts a handoff request and returns the new count of requests.
+        """
+        response = self.table.update_item(
+            Key=get_chat_key(user_id, chat_id),
+            ConditionExpression="attribute_exists(PK) and attribute_exists(SK)",
+            UpdateExpression="set handoffRequests = handoffRequests + :val",
+            ExpressionAttributeValues={":val": 1},
+            ReturnValues="UPDATED_NEW",
+        )
+
+        return response["Attributes"]["handoffRequests"]
+
+    def populate_handoff(self, user_id: str, chat_id: str, handoff_object: str) -> None:
+        self.table.update_item(
+            Key=get_chat_key(user_id, chat_id),
+            ConditionExpression="attribute_exists(PK) and attribute_exists(SK)",
+            UpdateExpression="set handoffObject = :handoffObject",
+            ExpressionAttributeValues={":handoffObject": handoff_object},
+            ReturnValues="UPDATED_NEW",
         )
 
     def _get_all_chat_message_ids(
