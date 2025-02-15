@@ -21,7 +21,7 @@ test('config-with-summarizer', () => {
     const systemConfig = config.systemConfig as SystemConfig;
 
     // Validity
-    const ajv = new Ajv();
+    const ajv = new Ajv({ useDefaults: true });
     const validate = ajv.compile(configSchema);
     expect(validate(systemConfig)).toBe(true);
     expect(systemConfig.handoffConfig).toBeDefined();
@@ -38,6 +38,10 @@ test('config-with-summarizer', () => {
     expect(handoffConfig?.details).toBeDefined();
     expect(handoffConfig?.model.supportsSystemPrompt).toBe(true);
     expect(handoffConfig?.handoffThreshold).toBe(1);
+    expect(handoffConfig?.handoffResponses).toBeDefined();
+    expect(handoffConfig?.handoffResponses.handoffRequested).toBeDefined();
+    expect(handoffConfig?.handoffResponses.handoffJustTriggered).toBeDefined();
+    expect(handoffConfig?.handoffResponses.handoffCompleting).toBeDefined();
 });
 
 test('config-default-kwargs', () => {
@@ -60,6 +64,12 @@ test('config-default-kwargs', () => {
     expect(systemConfig.handoffConfig?.model.modelKwargs).toBeUndefined();
     expect(systemConfig.handoffConfig?.model.supportsSystemPrompt).toBe(false);
     expect(systemConfig.handoffConfig?.handoffThreshold).toBe(1);
+    expect(systemConfig.handoffConfig?.handoffResponses).toBeDefined();
+    expect(systemConfig.handoffConfig?.handoffResponses.handoffRequested).toBeDefined();
+    expect(
+        systemConfig.handoffConfig?.handoffResponses.handoffJustTriggered
+    ).toBeDefined();
+    expect(systemConfig.handoffConfig?.handoffResponses.handoffCompleting).toBeDefined();
 });
 
 test('no-handoff', () => {

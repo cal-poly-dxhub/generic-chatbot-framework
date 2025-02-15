@@ -237,6 +237,10 @@ systemConfig:
                 stopSequences: []
             supportsSystemPrompt: true
         handoffThreshold: 1
+        handoffResponses:
+            handoffRequested: "I'm sorry, I'm not able to help with that. Can we try again?"
+            handoffJustTriggered: 'Connecting with someone who can help. You can keep taling to me in the meantime.'
+            # Exclude handoffCompleting to test defaults
         details:
             - The main issue the user is trying to solve
             - Questions the user asked

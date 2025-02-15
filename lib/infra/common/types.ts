@@ -147,10 +147,17 @@ export interface RerankingConfig {
     };
 }
 
+export interface HandoffResponses {
+    handoffRequested: string;
+    handoffJustTriggered: string;
+    handoffCompleting: string;
+}
+
 export interface HandoffConfig {
     details?: string[];
     model: BedRockLLMModel;
     handoffThreshold: number;
+    handoffResponses: HandoffResponses;
 }
 
 export interface SystemConfig {

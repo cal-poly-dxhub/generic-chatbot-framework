@@ -56,7 +56,7 @@ systemConfig:
             Count explicit requests to talk to a person, but do NOT count implicit requests like getting frustrated with the 
             chatbot or the solution provided by the chatbot not working.
             </description>
-            <response>yes</response>
+            <response>no</response>
             <instruction>Politely explain that you would like to try and address the problem. Ask if the user would like a different solution or route.</instruction>
         </type_4>
         </types>
@@ -253,7 +253,7 @@ systemConfig:
               topP: 0.9
               stopSequences: []
           supportsSystemPrompt: true
-      handoffThreshold: 1
+      handoffThreshold: 3
       details:
           - The main issue the user is trying to solve
           - Questions the user asked

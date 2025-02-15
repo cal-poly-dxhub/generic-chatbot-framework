@@ -235,6 +235,42 @@ const configSchema = {
                         'Number of times the user requests a human before handoff',
                     default: 1,
                 },
+                handoffResponses: {
+                    type: 'object',
+                    description:
+                        'Responses the handoff summarizer provides to the user when they ask for a handoff.',
+                    properties: {
+                        handoffRequested: {
+                            type: 'string',
+                            description:
+                                'Response to send to the user when they ask for a handoff but the threshold has not been reached',
+                            default:
+                                "I'm sorry I couldn't help you. Can we give it another try? Tell me about your issue and I'll do my best to help.",
+                        },
+                        handoffJustTriggered: {
+                            type: 'string',
+                            description:
+                                'Response to send to the user once a handoff is triggered',
+                            default:
+                                'Connecting you to someone who can help. You can keep talking to me while you wait.',
+                        },
+                        handoffCompleting: {
+                            type: 'string',
+                            description:
+                                'Response to send to the user when they ask for a handoff but a handoff was already triggered',
+                            default:
+                                "Someone's on their way to help you. You can keep talking to me while you wait.",
+                        },
+                    },
+                    default: {
+                        handoffRequested:
+                            "I'm sorry I couldn't help you. Can we give it another try? Tell me about your issue and I'll do my best to help.",
+                        handoffJustTriggered:
+                            'Connecting you to someone who can help. You can keep talking to me while you wait.',
+                        handoffCompleting:
+                            "Someone's on their way to help you. You can keep talking to me while you wait.",
+                    },
+                },
                 details: {
                     type: 'array',
                     description:
