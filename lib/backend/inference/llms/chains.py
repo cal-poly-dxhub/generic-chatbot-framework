@@ -184,19 +184,6 @@ def run_qa_step(
 
 
 @tracer.capture_method(capture_response=False)
-def run_handoff_step(chain_config: dict, history_limit: int, user_q: str, chat_id: str, user_id: str) -> str:
-    # TODO: update chat history here
-
-    return run_standalone_step(
-        chain_config=chain_config,
-        history_limit=history_limit,
-        user_q=user_q,
-        chat_id=chat_id,
-        user_id=user_id,
-    )
-
-
-@tracer.capture_method(capture_response=False)
 def run_standalone_step(chain_config: dict, history_limit: int, user_q: str, chat_id: str, user_id: str) -> str:
     history = get_message_history(user_id=user_id, chat_id=chat_id, history_limit=history_limit)
 
