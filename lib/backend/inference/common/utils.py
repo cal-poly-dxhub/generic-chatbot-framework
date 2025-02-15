@@ -5,6 +5,7 @@ import os
 import re
 from string import Template
 from typing import Optional
+from enum import Enum
 
 import botocore
 from aws_lambda_powertools import Logger, Tracer
@@ -13,6 +14,13 @@ from francis_toolkit.utils import invoke_lambda_function
 
 logger = Logger()
 tracer = Tracer()
+
+
+# Create a handoff possibilities enum
+class HandoffState(Enum):
+    NO_HANDOFF = "no_handoff"
+    HANDOFF_JUST_TRIGGERED = "handoff_just_triggered"
+    HANDOFF_COMPLETING = "handoff_completing"
 
 
 CONVERSATION_LAMBDA_FUNC_NAME = os.getenv("CONVERSATION_LAMBDA_FUNC_NAME", "")
@@ -240,12 +248,16 @@ def _perform_handoff(user_id: str, chat_id: str) -> None:
 
 
 @tracer.capture_method
-def add_and_check_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> bool:
+def add_and_check_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> HandoffState:
     handoff_requests = _account_handoff(user_id, chat_id)
-    if handoff_requests >= handoff_threshold:
+
+    if handoff_requests == handoff_threshold:
         _perform_handoff(user_id, chat_id)
-        return True
-    return False
+        return HandoffState.HANDOFF_JUST_TRIGGERED
+    elif handoff_requests > handoff_threshold:
+        return HandoffState.HANDOFF_COMPLETING
+    else:
+        return HandoffState.NO_HANDOFF
 
 
 @tracer.capture_method

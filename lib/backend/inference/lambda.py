@@ -12,6 +12,7 @@ from aws_lambda_powertools.utilities.data_classes import (
 )
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from common.types import StreamingContext, WebSocketChatMessageInput
+from common.utils import add_and_check_handoff
 from common.websocket_utils import (
     get_connection,
     update_inference_status,
@@ -82,6 +83,8 @@ def handle_lambda_invocation_event(event: dict, context: LambdaContext) -> dict:
     if not streaming:
         raise ValueError("Streaming is not enabled")
 
+    handoff_config = system_config.get("handoffConfig")
+
     update_inference_status(
         connection_id,
         {
@@ -100,6 +103,7 @@ def handle_lambda_invocation_event(event: dict, context: LambdaContext) -> dict:
         user_q=request.question,
         embedding_model=embedding_model,
         streaming_context=StreamingContext(chatId=request.chatId, messageId=request.tmpMessageId, connectionId=connection_id),
+        handoff_config=handoff_config,
     )
 
     update_inference_status(
@@ -113,7 +117,9 @@ def handle_lambda_invocation_event(event: dict, context: LambdaContext) -> dict:
         },
     )
 
+    handoff_triggered = result.get("handoffTriggered", False)
+
     return {
         "statusCode": 200,
-        "body": json.dumps({"data": {"message": "Success"}}),
+        "body": json.dumps({"data": {"message": "Success", "handoff_triggered": handoff_triggered}}),
     }

@@ -17,11 +17,24 @@ from common.utils import (
 )
 from common.websocket_utils import stream_llm_response
 from francis_toolkit.types import EmbeddingModel
+from common.utils import add_and_check_handoff, HandoffState
 
 from .models import get_llm_class, get_reranker_class
 
 logger = Logger()
 tracer = Tracer()
+
+DEFAULT_HANDOFF_THRESHOLD = 3
+
+
+def get_handoff_response(handoff_state: HandoffState, handoff_config: dict) -> str:
+    handoff_responses = handoff_config.get("handoffResponses", {})
+    if handoff_state == HandoffState.HANDOFF_JUST_TRIGGERED:
+        return handoff_responses.get("handoffJustTriggered", "")
+    elif handoff_state == HandoffState.HANDOFF_COMPLETING:
+        return handoff_responses.get("handoffCompleting", "")
+    else:  # HandoffState.NO_HANDOFF
+        return handoff_responses.get("handoffRequested", "")
 
 
 @tracer.capture_method(capture_response=False)
@@ -32,6 +45,7 @@ def run_rag_chain(
     user_q: str,
     embedding_model: EmbeddingModel,
     streaming_context: Optional[StreamingContext] = None,
+    handoff_config: Optional[dict] = None,
 ) -> dict:
     app_trace.reset()
     app_trace.add("llm_config", llm_config)
@@ -61,11 +75,15 @@ def run_rag_chain(
             or classification_type == ClassificationType.UNRELATED
             or classification_type == ClassificationType.HANDOFF_REQUEST
         ):
-            if classification_type == ClassificationType.HANDOFF_REQUEST:
-                # TODO: call handoff accountant here
-                logger.info("Handoff requested", extra={"event": "handoff_request", "question": user_q})
+            handoff_triggered = HandoffState.NO_HANDOFF
+            if handoff_config and classification_type == ClassificationType.HANDOFF_REQUEST:
+                handoff_triggered = add_and_check_handoff(
+                    user_id, chat_id, handoff_config.get("handoffThreshold", DEFAULT_HANDOFF_THRESHOLD)
+                )
+                answer = get_handoff_response(handoff_triggered, handoff_config)
+            else:
+                answer = classification_response.get("response", "")
 
-            answer = classification_response.get("response", "")
             app_trace.add("answer", answer)
 
             if streaming_context is not None:
@@ -87,6 +105,7 @@ def run_rag_chain(
                 "answer": {**ai_message, "text": answer},
                 "sources": ai_message.get("sources"),
                 "traceData": app_trace.get_trace(),
+                "handoffTriggered": handoff_triggered.value,
             }
 
     standalone_q = user_q
