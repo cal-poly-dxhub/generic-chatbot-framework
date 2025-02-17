@@ -38,10 +38,10 @@ test('config-with-summarizer', () => {
     expect(handoffConfig?.details).toBeDefined();
     expect(handoffConfig?.model.supportsSystemPrompt).toBe(true);
     expect(handoffConfig?.handoffThreshold).toBe(1);
-    expect(handoffConfig?.handoffResponses).toBeDefined();
-    expect(handoffConfig?.handoffResponses.handoffRequested).toBeDefined();
-    expect(handoffConfig?.handoffResponses.handoffJustTriggered).toBeDefined();
-    expect(handoffConfig?.handoffResponses.handoffCompleting).toBeDefined();
+    expect(handoffConfig?.handoffPrompts).toBeDefined();
+    expect(handoffConfig?.handoffPrompts.handoffRequested).toBeDefined();
+    expect(handoffConfig?.handoffPrompts.handoffJustTriggered).toBeDefined();
+    expect(handoffConfig?.handoffPrompts.handoffCompleting).toBeDefined();
 });
 
 test('config-default-kwargs', () => {
@@ -64,12 +64,10 @@ test('config-default-kwargs', () => {
     expect(systemConfig.handoffConfig?.model.modelKwargs).toBeUndefined();
     expect(systemConfig.handoffConfig?.model.supportsSystemPrompt).toBe(false);
     expect(systemConfig.handoffConfig?.handoffThreshold).toBe(1);
-    expect(systemConfig.handoffConfig?.handoffResponses).toBeDefined();
-    expect(systemConfig.handoffConfig?.handoffResponses.handoffRequested).toBeDefined();
-    expect(
-        systemConfig.handoffConfig?.handoffResponses.handoffJustTriggered
-    ).toBeDefined();
-    expect(systemConfig.handoffConfig?.handoffResponses.handoffCompleting).toBeDefined();
+    expect(systemConfig.handoffConfig?.handoffPrompts).toBeDefined();
+    expect(systemConfig.handoffConfig?.handoffPrompts.handoffRequested).toBeDefined();
+    expect(systemConfig.handoffConfig?.handoffPrompts.handoffJustTriggered).toBeDefined();
+    expect(systemConfig.handoffConfig?.handoffPrompts.handoffCompleting).toBeDefined();
 });
 
 test('no-handoff', () => {

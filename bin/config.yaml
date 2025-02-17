@@ -57,7 +57,7 @@ systemConfig:
             chatbot or the solution provided by the chatbot not working.
             </description>
             <response>no</response>
-            <instruction>Politely explain that you would like to try and address the problem. Ask if the user would like a different solution or route.</instruction>
+            <instruction></instruction>
         </type_4>
         </types>
 
@@ -254,6 +254,13 @@ systemConfig:
               stopSequences: []
           supportsSystemPrompt: true
       handoffThreshold: 3
+      handoffPrompts:
+        handoffRequested: |
+          The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, "Can we try again? Please tell me about your issue."
+        handoffJustTriggered: |
+          The user has requested to speak to a human. As if you're talking to the user, state that someone who can help will be with them shortly. Also state, "In the meantime, you can keep talking to me. I'm here to help."
+        handoffCompleting: |
+          The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want.
       details:
           - The main issue the user is trying to solve
           - Questions the user asked

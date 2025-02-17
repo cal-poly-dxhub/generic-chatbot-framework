@@ -147,7 +147,7 @@ export interface RerankingConfig {
     };
 }
 
-export interface HandoffResponses {
+export interface HandoffPrompts {
     handoffRequested: string;
     handoffJustTriggered: string;
     handoffCompleting: string;
@@ -157,7 +157,7 @@ export interface HandoffConfig {
     details?: string[];
     model: BedRockLLMModel;
     handoffThreshold: number;
-    handoffResponses: HandoffResponses;
+    handoffPrompts: HandoffPrompts;
 }
 
 export interface SystemConfig {

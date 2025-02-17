@@ -1,6 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
-from typing import Optional
+from typing import Optional, Callable
 
 from aws_lambda_powertools import Logger, Tracer
 from common.app_trace import app_trace
@@ -58,10 +58,13 @@ def run_rag_chain(
 
     if "classificationChainConfig" in llm_config:
         # classify the user question
+        handoff_trigger_counter = lambda: add_and_check_handoff(user_id, chat_id, DEFAULT_HANDOFF_THRESHOLD)
         classification_response = (
             run_classification_step(
                 chain_config=llm_config["classificationChainConfig"],
                 question=user_q,
+                on_handoff_triggered=handoff_trigger_counter,
+                handoff_config=handoff_config,
             )
             or {}
         )
@@ -75,15 +78,7 @@ def run_rag_chain(
             or classification_type == ClassificationType.UNRELATED
             or classification_type == ClassificationType.HANDOFF_REQUEST
         ):
-            handoff_triggered = HandoffState.NO_HANDOFF
-            if handoff_config and classification_type == ClassificationType.HANDOFF_REQUEST:
-                handoff_triggered = add_and_check_handoff(
-                    user_id, chat_id, handoff_config.get("handoffThreshold", DEFAULT_HANDOFF_THRESHOLD)
-                )
-                answer = get_handoff_response(handoff_triggered, handoff_config)
-            else:
-                answer = classification_response.get("response", "")
-
+            answer = classification_response.get("response", "")
             app_trace.add("answer", answer)
 
             if streaming_context is not None:
@@ -105,7 +100,7 @@ def run_rag_chain(
                 "answer": {**ai_message, "text": answer},
                 "sources": ai_message.get("sources"),
                 "traceData": app_trace.get_trace(),
-                "handoffTriggered": handoff_triggered.value,
+                "handoffTriggered": classification_response.get("handoff_state"),
             }
 
     standalone_q = user_q
@@ -236,7 +231,13 @@ def run_standalone_step(chain_config: dict, history_limit: int, user_q: str, cha
 def run_classification_step(
     chain_config: dict,
     question: str,
+    on_handoff_triggered: Callable[[], HandoffState],
+    handoff_config: Optional[dict] = None,
 ) -> dict[str, str] | None:
+    """
+    Run the classification step, keeping track of handoff state and responding accordingly if
+    handoff is triggered.
+    """
     model_config = chain_config["modelConfig"]
     llm = get_llm_class(model_config.get("provider"), model_config.get("region", None))
 
@@ -249,5 +250,37 @@ def run_classification_step(
         prompt_variables=chain_config["promptVariables"],
         **kwargs,
     )
+    response = parse_classification_response(llm_response) or {}
 
-    return parse_classification_response(llm_response)
+    classification_type = response.get("classification_type", ClassificationType.QUESTION)
+
+    handoff_state = HandoffState.NO_HANDOFF
+    if handoff_config and classification_type == ClassificationType.HANDOFF_REQUEST:
+        handoff_state = on_handoff_triggered()
+        handoff_prompts = handoff_config.get("handoffPrompts", {})
+
+        match handoff_state:
+            case HandoffState.HANDOFF_JUST_TRIGGERED:
+                handoff_prompt = handoff_prompts["handoffJustTriggered"]
+            case HandoffState.HANDOFF_COMPLETING:
+                handoff_prompt = handoff_prompts["handoffCompleting"]
+            case HandoffState.NO_HANDOFF:
+                handoff_prompt = handoff_prompts["handoffRequested"]
+
+        language = response.get("language", "English")
+        if language != "English":
+            language_suffix = f"Respond in the language {language}."
+            handoff_prompt = f"{handoff_prompt} {language_suffix}"
+
+        handoff_response = llm.call_text_llms(
+            model_config=model_config,
+            prompt_template=handoff_prompt,
+            prompt_variables=[],
+            **kwargs,
+        )
+
+        response["response"] = handoff_response
+
+    response["handoff_state"] = handoff_state.value
+
+    return response

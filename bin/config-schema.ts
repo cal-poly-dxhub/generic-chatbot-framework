@@ -235,7 +235,7 @@ const configSchema = {
                         'Number of times the user requests a human before handoff',
                     default: 1,
                 },
-                handoffResponses: {
+                handoffPrompts: {
                     type: 'object',
                     description:
                         'Responses the handoff summarizer provides to the user when they ask for a handoff.',
@@ -245,21 +245,21 @@ const configSchema = {
                             description:
                                 'Response to send to the user when they ask for a handoff but the threshold has not been reached',
                             default:
-                                "I'm sorry I couldn't help you. Can we give it another try? Tell me about your issue and I'll do my best to help.",
+                                "The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, 'Can we try again? Please tell me about your issue.'",
                         },
                         handoffJustTriggered: {
                             type: 'string',
                             description:
                                 'Response to send to the user once a handoff is triggered',
                             default:
-                                'Connecting you to someone who can help. You can keep talking to me while you wait.',
+                                "The user has requested to speak to a human. As if you're talking to the user, state that someone who can help will be with them shortly. Also state, 'In the meantime, you can keep talking to me. I'm here to help.'",
                         },
                         handoffCompleting: {
                             type: 'string',
                             description:
                                 'Response to send to the user when they ask for a handoff but a handoff was already triggered',
                             default:
-                                "Someone's on their way to help you. You can keep talking to me while you wait.",
+                                "The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want.",
                         },
                     },
                     default: {
