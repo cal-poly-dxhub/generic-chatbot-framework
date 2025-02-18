@@ -51,6 +51,8 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             **keys,
             **gsi_keys,
             "entity": "CHAT",
+            "tokens": {},
+            "cost": {}
         }
 
         self.table.put_item(
@@ -233,7 +235,7 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
         bulk_delete_items(self.table_name, keys_to_delete)
 
     def create_chat_message(
-        self, user_id: str, chat_id: str, message_type: str, content: str, sources: List[Dict[str, Any]] | None = None
+        self, user_id: str, chat_id: str, message_type: str, content: str, tokens: int, sources: List[Dict[str, Any]] | None = None
     ) -> ChatMessage:
         new_chat_message_id = get_next_object_id()
 
@@ -253,6 +255,7 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             **keys,
             **gsi_keys,
             "entity": "MESSAGE",
+            "tokens": tokens
         }
 
         self.table.put_item(

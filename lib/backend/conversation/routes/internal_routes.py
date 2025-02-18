@@ -36,8 +36,10 @@ def add_internal_chat_message(user_id: str, chat_id: str) -> Dict:
 
     message_type = "ai" if request.role == "assistant" else "human"
 
-    chat_message = chat_history_store.create_chat_message(
-        user_id=user_id, chat_id=chat_id, content=request.content, message_type=message_type, sources=request.sources
+    tokens = router.current_event.body.get("tokens", 0)
+    
+    chat_mesage = chat_history_store.create_chat_message(
+        user_id=user_id, chat_id=chat_id, content=request.content, message_type=message_type, tokens=tokens, sources=request.sources
     )
 
     return {
