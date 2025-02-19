@@ -137,9 +137,10 @@ def store_messages_in_history(
     answer: str,
     input_tokens: int,
     output_tokens: int,
+    model_id: str,
     documents: Optional[list] = None,
 ) -> tuple:
-    human_message = create_message_in_history(role="user", message=user_q, chat_id=chat_id, user_id=user_id, tokens=input_tokens)
+    human_message = create_message_in_history(role="user", message=user_q, chat_id=chat_id, user_id=user_id, tokens=input_tokens, model_id=model_id)
 
     ai_message = create_message_in_history(
         role="assistant",
@@ -147,8 +148,11 @@ def store_messages_in_history(
         chat_id=chat_id,
         user_id=user_id,
         tokens=output_tokens,
+        model_id=model_id,
         documents=documents,
     )
+
+    update_chat
     return human_message, ai_message
 
 
@@ -159,6 +163,7 @@ def create_message_in_history(
     role: str,
     message: str,
     tokens: int,
+    model_id: str,
     documents: Optional[list] = None,
 ) -> dict:
     """Put a message in the conversation history.
@@ -186,6 +191,7 @@ def create_message_in_history(
             "role": role,
             "content": message,
             "tokens": tokens,
+            "model_id": model_id,
             "sources": documents,
         }
     else:

@@ -71,7 +71,7 @@ def run_rag_chain(
                 )
 
             human_message, ai_message = store_messages_in_history(
-                user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens
+                user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
             )
 
             return {
@@ -109,7 +109,7 @@ def run_rag_chain(
     app_trace.add("documents", documents)
 
     human_message, ai_message = store_messages_in_history(
-        user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens
+        user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
     )
 
     return {
