@@ -79,6 +79,8 @@ export interface LLMModelBase extends ModelBase {
 
 export interface BedRockLLMModel extends LLMModelBase {
     readonly provider: 'bedrock';
+    // NOTE: for review: this allows passing system prompts via Converse API when available
+    readonly supportsSystemPrompt: boolean;
 }
 
 export interface SageMakerLLMModel extends LLMModelBase {
@@ -145,6 +147,19 @@ export interface RerankingConfig {
     };
 }
 
+export interface HandoffPrompts {
+    handoffRequested: string;
+    handoffJustTriggered: string;
+    handoffCompleting: string;
+}
+
+export interface HandoffConfig {
+    details?: string[];
+    model: BedRockLLMModel;
+    handoffThreshold: number;
+    handoffPrompts: HandoffPrompts;
+}
+
 export interface SystemConfig {
     retainData?: boolean;
     applicationName?: string;
@@ -161,6 +176,7 @@ export interface SystemConfig {
     chatHistoryConfig?: {
         storeType: 'dynamodb' | 'aurora_postgres';
     };
+    handoffConfig?: HandoffConfig; // TODO: make handoff config optional
     wafConfig?: WafConfig;
 }
 

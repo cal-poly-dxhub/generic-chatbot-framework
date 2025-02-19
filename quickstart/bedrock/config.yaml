@@ -61,5 +61,31 @@ systemConfig:
         dimensions: 1536
     corpusConfig:
       corpusType: knowledgebase
+  handoffConfig:
+    model:
+      provider: bedrock
+      modelId: us.amazon.nova-lite-v1:0
+      modelKwargs:
+        maxTokens: 1024
+        temperature: 0.1
+        topP: 0.9
+        stopSequences: []
+      supportsSystemPrompt: true
+    handoffThreshold: 3
+    handoffPrompts:
+      handoffRequested: |
+        The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, "Can we try again? Please tell me about your issue."
+      handoffJustTriggered: |
+        The user has requested to speak to a human. As if you're talking to the user, state that someone who can help will be with them shortly. Also state, "In the meantime, you can keep talking to me. I'm here to help."
+      handoffCompleting: |
+        The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want.
+    details:
+      - The main issue the user is trying to solve
+      - Questions the user asked
+      - Places where the user got stuck
+      - Instances where the user asked for help
+      - Instances where the user asked for a human
+      - Whether the user reported the issue as resolved
   wafConfig:
     enableApiGatewayWaf: true
+

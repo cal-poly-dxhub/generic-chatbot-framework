@@ -133,6 +133,8 @@ export class Api extends Construct {
         props.conversationTable.grantReadWriteData(chatApiHandler);
         props.rdsSecret?.grantRead(chatApiHandler);
 
+        props.baseInfra.grantBedrockHandoffModelAccess(chatApiHandler);
+
         this.addMethod(chatResource, 'GET', chatApiHandler);
         this.addMethod(chatResource, 'PUT', chatApiHandler);
 
@@ -157,6 +159,20 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
         this.addMethod(chatMessageSourceResource, 'GET', chatApiHandler);
+
+        const userResource = chatIdResource.addResource('user', {
+            defaultCorsPreflightOptions,
+        });
+
+        const userIdResource = userResource.addResource('{userId}', {
+            defaultCorsPreflightOptions,
+        });
+
+        const handoffResource = userIdResource.addResource('handoff', {
+            defaultCorsPreflightOptions,
+        });
+
+        this.addMethod(handoffResource, 'GET', chatApiHandler);
 
         return chatApiHandler;
     }
