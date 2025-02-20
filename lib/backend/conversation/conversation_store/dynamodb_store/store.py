@@ -46,7 +46,7 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
         gsi_keys = get_chats_by_time_key(user_id, str(timestamp))
 
         token_format = {"input_tokens": Decimal('0'), "output_tokens": Decimal('0')}
-        cost_format = {"human_cost": Decimal('0'), "ai_cost": Decimal('0'), "total_cost": Decimal('0')}
+        cost_format = {"user_cost": Decimal('0'), "assistant_cost": Decimal('0'), "total_cost": Decimal('0')}
 
         chat = {
             "chatId": new_chat_session_id,
@@ -132,20 +132,20 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
         response = self.table.get_item(Key=get_chat_key(user_id, chat_id))
         record = response.get("Item", {})
         tokens_data = record.get("tokens", {"input_tokens": Decimal('0'), "output_tokens": Decimal('0')})
-        cost_data = record.get("cost", {"human_cost": Decimal('0'), "ai_cost": Decimal('0'), "total_cost": Decimal('0')})
+        cost_data = record.get("cost", {"user_cost": Decimal('0'), "assistant_cost": Decimal('0'), "total_cost": Decimal('0')})
 
         input_token_cost, output_token_cost = map(Decimal, get_model_costs(model_id))
         tokens = Decimal(tokens)
 
-        if message_type == "ai":
+        if message_type == "assistant":
             tokens_data["output_tokens"] += tokens
-            cost_data["ai_cost"] += tokens * output_token_cost
-        elif message_type == "human":
+            cost_data["assistant_cost"] += tokens * output_token_cost
+        elif message_type == "user":
             tokens_data["input_tokens"] += tokens
-            cost_data["human_cost"] += tokens * input_token_cost
+            cost_data["user_cost"] += tokens * input_token_cost
 
         # Recalculate total cost
-        cost_data["total_cost"] = cost_data["human_cost"] + cost_data["ai_cost"]
+        cost_data["total_cost"] = cost_data["user_cost"] + cost_data["assistant_cost"]
 
         # Update the record in DynamoDB
         update_response = self.table.update_item(
