@@ -2,6 +2,9 @@ import json
 import boto3
 import decimal
 from pathlib import Path
+from aws_lambda_powertools import Logger
+
+logger = Logger()
 
 def get_messages_by_chat_id(table_name, chat_id, region):
     dynamodb = boto3.resource('dynamodb', region_name=region)
@@ -43,7 +46,7 @@ def get_model_costs(model_id):
         input_cost, output_cost = cost_per_token[model_id]
     else:
         input_cost = output_cost = 0
-        print("Invalid model Identifier")
+        logger.error("Invalid model identifier")
 
     return input_cost, output_cost
 
