@@ -152,7 +152,6 @@ def store_messages_in_history(
         documents=documents,
     )
 
-    update_chat
     return human_message, ai_message
 
 
@@ -195,7 +194,7 @@ def create_message_in_history(
             "sources": documents,
         }
     else:
-        request_payload["body"] = {"role": role, "content": message, "tokens": tokens,}
+        request_payload["body"] = {"role": role, "content": message, "tokens": tokens, "model_id": model_id}
 
     response = invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
 

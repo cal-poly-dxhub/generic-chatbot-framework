@@ -42,6 +42,8 @@ def run_rag_chain(
 
     classification_type: ClassificationType = ClassificationType.QUESTION
 
+    model_config = llm_config["classificationChainConfig"]["modelConfig"]
+
     if "classificationChainConfig" in llm_config:
         # classify the user question
         classification_response, input_tokens, output_tokens = (
