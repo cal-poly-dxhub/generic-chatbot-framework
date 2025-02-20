@@ -20,7 +20,7 @@ frontend/build/
 bin/config.yaml
 
 # Quickstart Config
-generic-chatbot-framework/quickstart/bedrock/config.yaml
+quickstart/bedrock/config.yaml
 
 .DS_Store
 bin/config.yaml
