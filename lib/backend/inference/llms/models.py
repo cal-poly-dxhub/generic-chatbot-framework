@@ -262,11 +262,13 @@ class BedrockLLM(LLMBase):
                 ):
                     logger.error(f"Invalid response from {model_config['modelId']}. Stop reason: {response['stopReason']}")
                     inference_result = ""
+                    input_tokens = output_tokens = 0
                 else:
                     inference_result = response["output"]["message"]["content"][0]["text"]
-                    
+                    input_tokens, output_tokens = response["usage"]["inputTokens"], response["usage"]["outputTokens"]
+
             logger.debug(f"Response received from {model_config['modelId']}: {inference_result}")
-            return inference_result
+            return (inference_result, input_tokens, output_tokens)
 
         except botocore.exceptions.ClientError as err:
             if "ContentFilterException" in str(err):
