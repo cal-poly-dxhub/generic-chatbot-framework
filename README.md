@@ -49,8 +49,9 @@ or in the "license" file accompanying this file. This file is distributed on an 
 3. **AWS Bedrock Integration**: 
    - Direct access to state-of-the-art foundation models through AWS Bedrock
    - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
-   - Support for various embedding models and text generation models
+   - Support for various embedding models, text generation and reranking models
    - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
+   - Support for Bedrock Guardrails to filter harmful content and redact sensitive information 
 
 4. **Interactive Chatbot Interface**: User-friendly interface supporting:
    - Natural language conversations
