@@ -131,6 +131,7 @@ export interface LLMConfig {
     maxConversationHistory?: number;
     maxCorpusDocuments?: number;
     corpusSimilarityThreshold?: number;
+    guardrailConfig?: GuardrailConfig;
     qaChainConfig: LLMChainConfig;
     rerankingConfig?: RerankingConfig;
     standaloneChainConfig?: LLMChainConfig;
@@ -142,6 +143,26 @@ export interface RerankingConfig {
     kwargs?: {
         numberOfResults?: number;
         additionalModelRequestFields?: Record<string, unknown>;
+    };
+}
+
+export interface GuardrailPiiConfig {
+    type: string;
+    action: string;
+}
+
+export interface GuardrailFilterConfig {
+    type: string;
+    inputStrength: string;
+    outputStrength: string;
+}
+
+export interface GuardrailConfig {
+    contentFilters: GuardrailFilterConfig[];
+    piiFilters?: GuardrailPiiConfig[];
+    blockedMessages: {
+        input: string;
+        output: string;
     };
 }
 
