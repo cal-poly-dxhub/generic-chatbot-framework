@@ -26,6 +26,67 @@ const configSchema = {
                     type: 'boolean',
                     description: 'Whether to enable streaming for the LLM response',
                 },
+                guardrailConfig: {
+                    type: 'object',
+                    description: 'Configuration for content safety guardrails',
+                    properties: {
+                        contentFilters: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    type: {
+                                        type: 'string',
+                                        description: 'Type of content filter',
+                                    },
+                                    inputStrength: {
+                                        type: 'string',
+                                        description:
+                                            'Strength of input content filtering',
+                                    },
+                                    outputStrength: {
+                                        type: 'string',
+                                        description:
+                                            'Strength of output content filtering',
+                                    },
+                                },
+                                required: ['type', 'inputStrength', 'outputStrength'],
+                            },
+                        },
+                        piiFilters: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    type: {
+                                        type: 'string',
+                                        description: 'Type of PII filter',
+                                    },
+                                    action: {
+                                        type: 'string',
+                                        description: 'Action to take on detected PII',
+                                    },
+                                },
+                                required: ['type', 'action'],
+                            },
+                        },
+                        blockedMessages: {
+                            type: 'object',
+                            properties: {
+                                input: {
+                                    type: 'string',
+                                    description: 'Message to show when input is blocked',
+                                },
+                                output: {
+                                    type: 'string',
+                                    description: 'Message to show when output is blocked',
+                                },
+                            },
+                            required: ['input', 'output'],
+                        },
+                    },
+                    required: ['contentFilters', 'blockedMessages'],
+                },
                 rerankingConfig: {
                     type: 'object',
                     description: 'Configuration for document reranking',
