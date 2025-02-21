@@ -1,22 +1,25 @@
 ### Table of contents
 
--   [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
--   [Licence](#icence)
--   [Key features](#key-features)
--   [Architecture overview](#architecture-overview)
-    -   [Architecture reference diagram](#architecture-reference-diagram)
-    -   [Solution components](#solution-components)
--   [Prerequisites](#prerequisites)
-    -   [Build environment specifications](#build-environment-specifications)
-    -   [AWS account](#aws-account)
-    -   [Tools](#tools)
--   [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
-    -   [Configuration](#configuration)
-    -   [Build and deploy](#build-and-deploy)
--   [RAG processing flows](#rag-processing-flows)
--   [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
--   [Access the solution web UI](#access-the-solution-web-ui)
--   [Uninstall the solution](#uninstall-the-solution)
+- [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
+- [Licence](#licence)
+- [Key Features](#key-features)
+- [Architecture overview](#architecture-overview)
+  - [Architecture reference diagram](#architecture-reference-diagram)
+  - [Solution components](#solution-components)
+- [Prerequisites](#prerequisites)
+  - [Build environment specifications](#build-environment-specifications)
+  - [AWS account](#aws-account)
+  - [Tools](#tools)
+- [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
+  - [Configuration](#configuration)
+  - [Build and deploy](#build-and-deploy)
+- [RAG Processing Flows](#rag-processing-flows)
+- [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
+  - [Method 1: Default Pipeline (Aurora PostgreSQL)](#method-1-default-pipeline-aurora-postgresql)
+  - [Method 2: Amazon Bedrock Knowledge Base (OpenSearch Serverless)](#method-2-amazon-bedrock-knowledge-base-opensearch-serverless)
+- [Access the solution web UI](#access-the-solution-web-ui)
+- [File structure](#file-structure)
+- [Uninstall the solution](#uninstall-the-solution)
 
 ---
 
@@ -334,6 +337,48 @@ Specify settings for the large language models, including streaming, conversatio
     When enabled, reranking is applied after the initial vector similarity search and before sending context to the LLM. This can significantly improve the quality of retrieved documents, especially for complex queries.
 
     > **Note**: Reranking may increase latency and costs as it involves an additional model inference step.
+
+-   **guardrailConfig (optional)**: Configuration for content moderation and PII protection. Guardrails help ensure safe and compliant interactions by filtering inappropriate content and handling sensitive information.
+    ```yaml
+    guardrailConfig:
+      contentFilters:
+        - type: <content filter type (HATE, VIOLENCE, SEXUAL)>
+          inputStrength: <filter strength for input (LOW, MEDIUM, HIGH)>
+          outputStrength: <filter strength for output (LOW, MEDIUM, HIGH)>
+      piiFilters:
+        - type: <PII filter type (EMAIL, PHONE, NAME, etc.)>
+          action: <action to take on PII (ANONYMIZE, BLOCK)>
+      blockedMessages:
+        input: <custom message for blocked input>
+        output: <custom message for blocked output>
+    ```
+
+    Example:
+    ```yaml
+    guardrailConfig:
+      contentFilters:
+        - type: HATE            
+          inputStrength: HIGH
+          outputStrength: HIGH
+        - type: VIOLENCE         
+          inputStrength: HIGH
+          outputStrength: HIGH
+        - type: SEXUAL           
+          inputStrength: MEDIUM
+          outputStrength: MEDIUM
+      piiFilters:
+        - type: EMAIL            
+          action: ANONYMIZE         
+        - type: PHONE           
+          action: ANONYMIZE        
+        - type: NAME            
+          action: ANONYMIZE          
+      blockedMessages:
+        input: "I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question."
+        output: "I apologize, but I cannot provide that type of response. Please try asking a different question."
+    ```
+
+    When enabled, guardrails are applied to both user inputs and AI responses. Content filters help prevent harmful or inappropriate content, while PII filters protect sensitive personal information.
 
 **RAG configuration**
 
