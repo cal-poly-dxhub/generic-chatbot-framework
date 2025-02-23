@@ -7,6 +7,9 @@ from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
+from aws_lambda_powertools.logging import Logger
+
+logger = Logger()
 
 FilterValue = Union[Dict[str, Any], List[Any], int, float, str, bool, None]
 Filter = Dict[str, FilterValue]
@@ -94,11 +97,38 @@ class AmazonKnowledgeBasesRetriever(BaseRetriever):
         *,
         run_manager: CallbackManagerForRetrieverRun,
     ) -> List[Document]:
+
+        log = {
+            "query": query,
+            "retrieval_config": self.retrieval_config.model_dump(),
+            "knowledge_base_id": self.knowledge_base_id,
+        }
+
+        logger.info(f"Retrieving documents; params of retrieve call: {log}")
+
         response = self.client.retrieve(
             retrievalQuery={"text": query.strip()},
             knowledgeBaseId=self.knowledge_base_id,
-            retrievalConfiguration=self.retrieval_config.dict(exclude_none=True, by_alias=True),
+            retrievalConfiguration=self.retrieval_config.model_dump(exclude_none=True, by_alias=True),
         )
+
+        # # NOTE: note to reviewer: nextToken doesn't belong in retrievalConfig; it's one level up
+        # # https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax
+        # if next_token := self.retrieval_config.nextToken:
+        #     self.retrieval_config.nextToken = None
+        #     response = self.client.retrieve(
+        #         retrievalQuery={"text": query.strip()},
+        #         knowledgeBaseId=self.knowledge_base_id,
+        #         retrievalConfiguration=self.retrieval_config.model_dump(exclude_none=True, by_alias=True),
+        #         nextToken=next_token,
+        #     )
+        # else:
+        #     response = self.client.retrieve(
+        #         retrievalQuery={"text": query.strip()},
+        #         knowledgeBaseId=self.knowledge_base_id,
+        #         retrievalConfiguration=self.retrieval_config.model_dump(exclude_none=True, by_alias=True),
+        #     )
+
         results = response["retrievalResults"]
         documents = []
         for result in results:

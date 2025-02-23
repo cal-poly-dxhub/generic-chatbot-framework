@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
+from francis_toolkit.types import HandoffState
 
 from pydantic import BaseModel
 
@@ -56,7 +57,7 @@ class BaseChatHistoryStore(ABC):
         raise NotImplementedError("This method should be implemented by subclasses.")
 
     @abstractmethod
-    def increment_handoff_counter(self, user_id: str, chat_id: str) -> int:
+    def increment_handoff_counter(self, user_id: str, chat_id: str, handoff_threshold: int) -> HandoffState:
         raise NotImplementedError("This method should be implemented by subclasses.")
 
     @abstractmethod

@@ -6,6 +6,13 @@ from typing import Any, List, Optional
 from pydantic import BaseModel
 
 
+class HandoffState(Enum):
+    NO_HANDOFF = "no_handoff"
+    HANDOFF_JUST_TRIGGERED = "handoff_just_triggered"
+    HANDOFF_UP = "handoff_up"
+    HANDOFF_COMPLETING = "handoff_completing"
+
+
 class ModelHosting(str, Enum):
     SAGEMAKER = "sagemaker"
     BEDROCK = "bedrock"

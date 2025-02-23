@@ -16,8 +16,8 @@ from common.utils import (
     store_messages_in_history,
 )
 from common.websocket_utils import stream_llm_response
-from francis_toolkit.types import EmbeddingModel
-from common.utils import add_and_check_handoff, HandoffState
+from francis_toolkit.types import EmbeddingModel, HandoffState
+from common.utils import add_and_check_handoff
 
 from .models import get_llm_class, get_reranker_class
 
@@ -29,12 +29,20 @@ DEFAULT_HANDOFF_THRESHOLD = 3
 
 def get_handoff_response(handoff_state: HandoffState, handoff_config: dict) -> str:
     handoff_responses = handoff_config.get("handoffResponses", {})
-    if handoff_state == HandoffState.HANDOFF_JUST_TRIGGERED:
-        return handoff_responses.get("handoffJustTriggered", "")
-    elif handoff_state == HandoffState.HANDOFF_COMPLETING:
-        return handoff_responses.get("handoffCompleting", "")
-    else:  # HandoffState.NO_HANDOFF
-        return handoff_responses.get("handoffRequested", "")
+
+    match handoff_state:
+        case HandoffState.HANDOFF_JUST_TRIGGERED:
+            return handoff_responses.get("handoffJustTriggered", "")
+        case HandoffState.HANDOFF_COMPLETING:
+            return handoff_responses.get("handoffCompleting", "")
+        case HandoffState.NO_HANDOFF:
+            return handoff_responses.get("handoffRequested", "")
+        case HandoffState.HANDOFF_UP:
+            # TODO: for now, treat button up just triggered
+            return handoff_responses.get("handoffJustTriggered", "")
+        case _:
+            # Unreachable if HandoffState enum is covered
+            return handoff_responses.get("handoffRequested", "")
 
 
 @tracer.capture_method(capture_response=False)
@@ -58,7 +66,17 @@ def run_rag_chain(
 
     if "classificationChainConfig" in llm_config:
         # classify the user question
-        handoff_trigger_counter = lambda: add_and_check_handoff(user_id, chat_id, DEFAULT_HANDOFF_THRESHOLD)
+        # TODO:
+        # ISSUE: the handoff threshold from the config should have been passed down here.
+        # In the pushed code, this is hardcoded to 3.
+
+        # Always passes back NO_HANDOFF is handoff is disabled (handoff_config is None)
+        handoff_trigger_counter = lambda: (
+            add_and_check_handoff(user_id, chat_id, handoff_config["handoffThreshold"])
+            if handoff_config
+            else HandoffState.NO_HANDOFF
+        )
+
         classification_response = (
             run_classification_step(
                 chain_config=llm_config["classificationChainConfig"],
@@ -257,15 +275,7 @@ def run_classification_step(
     handoff_state = HandoffState.NO_HANDOFF
     if handoff_config and classification_type == ClassificationType.HANDOFF_REQUEST:
         handoff_state = on_handoff_triggered()
-        handoff_prompts = handoff_config.get("handoffPrompts", {})
-
-        match handoff_state:
-            case HandoffState.HANDOFF_JUST_TRIGGERED:
-                handoff_prompt = handoff_prompts["handoffJustTriggered"]
-            case HandoffState.HANDOFF_COMPLETING:
-                handoff_prompt = handoff_prompts["handoffCompleting"]
-            case HandoffState.NO_HANDOFF:
-                handoff_prompt = handoff_prompts["handoffRequested"]
+        handoff_prompt = get_handoff_response(handoff_state, handoff_config)
 
         language = response.get("language", "English")
         if language != "English":

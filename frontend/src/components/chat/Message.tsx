@@ -60,6 +60,48 @@ function SourcePopover(props: { chatId: string; messageId: string }) {
   );
 }
 
+interface ComponentMessageProps {
+  component: React.ReactNode;
+}
+
+export function ComponentMessage({ component }: ComponentMessageProps) {
+  let headerText = 'Assistant';
+
+  return (
+    <div
+      style={{
+        padding: '15px 10px',
+      }}
+    >
+      <TextContent>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '8px',
+            gap: '8px',
+            width: '100%',
+          }}
+        >
+          <h4>{headerText}</h4>
+        </div>
+      </TextContent>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}
+      >
+        {component}
+      </div>
+    </div>
+  );
+}
+
 export default function Message({ message, humanStyles = {}, aiStyles = {} }: MessageProps) {
   const [deleteChatMessageModalVisible, setDeleteChatMessageModalVisiblity] = useState(false);
 

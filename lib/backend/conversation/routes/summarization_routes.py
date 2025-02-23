@@ -1,4 +1,5 @@
 from francis_toolkit.utils import load_config_from_dynamodb
+from francis_tooklit.types import HandoffState
 import os
 from typing import Optional, Iterator
 from conversation_store.utils import get_chat_history_store
@@ -45,15 +46,17 @@ _depaginated_history.num_messages = 0  # type: ignore
 
 @router.post("/internal/chat/<chat_id>/user/<user_id>/handoff")
 def increment_handoff_requests(chat_id: str, user_id: str) -> dict:
+    # TODO: handoff threshold should now be passed back
+    handoff_threshold = int(router.current_event.json_body.get("handoffThreshold", 3))
+
     extra = {"chat_id": chat_id, "user_id": user_id, "event": "increment_handoff_requests"}
     logger.info("Count handoff requests triggered", extra=extra)
 
     store = get_chat_history_store()
-    num_handoff_requests = store.increment_handoff_counter(user_id, chat_id)
+    handoff_state = store.increment_handoff_counter(user_id, chat_id, handoff_threshold)
+
     return {
-        "data": {
-            "numHandoffRequests": num_handoff_requests,
-        },
+        "data": {"handoffState": handoff_state},
     }
 
 

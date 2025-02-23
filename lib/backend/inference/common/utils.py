@@ -5,23 +5,15 @@ import os
 import re
 from string import Template
 from typing import Optional
-from enum import Enum
 
 import botocore
 from aws_lambda_powertools import Logger, Tracer
 from francis_toolkit.clients import s3_client
 from francis_toolkit.utils import invoke_lambda_function
+from francis_toolkit.types import HandoffState
 
 logger = Logger()
 tracer = Tracer()
-
-
-# Create a handoff possibilities enum
-class HandoffState(Enum):
-    NO_HANDOFF = "no_handoff"
-    HANDOFF_JUST_TRIGGERED = "handoff_just_triggered"
-    HANDOFF_COMPLETING = "handoff_completing"
-
 
 CONVERSATION_LAMBDA_FUNC_NAME = os.getenv("CONVERSATION_LAMBDA_FUNC_NAME", "")
 CORPUS_LAMBDA_FUNC_NAME = os.getenv("CORPUS_LAMBDA_FUNC_NAME", "")
@@ -225,14 +217,17 @@ def get_message_history(user_id: str, chat_id: str, history_limit: int = 5) -> l
 
 
 @tracer.capture_method
-def _account_handoff(user_id: str, chat_id: str) -> int:
+def _account_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> HandoffState:
     request_payload = {
         "path": f"/internal/chat/{chat_id}/user/{user_id}/handoff",
         "httpMethod": "POST",
         "pathParameters": {"user_id": user_id, "chat_id": chat_id},
+        "body": {"handoffThreshold": handoff_threshold},
     }
+    # TODO: be sure numHandoffRequests is never accessede from this dictionary
     response = invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
-    return int(response["numHandoffRequests"])
+    handoff_state = response["handoffState"]
+    return handoff_state
 
 
 @tracer.capture_method
@@ -247,17 +242,16 @@ def _perform_handoff(user_id: str, chat_id: str) -> None:
     # a dict like "{'data': {'input_tokens': <m>, 'output_tokens': <n>}}"
 
 
+# TODO: pull into _account_handoff
 @tracer.capture_method
 def add_and_check_handoff(user_id: str, chat_id: str, handoff_threshold: int) -> HandoffState:
-    handoff_requests = _account_handoff(user_id, chat_id)
+    # TODO: _account_handoff performs state update in the store
+    handoff_state = _account_handoff(user_id, chat_id, handoff_threshold)
 
-    if handoff_requests == handoff_threshold:
+    if handoff_state == HandoffState.HANDOFF_JUST_TRIGGERED:
         _perform_handoff(user_id, chat_id)
-        return HandoffState.HANDOFF_JUST_TRIGGERED
-    elif handoff_requests > handoff_threshold:
-        return HandoffState.HANDOFF_COMPLETING
-    else:
-        return HandoffState.NO_HANDOFF
+
+    return handoff_state
 
 
 @tracer.capture_method
