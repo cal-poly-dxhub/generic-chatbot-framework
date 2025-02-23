@@ -1,5 +1,5 @@
 from francis_toolkit.utils import load_config_from_dynamodb
-from francis_tooklit.types import HandoffState
+from francis_toolkit.types import HandoffState
 import os
 from typing import Optional, Iterator
 from conversation_store.utils import get_chat_history_store
