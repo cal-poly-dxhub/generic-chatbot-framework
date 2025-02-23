@@ -16,8 +16,8 @@ from common.utils import (
     store_messages_in_history,
 )
 from common.websocket_utils import stream_llm_response
-from francis_toolkit.types import EmbeddingModel
-from common.utils import add_and_check_handoff, HandoffState
+from francis_toolkit.types import EmbeddingModel, HandoffState
+from common.utils import add_and_check_handoff
 
 from .models import get_llm_class, get_reranker_class
 

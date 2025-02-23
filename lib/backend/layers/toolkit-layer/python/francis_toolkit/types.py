@@ -11,6 +11,12 @@ class ModelHosting(str, Enum):
     BEDROCK = "bedrock"
 
 
+class HandoffState(Enum):
+    NO_HANDOFF = "no_handoff"
+    HANDOFF_JUST_TRIGGERED = "handoff_just_triggered"
+    HANDOFF_COMPLETING = "handoff_completing"
+
+
 class Document(BaseModel):
     pageContent: str
     metadata: Any

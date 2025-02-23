@@ -7,6 +7,9 @@ from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import Annotated
+from aws_lambda_powertools import Logger
+
+logger = Logger()
 
 FilterValue = Union[Dict[str, Any], List[Any], int, float, str, bool, None]
 Filter = Dict[str, FilterValue]
@@ -94,11 +97,23 @@ class AmazonKnowledgeBasesRetriever(BaseRetriever):
         *,
         run_manager: CallbackManagerForRetrieverRun,
     ) -> List[Document]:
-        response = self.client.retrieve(
-            retrievalQuery={"text": query.strip()},
-            knowledgeBaseId=self.knowledge_base_id,
-            retrievalConfiguration=self.retrieval_config.dict(exclude_none=True, by_alias=True),
-        )
+
+        # NOTE: TO REVIEWER: nextToken should not have been in the retrievalConfig
+        correct_retrieve_config = self.retrieval_config.model_dump(exclude_none=True, by_alias=True)
+        nextToken = correct_retrieve_config.pop("nextToken", None)
+        retrieve_params = {
+            "retrievalQuery": {"text": query.strip()},
+            "knowledgeBaseId": self.knowledge_base_id,
+            "retrievalConfiguration": correct_retrieve_config,
+            **({"nextToken": nextToken} if nextToken else {}),
+        }
+
+        logger.info("Retrieval params", extra=retrieve_params)
+
+        response = self.client.retrieve(**retrieve_params)
+
+        logger.info("Retrieval response", extra=response)
+
         results = response["retrievalResults"]
         documents = []
         for result in results:
