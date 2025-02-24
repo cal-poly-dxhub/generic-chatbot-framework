@@ -244,31 +244,25 @@ const configSchema = {
                             type: 'string',
                             description:
                                 'Response to send to the user when they ask for a handoff but the threshold has not been reached',
-                            default:
-                                "The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, 'Can we try again? Please tell me about your issue.'",
+                            default: "The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, 'Can we try again? Please tell me about your issue.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally."
                         },
                         handoffJustTriggered: {
                             type: 'string',
                             description:
                                 'Response to send to the user once a handoff is triggered',
-                            default:
-                                "The user has requested to speak to a human. As if you're talking to the user, state that someone who can help will be with them shortly. Also state, 'In the meantime, you can keep talking to me. I'm here to help.'",
+                            default: "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally."
                         },
                         handoffCompleting: {
                             type: 'string',
                             description:
                                 'Response to send to the user when they ask for a handoff but a handoff was already triggered',
-                            default:
-                                "The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want.",
+                            default: "The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want. Don't acknowledge that you're speaking to the human. Do not include any tone markers. Just speak to the person naturally."
                         },
                     },
                     default: {
-                        handoffRequested:
-                            "I'm sorry I couldn't help you. Can we give it another try? Tell me about your issue and I'll do my best to help.",
-                        handoffJustTriggered:
-                            'Connecting you to someone who can help. You can keep talking to me while you wait.',
-                        handoffCompleting:
-                            "Someone's on their way to help you. You can keep talking to me while you wait.",
+                        handoffRequested: "The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, 'Can we try again? Please tell me about your issue.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                        handoffJustTriggered: "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                        handoffCompleting: "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally."
                     },
                 },
                 details: {
