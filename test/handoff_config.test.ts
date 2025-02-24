@@ -28,7 +28,7 @@ test('config-with-summarizer', () => {
 
     // Access some properties
     const handoffConfig = systemConfig.handoffConfig;
-    const modelConfig = handoffConfig?.model;
+    const modelConfig = handoffConfig?.modelConfig;
     expect(modelConfig?.provider).toBe('bedrock');
     expect(modelConfig?.modelKwargs?.maxTokens).toBe(1024);
     expect(modelConfig?.modelKwargs?.temperature).toBe(0.1);
@@ -36,7 +36,7 @@ test('config-with-summarizer', () => {
     expect(modelConfig?.modelKwargs?.stopSequences).toStrictEqual([]);
 
     expect(handoffConfig?.details).toBeDefined();
-    expect(handoffConfig?.model.supportsSystemPrompt).toBe(true);
+    expect(handoffConfig?.modelConfig.supportsSystemPrompt).toBe(true);
     expect(handoffConfig?.handoffThreshold).toBe(1);
     expect(handoffConfig?.handoffPrompts).toBeDefined();
     expect(handoffConfig?.handoffPrompts.handoffRequested).toBeDefined();
@@ -60,9 +60,9 @@ test('config-default-kwargs', () => {
     const validate = ajv.compile(configSchema);
     expect(validate(systemConfig)).toBe(true);
     expect(systemConfig.handoffConfig).toBeDefined();
-    expect(systemConfig.handoffConfig?.model.provider).toBe('bedrock');
-    expect(systemConfig.handoffConfig?.model.modelKwargs).toBeUndefined();
-    expect(systemConfig.handoffConfig?.model.supportsSystemPrompt).toBe(false);
+    expect(systemConfig.handoffConfig?.modelConfig.provider).toBe('bedrock');
+    expect(systemConfig.handoffConfig?.modelConfig.modelKwargs).toBeUndefined();
+    expect(systemConfig.handoffConfig?.modelConfig.supportsSystemPrompt).toBe(false);
     expect(systemConfig.handoffConfig?.handoffThreshold).toBe(1);
     expect(systemConfig.handoffConfig?.handoffPrompts).toBeDefined();
     expect(systemConfig.handoffConfig?.handoffPrompts.handoffRequested).toBeDefined();

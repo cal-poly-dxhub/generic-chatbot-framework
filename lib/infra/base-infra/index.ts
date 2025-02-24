@@ -345,13 +345,14 @@ export class BaseInfra extends Construct {
     }
 
     public grantBedrockHandoffModelAccess(lambdaFunc: lambda.IFunction): void {
-        if (this.systemConfig.handoffConfig?.model.provider !== 'bedrock') {
+        if (this.systemConfig.handoffConfig?.modelConfig.provider !== 'bedrock') {
             return;
         }
 
-        const region = this.systemConfig.handoffConfig.model.region ?? cdk.Aws.REGION;
+        const region =
+            this.systemConfig.handoffConfig.modelConfig.region ?? cdk.Aws.REGION;
         const regionModelIds = new Map<string, Set<string>>([
-            [region, new Set([this.systemConfig.handoffConfig.model.modelId])],
+            [region, new Set([this.systemConfig.handoffConfig.modelConfig.modelId])],
         ]);
 
         this.grantBedrockModelAccess(lambdaFunc, regionModelIds);

@@ -227,7 +227,7 @@ systemConfig:
         corpusConfig:
             corpusType: knowledgebase
     handoffConfig:
-        model:
+        modelConfig:
             provider: bedrock
             modelId: us.amazon.nova-lite-v1:0
             modelKwargs:

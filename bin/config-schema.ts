@@ -197,9 +197,9 @@ const configSchema = {
         handoffConfig: {
             type: 'object',
             description: 'Configuration for handing off conversations to a human agent',
-            required: ['model', 'handoffThreshold'],
+            required: ['modelConfig', 'handoffThreshold'],
             properties: {
-                model: {
+                modelConfig: {
                     type: 'object',
                     description: 'Configuration for the handoff summarizer LLM model',
                     properties: {

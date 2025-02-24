@@ -28,6 +28,6 @@ class BedRockLLMModel(LLMModelBase):
 
 
 class HandoffConfig(BaseModel):
-    model: BedRockLLMModel
+    modelConfig: BedRockLLMModel
     details: Optional[list[str]] = None
     handoffThreshold: int

@@ -155,7 +155,7 @@ export interface HandoffPrompts {
 
 export interface HandoffConfig {
     details?: string[];
-    model: BedRockLLMModel;
+    modelConfig: BedRockLLMModel;
     handoffThreshold: number;
     handoffPrompts: HandoffPrompts;
 }
