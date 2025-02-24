@@ -431,7 +431,7 @@ handoffConfig:
   model:
     provider: <bedrock> 
     modelId: <the Bedrock ID of the handoff model>
-    supportsSystemPrompt: <true | false - whether the model supports system promps via Converse API>
+    supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
     modelKwArgs: # Optional; uses Bedrock defaults if not set
       maxTokens: 1024
       temperature: 0.1
