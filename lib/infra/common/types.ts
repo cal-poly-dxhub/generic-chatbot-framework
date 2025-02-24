@@ -176,7 +176,7 @@ export interface SystemConfig {
     chatHistoryConfig?: {
         storeType: 'dynamodb' | 'aurora_postgres';
     };
-    handoffConfig?: HandoffConfig; // TODO: make handoff config optional
+    handoffConfig?: HandoffConfig;
     wafConfig?: WafConfig;
 }
 
