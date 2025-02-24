@@ -5,10 +5,11 @@ Licensed under the Amazon Software License http://aws.amazon.com/asl/
 */
 import { Alert, Spinner } from '@cloudscape-design/components';
 import { forwardRef, useEffect, useMemo, useRef } from 'react';
-import Message from './Message';
+import Message, { ComponentMessage } from './Message';
 import { CHAT_MESSAGE_PARAMS, useInprogressMessages, useListChatMessages } from '../../hooks';
 import { ChatMessage } from '../../react-query-hooks';
 import EmptyState from '../Empty';
+import HandoffMessageContents from './HandoffButton';
 
 type ConversationViewProps = {
   chatId: string;
@@ -46,6 +47,11 @@ export const ConversationView = forwardRef((props: ConversationViewProps, ref: R
     }
   }, [hasNextPage && isFetching]);
 
+  // TODO: use chat ID and user ID here to determine handoff state
+
+  // TODO: just conditionally render this if handoff was triggered
+  const HandoffButton = <ComponentMessage component={<HandoffMessageContents />} />;
+
   return (
     <>
       {error && <Alert type="error">{(error as Error).message || String(error)}</Alert>}
@@ -74,6 +80,7 @@ export const ConversationView = forwardRef((props: ConversationViewProps, ref: R
             }}
           />
         ))}
+        {HandoffButton}
         {(isLoading || isFetching) && (
           <div
             style={{

@@ -22,6 +22,11 @@ type MessageSourcesProps = {
   chatId: string;
 };
 
+type ComponentMessageProps = {
+  component: React.ReactNode;
+  header?: string;
+};
+
 export function MessageSources({ chatId, messageId }: MessageSourcesProps) {
   const sourcesRequest = useMessageSources(chatId, messageId);
   return (
@@ -57,6 +62,44 @@ function SourcePopover(props: { chatId: string; messageId: string }) {
 
       <Button iconName="folder-open" variant="inline-icon" onClick={() => setVisible(true)} />
     </>
+  );
+}
+
+export function ComponentMessage({ component, header }: ComponentMessageProps) {
+  return (
+    <div
+      style={{
+        padding: '15px 10px',
+      }}
+    >
+      {header && (
+        <TextContent>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px',
+              gap: '8px',
+              width: '100%',
+            }}
+          >
+            <h4>{header}</h4>
+          </div>
+        </TextContent>
+      )}
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        }}
+      >
+        {component}
+      </div>
+    </div>
   );
 }
 
