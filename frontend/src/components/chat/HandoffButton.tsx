@@ -23,7 +23,7 @@ const HandoffMessageContents: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', width: '100%', margin: '10px 0' }}>
-      <div style={{ flex: '0 0 60%' }}>
+      <div style={{ flex: '0 0 65%' }}>
         <Input
           type="email"
           value={email}
@@ -35,7 +35,7 @@ const HandoffMessageContents: React.FC = () => {
           }}
         />
       </div>
-      <div style={{ flex: '0 0 10%' }} />
+      <div style={{ flex: '0 0 5%' }} />
       <div style={{ flex: '0 0 30%' }}>
         <Button disabled={!valid} onClick={onAcceptClick}>
           Send
