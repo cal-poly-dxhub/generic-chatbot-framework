@@ -159,6 +159,8 @@ export interface HandoffConfig {
     modelConfig: BedRockLLMModel;
     handoffThreshold: number;
     handoffPrompts: HandoffPrompts;
+}
+
 export interface GuardrailPiiConfig {
     type: string;
     action: string;
