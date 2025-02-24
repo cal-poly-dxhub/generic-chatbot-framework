@@ -426,6 +426,8 @@ chatHistoryConfig:
 **Handoff mechanism configuration (optional)**
 This solution supports a handoff mechanism to transfer the conversation to a human agent after a certain number of requests from the user. 
 
+Under classificationChainConfig -> promptTemplate, the model should be configured to return another classification type "handoff_request". If handoff is not enabled, this type should not be present.
+
 ```yaml
 handoffConfig:
   model:
