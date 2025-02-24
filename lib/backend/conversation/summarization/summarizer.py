@@ -66,7 +66,7 @@ class Summarizer:
     def _conversator_name(self, message_type: str) -> str:
         match message_type:
             case "ai":
-                return "Chatbot"
+                return "Ai"
             case "human":
                 return "Human"
             case _:
