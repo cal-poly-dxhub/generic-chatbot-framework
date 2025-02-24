@@ -38,16 +38,11 @@ def _depaginated_history(store: BaseChatHistoryStore, chat_id: str, user_id: str
             break
 
 
-# TODO: reasonable?
-# A function attribute that counts the number of messages that have been processed
 _depaginated_history.num_messages = 0  # type: ignore
 
 
 @router.post("/internal/chat/<chat_id>/user/<user_id>/handoff")
 def increment_handoff_requests(chat_id: str, user_id: str) -> dict:
-    extra = {"chat_id": chat_id, "user_id": user_id, "event": "increment_handoff_requests"}
-    logger.info("Count handoff requests triggered", extra=extra)
-
     store = get_chat_history_store()
     num_handoff_requests = store.increment_handoff_counter(user_id, chat_id)
     return {
@@ -59,7 +54,6 @@ def increment_handoff_requests(chat_id: str, user_id: str) -> dict:
 
 @router.put("/internal/chat/<chat_id>/user/<user_id>/handoff")
 def handoff_chat(chat_id: str, user_id: str) -> dict:
-    print("handoff_chat")
     extra = {"chat_id": chat_id, "user_id": user_id, "event": "handoff_chat"}
     logger.info("Handoff triggered", extra=extra)
     if not (table_name := os.getenv("CONFIG_TABLE_NAME")):
