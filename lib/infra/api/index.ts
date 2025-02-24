@@ -239,11 +239,13 @@ export class Api extends Construct {
             /* eslint-disable @typescript-eslint/naming-convention */
             CONVERSATION_LAMBDA_FUNC_NAME: conversationLambda.functionName,
             CORPUS_LAMBDA_FUNC_NAME: corpusLambda.functionName,
+            GUARDRAIL_ARN: props.baseInfra.guardrail?.attrGuardrailArn ?? '',
             /* eslint-enable @typescript-eslint/naming-convention */
         });
         props.baseInfra.grantBedrockTextModelAccess(inferenceLambda);
         props.baseInfra.grantSagemakerTextModelAccess(inferenceLambda);
         props.baseInfra.grantBedrockRerankingAccess(inferenceLambda);
+        props.baseInfra.grantBedrockGuardrailAccess(inferenceLambda);
 
         conversationLambda.grantInvoke(inferenceLambda);
         corpusLambda.grantInvoke(inferenceLambda);

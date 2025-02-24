@@ -133,6 +133,7 @@ export interface LLMConfig {
     maxConversationHistory?: number;
     maxCorpusDocuments?: number;
     corpusSimilarityThreshold?: number;
+    guardrailConfig?: GuardrailConfig;
     qaChainConfig: LLMChainConfig;
     rerankingConfig?: RerankingConfig;
     standaloneChainConfig?: LLMChainConfig;
@@ -158,6 +159,24 @@ export interface HandoffConfig {
     modelConfig: BedRockLLMModel;
     handoffThreshold: number;
     handoffPrompts: HandoffPrompts;
+export interface GuardrailPiiConfig {
+    type: string;
+    action: string;
+}
+
+export interface GuardrailFilterConfig {
+    type: string;
+    inputStrength: string;
+    outputStrength: string;
+}
+
+export interface GuardrailConfig {
+    contentFilters: GuardrailFilterConfig[];
+    piiFilters?: GuardrailPiiConfig[];
+    blockedMessages: {
+        input: string;
+        output: string;
+    };
 }
 
 export interface SystemConfig {

@@ -61,9 +61,11 @@ def run_rag_chain(
     )
     handoff_trigger_counter = lambda: add_and_check_handoff(user_id, chat_id, handoff_threshold)
 
+    model_config = llm_config["classificationChainConfig"]["modelConfig"]
+
     if "classificationChainConfig" in llm_config:
         # classify the user question
-        classification_response = (
+        classification_response, input_tokens, output_tokens = (
             run_classification_step(
                 chain_config=llm_config["classificationChainConfig"],
                 question=user_q,
@@ -96,7 +98,7 @@ def run_rag_chain(
                 )
 
             human_message, ai_message = store_messages_in_history(
-                user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[]
+                user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
             )
 
             return {
@@ -119,7 +121,7 @@ def run_rag_chain(
         )
         app_trace.add("standalone_question", standalone_q)
 
-    answer, documents = run_qa_step(
+    answer, documents, input_tokens, output_tokens = run_qa_step(
         chain_config=llm_config["qaChainConfig"],
         corpus_limit=llm_config.get("maxCorpusDocuments", 5),
         corpus_similarity_threshold=llm_config.get("corpusSimilarityThreshold", 0.25),
@@ -134,7 +136,7 @@ def run_rag_chain(
     app_trace.add("documents", documents)
 
     human_message, ai_message = store_messages_in_history(
-        user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=documents
+        user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
     )
 
     return {
@@ -187,7 +189,7 @@ def run_qa_step(
     kwargs["context"] = context
     kwargs["question"] = question
 
-    llm_response = llm.call_text_llms(
+    llm_response, input_tokens, output_tokens = llm.call_text_llms(
         model_config=model_config,
         prompt_template=chain_config["promptTemplate"],
         prompt_variables=chain_config["promptVariables"],
@@ -198,7 +200,7 @@ def run_qa_step(
 
     answer = parse_qa_response(llm_response)
 
-    return (answer, documents)
+    return (answer, documents, input_tokens, output_tokens)
 
 
 @tracer.capture_method(capture_response=False)
@@ -219,7 +221,7 @@ def run_standalone_step(chain_config: dict, history_limit: int, user_q: str, cha
     kwargs["chat_history"] = chat_history
     kwargs["question"] = user_q
 
-    llm_response = llm.call_text_llms(
+    llm_response, input_tokens, output_tokens = llm.call_text_llms(
         model_config=model_config,
         prompt_template=chain_config["promptTemplate"],
         prompt_variables=chain_config["promptVariables"],
@@ -248,7 +250,7 @@ def run_classification_step(
     kwargs = chain_config.get("kwargs", {})
     kwargs["question"] = question
 
-    llm_response = llm.call_text_llms(
+    llm_response, input_tokens, output_tokens = llm.call_text_llms(
         model_config=model_config,
         prompt_template=chain_config["promptTemplate"],
         prompt_variables=chain_config["promptVariables"],
@@ -287,4 +289,4 @@ def run_classification_step(
 
     response["handoff_state"] = handoff_state.value
 
-    return response
+    return parse_classification_response(llm_response), input_tokens, output_tokens

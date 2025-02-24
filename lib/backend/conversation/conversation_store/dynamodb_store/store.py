@@ -17,6 +17,8 @@ from .utils import (
     get_next_object_id,
     parse_next_token,
 )
+from .cost import get_model_costs
+from decimal import Decimal
 
 
 class DynamoDBChatHistoryStore(BaseChatHistoryStore):
@@ -43,6 +45,9 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
         keys = get_chat_key(user_id, new_chat_session_id)
         gsi_keys = get_chats_by_time_key(user_id, str(timestamp))
 
+        token_format = {"input_tokens": Decimal('0'), "output_tokens": Decimal('0')}
+        cost_format = {"user_cost": Decimal('0'), "assistant_cost": Decimal('0'), "total_cost": Decimal('0')}
+
         chat = {
             "chatId": new_chat_session_id,
             "title": title,
@@ -53,6 +58,8 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             **keys,
             **gsi_keys,
             "entity": "CHAT",
+            "tokens": token_format,
+            "cost": cost_format
         }
 
         self.table.put_item(
@@ -145,6 +152,50 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             updatedAt=int(record["updatedAt"]),
             userId=user_id,
         )
+
+    def update_cost(self, user_id: str, chat_id: str, tokens: int, model_id: str, message_type: str) -> Chat:
+        response = self.table.get_item(Key=get_chat_key(user_id, chat_id))
+        record = response.get("Item", {})
+        tokens_data = record.get("tokens", {"input_tokens": Decimal('0'), "output_tokens": Decimal('0')})
+        cost_data = record.get("cost", {"user_cost": Decimal('0'), "assistant_cost": Decimal('0'), "total_cost": Decimal('0')})
+
+        input_token_cost, output_token_cost = map(Decimal, get_model_costs(model_id))
+        tokens = Decimal(tokens)
+
+        if message_type == "assistant":
+            tokens_data["output_tokens"] += tokens
+            cost_data["assistant_cost"] += tokens * output_token_cost
+        elif message_type == "user":
+            tokens_data["input_tokens"] += tokens
+            cost_data["user_cost"] += tokens * input_token_cost
+
+        # Recalculate total cost
+        cost_data["total_cost"] = cost_data["user_cost"] + cost_data["assistant_cost"]
+
+        # Update the record in DynamoDB
+        update_response = self.table.update_item(
+            Key=get_chat_key(user_id, chat_id),
+            ConditionExpression="attribute_exists(PK) and attribute_exists(SK)",
+            UpdateExpression="set tokens = :tokens, cost = :cost, updatedAt = :updatedAt",
+            ExpressionAttributeValues={
+                ":tokens": tokens_data,
+                ":cost": cost_data,
+                ":updatedAt": get_timestamp(),
+            },
+            ReturnValues="ALL_NEW",
+        )
+        updated_record = update_response["Attributes"]
+
+        return Chat(
+            chatId=chat_id,
+            title=record["title"],
+            tokens=updated_record["tokens"],
+            cost=updated_record["cost"],
+            createdAt=int(updated_record["createdAt"]),
+            updatedAt=int(updated_record["updatedAt"]),
+            userId=user_id,
+        )
+
 
     def list_chats(self, user_id: str) -> List[Chat]:
         keys = get_chats_by_time_key(user_id, "")
@@ -258,7 +309,7 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
         bulk_delete_items(self.table_name, keys_to_delete)
 
     def create_chat_message(
-        self, user_id: str, chat_id: str, message_type: str, content: str, sources: List[Dict[str, Any]] | None = None
+        self, user_id: str, chat_id: str, message_type: str, content: str, tokens: int, sources: List[Dict[str, Any]] | None = None
     ) -> ChatMessage:
         new_chat_message_id = get_next_object_id()
 
@@ -278,6 +329,7 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             **keys,
             **gsi_keys,
             "entity": "MESSAGE",
+            "tokens": tokens
         }
 
         self.table.put_item(
