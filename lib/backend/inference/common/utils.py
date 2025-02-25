@@ -11,17 +11,10 @@ import botocore
 from aws_lambda_powertools import Logger, Tracer
 from francis_toolkit.clients import s3_client
 from francis_toolkit.utils import invoke_lambda_function
+from francis_toolkit.types import HandoffState
 
 logger = Logger()
 tracer = Tracer()
-
-
-# Create a handoff possibilities enum
-class HandoffState(Enum):
-    NO_HANDOFF = "no_handoff"
-    HANDOFF_JUST_TRIGGERED = "handoff_just_triggered"
-    HANDOFF_COMPLETING = "handoff_completing"
-
 
 CONVERSATION_LAMBDA_FUNC_NAME = os.getenv("CONVERSATION_LAMBDA_FUNC_NAME", "")
 CORPUS_LAMBDA_FUNC_NAME = os.getenv("CORPUS_LAMBDA_FUNC_NAME", "")
