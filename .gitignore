@@ -19,5 +19,8 @@ frontend/build/
 # Config
 bin/config.yaml
 
+# Quickstart Config
+quickstart/bedrock/config.yaml
+
 .DS_Store
 bin/config.yaml

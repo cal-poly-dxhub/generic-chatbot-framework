@@ -135,17 +135,23 @@ def store_messages_in_history(
     chat_id: str,
     user_q: str,
     answer: str,
+    input_tokens: int,
+    output_tokens: int,
+    model_id: str,
     documents: Optional[list] = None,
 ) -> tuple:
-    human_message = create_message_in_history(role="user", message=user_q, chat_id=chat_id, user_id=user_id)
+    human_message = create_message_in_history(role="user", message=user_q, chat_id=chat_id, user_id=user_id, tokens=input_tokens, model_id=model_id)
 
     ai_message = create_message_in_history(
         role="assistant",
         message=answer,
         chat_id=chat_id,
         user_id=user_id,
+        tokens=output_tokens,
+        model_id=model_id,
         documents=documents,
     )
+
     return human_message, ai_message
 
 
@@ -155,6 +161,8 @@ def create_message_in_history(
     chat_id: str,
     role: str,
     message: str,
+    tokens: int,
+    model_id: str,
     documents: Optional[list] = None,
 ) -> dict:
     """Put a message in the conversation history.
@@ -181,10 +189,12 @@ def create_message_in_history(
         request_payload["body"] = {
             "role": role,
             "content": message,
+            "tokens": tokens,
+            "model_id": model_id,
             "sources": documents,
         }
     else:
-        request_payload["body"] = {"role": role, "content": message}
+        request_payload["body"] = {"role": role, "content": message, "tokens": tokens, "model_id": model_id}
 
     response = invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
 

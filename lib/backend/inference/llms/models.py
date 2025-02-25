@@ -191,7 +191,7 @@ class BedrockLLM(LLMBase):
 
         try:
             logger.debug(f"Prompt is sent to {model_config['modelId']}: {final_prompt}")
-            
+                        
             converse_kwargs = {
                 "modelId": model_config["modelId"],
                 "messages": [
@@ -289,7 +289,7 @@ class BedrockLLM(LLMBase):
         except Exception as err:
             logger.error("An error occurred: %s", err)
 
-        return ("", 0, 0)  # Return empty string with zero tokens for other errors
+        return ("", 0, 0)
 
 
 class SagemakerLLM(LLMBase):
