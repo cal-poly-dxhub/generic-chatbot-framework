@@ -10,6 +10,7 @@ import { CHAT_MESSAGE_PARAMS, useInprogressMessages, useListChatMessages } from 
 import { ChatMessage } from '../../react-query-hooks';
 import EmptyState from '../Empty';
 import HandoffMessageContents from './HandoffButton';
+import { useGetHandoffState } from '../../hooks/chats';
 
 type ConversationViewProps = {
   chatId: string;
@@ -47,10 +48,15 @@ export const ConversationView = forwardRef((props: ConversationViewProps, ref: R
     }
   }, [hasNextPage && isFetching]);
 
-  // TODO: use chat ID and user ID here to determine handoff state
-
-  // TODO: just conditionally render this if handoff was triggered
-  const HandoffButton = <ComponentMessage component={<HandoffMessageContents />} />;
+  // TODO: be sure useGetHandoffState actually refreshes the handoff state when it changes
+  const handoffState = useGetHandoffState({ chatId: chatId });
+  const Empty: React.FC = () => null;
+  const HandoffButton =
+    handoffState.data?.handoffState === 'handoff_button_up' ? (
+      <ComponentMessage component={<HandoffMessageContents />} />
+    ) : (
+      <Empty />
+    );
 
   return (
     <>

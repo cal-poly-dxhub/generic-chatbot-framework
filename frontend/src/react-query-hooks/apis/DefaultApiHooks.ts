@@ -23,6 +23,7 @@ import {
   ListChatMessageSourcesRequest,
   ListChatMessagesRequest,
   UpdateChatRequest,
+  GetHandoffStateRequest,
 } from './DefaultApi';
 import { DefaultApiDefaultContext, DefaultApiClientContext } from './DefaultApiClientProvider';
 import type {
@@ -34,6 +35,7 @@ import type {
   ListChatMessagesResponseContent,
   ListChatsResponseContent,
   UpdateChatResponseContent,
+  GetHandoffStateResponseContent,
 } from '../models';
 
 // Import request parameter interfaces
@@ -187,5 +189,27 @@ export const useUpdateChat = <TError = ResponseError>(
   return useMutation((params: UpdateChatRequest) => api.updateChat(params), {
     context: DefaultApiDefaultContext,
     ...options,
+  });
+};
+
+// TODO: rename this to useHandoffState; it's more appropriate for a hook.
+export const useGetHandoffState = <TError = ResponseError>(
+  params: Omit<GetHandoffStateRequest, 'getHandoffStateRequestContent'>,
+  options?: Omit<UseQueryOptions<GetHandoffStateResponseContent, TError>, 'queryKey' | 'queryFn'>,
+): UseQueryResult<GetHandoffStateResponseContent, TError> => {
+  const api = useContext(DefaultApiClientContext);
+  if (!api) {
+    throw NO_API_ERROR;
+  }
+
+  // TODO: a reasonable thing to do?
+  const content_params = {
+    ...params,
+    getHandoffStateRequestContent: {},
+  };
+
+  return useQuery(['getHandoffState'], () => api.getHandoffState(content_params), {
+    context: DefaultApiDefaultContext,
+    ...(options as any),
   });
 };

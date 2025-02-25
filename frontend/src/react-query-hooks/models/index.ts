@@ -27,3 +27,6 @@ export * from './UpdateChatResponseContent';
 export * from './UpdateInferenceStatusRequestContent';
 export * from './StreamLLMResponseRequestContent';
 export * from './SendChatMessageRequestContent';
+export * from './GetHandoffStateRequestContent';
+export * from './GetHandoffStateResponseContent';
+

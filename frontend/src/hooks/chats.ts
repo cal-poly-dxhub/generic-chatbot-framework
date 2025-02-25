@@ -22,6 +22,7 @@ import {
   useDeleteChatMessage,
   useListChatMessageSources,
   useUpdateChat,
+  useGetHandoffState as _useGetHandoffState,
 } from '../react-query-hooks';
 
 type PaginatedListChatMessagesResponse = InfiniteData<ListChatMessagesResponseContent>;
@@ -99,6 +100,15 @@ export function useListChatMessages(
       ...args[0],
     },
     args[1],
+  );
+}
+
+export function useGetHandoffState(
+  ...args: Parameters<typeof _useGetHandoffState>
+): ReturnType<typeof _useGetHandoffState> {
+  return _useGetHandoffState(
+    args[0], // chatId
+    args[1], // options
   );
 }
 

@@ -26,6 +26,8 @@ import type {
   ListChatsResponseContent,
   UpdateChatRequestContent,
   UpdateChatResponseContent,
+  GetHandoffStateRequestContent,
+  GetHandoffStateResponseContent,
 } from '../models';
 import {
     CreateChatMessageRequestContentToJSON,
@@ -39,6 +41,8 @@ import {
     ListChatsResponseContentFromJSON,
     UpdateChatRequestContentToJSON,
     UpdateChatResponseContentFromJSON,
+    // GetHandoffStateRequestContentToJSON,
+    GetHandoffStateResponseContentFromJSON,
 } from '../models';
 
 export interface CreateChatRequest {
@@ -78,6 +82,11 @@ export interface ListChatMessagesRequest {
 export interface UpdateChatRequest {
     chatId: string;
     updateChatRequestContent: UpdateChatRequestContent;
+}
+
+export interface GetHandoffStateRequest {
+    chatId: string;
+    getHandoffStateRequestContent: GetHandoffStateRequestContent;
 }
 
 /**
@@ -354,4 +363,50 @@ export class DefaultApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    async getHandoffStateRaw(requestParameters: GetHandoffStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetHandoffStateResponseContent>> {
+
+        // TODO: prevents angry linter
+        console.log("initOverrides: " + JSON.stringify(initOverrides));
+
+        // TODO: this path is wrong
+        // const queryParameters: any = {};
+        // const headerParameters: runtime.HTTPHeaders = {};
+        // const response = await this.request({
+        //     path: `/chat`,
+        //     method: 'GET',
+        //     headers: headerParameters,
+        //     query: queryParameters,
+        //     body: GetHandoffStateRequestContentToJSON(requestParameters.getHandoffStateRequestContent),
+        // }, initOverrides);
+        
+        console.log("Got chat ID: " + requestParameters.chatId);
+
+        const dummyResponse: Response = {
+            headers: new Headers(),
+            ok: true,
+            redirected: false,
+            status: 200,
+            statusText: "OK",
+            type: "basic", // or "default", "cors", etc.
+            url: "https://example.com",
+            body: null,
+            bodyUsed: false,
+            clone() { return this; },
+            arrayBuffer: async () => new ArrayBuffer(0),
+            blob: async () => new Blob(),
+            formData: async () => new FormData(),
+            json: async () => ({ handoffState: "handoff_button_up" }), // Mock response
+            text: async () => "",
+        };
+
+        // NOTE: Get*ResponseContentFromJSON methods act on the json field of the 
+        // above.
+
+        return new runtime.JSONApiResponse(dummyResponse, (jsonValue) => GetHandoffStateResponseContentFromJSON(jsonValue));
+    }
+    
+    async getHandoffState(requestParameters: GetHandoffStateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetHandoffStateResponseContent> {
+        const response = await this.getHandoffStateRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 }
