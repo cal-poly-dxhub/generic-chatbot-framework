@@ -58,7 +58,13 @@ def run_rag_chain(
 
     if "classificationChainConfig" in llm_config:
         # classify the user question
-        handoff_trigger_counter = lambda: add_and_check_handoff(user_id, chat_id, DEFAULT_HANDOFF_THRESHOLD)
+        # TODO: handoffThreshold should have been passed from config
+        handoff_trigger_counter = lambda: (
+            add_and_check_handoff(user_id, chat_id, handoff_config["handoffThreshold"])
+            if handoff_config
+            else HandoffState.NO_HANDOFF
+        )
+
         classification_response = (
             run_classification_step(
                 chain_config=llm_config["classificationChainConfig"],

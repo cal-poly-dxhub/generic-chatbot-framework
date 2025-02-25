@@ -3,6 +3,8 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from francis_toolkit.utils import get_timestamp
+from francis_toolkit.types import HandoffState
+from ..handoff_state import handoff_transition
 
 from ..base import BaseChatHistoryStore, Chat, ChatMessage, ChatMessageSource
 from .utils import (
@@ -50,6 +52,7 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             "userId": user_id,
             "handoffRequests": 0,
             "handoffObject": None,
+            "handoffState": HandoffState.NO_HANDOFF.value,
             **keys,
             **gsi_keys,
             "entity": "CHAT",
@@ -67,19 +70,34 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             userId=user_id,
         )
 
-    def increment_handoff_counter(self, user_id: str, chat_id: str) -> int:
+    # TODO: be sure this only runs if handoff is enabled
+    def increment_handoff_counter(self, user_id: str, chat_id: str, handoff_threshold: int) -> HandoffState:
         """
-        Counts a handoff request and returns the new count of requests.
+        Counts a handoff request and returns the updated handoff state.
         """
+        response = self.table.get_item(Key=get_chat_key(user_id, chat_id), ProjectionExpression="handoffRequests, handoffState")
+
+        handoff_requests = response["Item"].get("handoffRequests", 0)
+        old_handoff_state = HandoffState(response["Item"].get("handoffState", HandoffState.NO_HANDOFF.value))
+        handoff_requests += 1
+
+        # TODO: implement button API call for transition from UP to COMPLETING
+        # TODO: implement this function
+        # TODO: be sure uses of the handoff_transition return type are correct; returns an enum, should
+        # convert to a string via .value
+        handoff_state = handoff_transition(old_handoff_state, handoff_requests, handoff_threshold)
+
         response = self.table.update_item(
             Key=get_chat_key(user_id, chat_id),
             ConditionExpression="attribute_exists(PK) and attribute_exists(SK)",
-            UpdateExpression="set handoffRequests = handoffRequests + :val",
-            ExpressionAttributeValues={":val": 1},
+            UpdateExpression="set handoffRequests = handoffRequests + :val, handoffState = :state",
+            ExpressionAttributeValues={":val": 1, ":state": handoff_state.value},
             ReturnValues="UPDATED_NEW",
         )
 
-        return response["Attributes"]["handoffRequests"]
+        handoff_requests = response["Attributes"]["handoffRequests"]
+        updated_handoff_state = response["Attributes"]["handoffState"]
+        return HandoffState(updated_handoff_state)
 
     def populate_handoff(self, user_id: str, chat_id: str, handoff_object: str) -> None:
         self.table.update_item(

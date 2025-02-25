@@ -8,6 +8,9 @@ from francis_toolkit.utils import get_timestamp
 from sqlalchemy import Column, Index, String, asc, desc, Integer
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import sessionmaker, mapped_column
+from francis_toolkit.types import HandoffState
+from ..handoff_state import handoff_transition
+
 
 try:
     from sqlalchemy.orm import declarative_base
@@ -29,6 +32,7 @@ class ChatEntity(Base):
     updated_at = Column(String, nullable=False)
     handoff_requests = mapped_column(Integer, nullable=False, default=0)
     handoff_object = mapped_column(String, nullable=True)
+    handoff_state = mapped_column(String, nullable=False)
 
     __table_args__ = (
         Index(
@@ -128,17 +132,21 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             updatedAt=int(entity.updated_at),
         )
 
-    def increment_handoff_counter(self, user_id: str, chat_id: str) -> int:
+    def increment_handoff_counter(self, user_id: str, chat_id: str, handoff_threshold: int) -> HandoffState:
         with self._session_maker() as session:
             chat = session.query(ChatEntity).filter_by(user_id=user_id, id=chat_id).first()
             if not chat:
                 raise ValueError("Chat not found")
 
+            # TODO: double SQL and Python fields? Any issue with this? (Can the commit fail, and then we pass
+            # back invalid handoff state?)
+            new_handoff_state = handoff_transition(chat.handoff_requests, handoff_threshold, chat.handoff_state)
             chat.handoff_requests += 1
+            chat.handoff_state = new_handoff_state.value
             chat.updated_at = get_timestamp()
             session.commit()
 
-            return chat.handoff_requests
+            return new_handoff_state
 
     def populate_handoff(self, user_id: str, chat_id: str, handoff_object: str) -> None:
         with self._session_maker() as session:

@@ -1,4 +1,5 @@
 from francis_toolkit.utils import load_config_from_dynamodb
+from francis_toolkit.types import HandoffState
 import os
 from typing import Optional, Iterator
 from conversation_store.utils import get_chat_history_store
@@ -48,11 +49,22 @@ def increment_handoff_requests(chat_id: str, user_id: str) -> dict:
     extra = {"chat_id": chat_id, "user_id": user_id, "event": "increment_handoff_requests"}
     logger.info("Count handoff requests triggered", extra=extra)
 
+    # TODO: be sure to pass the handoff threshold in the JSON body when calling this endpoint.
+    # TODO: default handoff threshold?
+
+    # TODO: why is json_body raising an error on deserialization?
+    # TODO: use the json_body field here. For now, deserialize manually.
+
+    # TODO: use a default value here
+    handoff_threshold = router.current_event.json_body.get("handoffThreshold", 3)
+
     store = get_chat_history_store()
-    num_handoff_requests = store.increment_handoff_counter(user_id, chat_id)
+    handoff_state = store.increment_handoff_counter(user_id, chat_id, handoff_threshold)
+
+    # TODO: check for uses of numHandoffRequests and replace them with handoffState logic
     return {
         "data": {
-            "numHandoffRequests": num_handoff_requests,
+            "handoffState": handoff_state,
         },
     }
 
