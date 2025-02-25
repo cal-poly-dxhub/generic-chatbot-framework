@@ -34,7 +34,7 @@ class LLMBase(ABC):
         classification_type: ClassificationType = ClassificationType.QUESTION,
         streaming_context: Optional[StreamingContext] = None,
         **kwargs: dict,
-    ) -> str:
+    ) -> tuple[str, int, int]:
         pass
 
 class RerankerBase(ABC):
@@ -147,7 +147,7 @@ class BedrockLLM(LLMBase):
         classification_type: ClassificationType = ClassificationType.QUESTION,
         streaming_context: Optional[StreamingContext] = None,
         **kwargs: dict,
-    ) -> str:
+    ) -> tuple[str, int, int]:
         final_prompt = format_template_variables(prompt_template, prompt_variables, **kwargs)
         model_kwargs = model_config.get("modelKwargs", {})
         inference_config = {
@@ -214,6 +214,8 @@ class BedrockLLM(LLMBase):
                 converse_kwargs["guardrailConfig"] = guardrail_config
 
             inference_result = ""
+            input_tokens = 0
+            output_tokens = 0
 
             if streaming_context is not None:
                 try:
@@ -230,6 +232,9 @@ class BedrockLLM(LLMBase):
                                 },
                             )
                             inference_result += content_delta_text
+                        if "usage" in event:
+                            input_tokens = event["usage"].get("inputTokens", 0)
+                            output_tokens = event["usage"].get("outputTokens", 0)
                 except botocore.exceptions.ClientError as err:
                     if "ContentFilterException" in str(err):
                         app_trace.add("content_filter_exception", {
@@ -249,7 +254,7 @@ class BedrockLLM(LLMBase):
                                 "chunks": [blocked_message],
                             },
                         )
-                        return blocked_message
+                        return (blocked_message, 0, 0)
                     raise
             else:
                 response = self.client.converse(**converse_kwargs)
@@ -262,11 +267,13 @@ class BedrockLLM(LLMBase):
                 ):
                     logger.error(f"Invalid response from {model_config['modelId']}. Stop reason: {response['stopReason']}")
                     inference_result = ""
+                    input_tokens = output_tokens = 0
                 else:
                     inference_result = response["output"]["message"]["content"][0]["text"]
-                    
+                    input_tokens, output_tokens = response["usage"]["inputTokens"], response["usage"]["outputTokens"]
+
             logger.debug(f"Response received from {model_config['modelId']}: {inference_result}")
-            return inference_result
+            return (inference_result, input_tokens, output_tokens)
 
         except botocore.exceptions.ClientError as err:
             if "ContentFilterException" in str(err):
@@ -275,14 +282,14 @@ class BedrockLLM(LLMBase):
                     "type": "input" if "input" in str(err).lower() else "output"
                 })
                 if "input" in str(err).lower():
-                    return kwargs.get("blocked_input_message", "Input was filtered by content safety guardrails")
-                return kwargs.get("blocked_output_message", "Output was filtered by content safety guardrails")
+                    return (kwargs.get("blocked_input_message", "Input was filtered by content safety guardrails"), 0, 0)
+                return (kwargs.get("blocked_output_message", "Output was filtered by content safety guardrails"), 0, 0)
             
             logger.error("A client error occurred: %s", err.response["Error"]["Message"])
         except Exception as err:
             logger.error("An error occurred: %s", err)
 
-        return ""
+        return ("", 0, 0)  # Return empty string with zero tokens for other errors
 
 
 class SagemakerLLM(LLMBase):
