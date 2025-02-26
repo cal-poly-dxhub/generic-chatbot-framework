@@ -469,6 +469,29 @@ chatHistoryConfig:
   storeType: <dynamodb | aurora_postgres>
 ```
 
+**Handoff mechanism configuration (optional)**
+This solution supports a handoff mechanism to transfer the conversation to a human agent after a certain number of requests from the user. 
+
+Under classificationChainConfig -> promptTemplate, the model should be configured to return another classification type "handoff_request". If handoff is not enabled, this type should not be present.
+
+```yaml
+handoffConfig:
+  model:
+    provider: <bedrock> 
+    modelId: <the Bedrock ID of the handoff model>
+    supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
+    modelKwArgs: # Optional; uses Bedrock defaults if not set
+      maxTokens: 1024
+      temperature: 0.1
+      topP: 0.99
+      stopSequences: [ '...' ]
+  handoffThreshold: <the (integer) number of requests after which the handoff mechanism is triggered>
+  details: <optional list of details for the summarizer LLM to focus on>
+  handoffPrompts: # Each field is individually optional and handoffPrompts is optional
+    handoffRequested: <optional prompt for the model when the user requests a handoff and one has not been triggered>
+    handoffJustTriggered: <optional prompt for the model when the most recent request triggered handoff>
+    handoffCompleting: <optional prompt for the model when the handoff has been triggered and the user asks for a human again>
+```
 
 **AWS WAF configuration (optional)**
 This solution provisions AWS WAF Web ACL for API Gateway resources, by default. For a CloudFront distribution WAF Web ACL, the solution allows users to associate their existing AWS WAF Web ACL for CloudFront with the CloudFront distribution created by the solution. Refer to the configuration options below for configuring your AWS WAF Web ACL.

@@ -56,6 +56,14 @@ class BaseChatHistoryStore(ABC):
         raise NotImplementedError("This method should be implemented by subclasses.")
 
     @abstractmethod
+    def increment_handoff_counter(self, user_id: str, chat_id: str) -> int:
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    @abstractmethod
+    def populate_handoff(self, user_id: str, chat_id: str, handoff_object: str) -> None:
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    @abstractmethod
     def create_chat_message(
         self,
         user_id: str,
