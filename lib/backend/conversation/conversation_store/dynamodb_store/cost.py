@@ -31,6 +31,9 @@ def convert_decimals(obj):
         return obj
 
 
+def strip_us_prefix(model_id: str) -> str:
+    return model_id[3:] if model_id.startswith("us.") else model_id
+
 def get_model_costs(model_id):
     base_directory = Path(__file__).parent
     json_file_path = base_directory / "model_costs.json"
@@ -42,6 +45,7 @@ def get_model_costs(model_id):
     # Cost format is (input_cost, output_cost)
     cost_per_token = {key: tuple(value) for key, value in cost_per_token.items()}
 
+    model_id = strip_us_prefix(model_id)
     if model_id in cost_per_token:
         input_cost, output_cost = cost_per_token[model_id]
     else:
