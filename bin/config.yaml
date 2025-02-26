@@ -221,8 +221,8 @@ systemConfig:
         allowFromPublic: false
     embeddingsModels:
       - provider: bedrock
-        modelId: us.cohere.embed-multilingual-v3
-        modelRefKey: us.cohere.embed-multilingual-v3
+        modelId: amazon.titan-embed-text-v2:0
+        modelRefKey: amazon.titan-embed-text-v2:0
         dimensions: 1024
     corpusConfig:
       corpusType: knowledgebase
