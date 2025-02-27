@@ -216,9 +216,11 @@ systemConfig:
           You are a chat assistant (chatbot) for Vietnam company information. You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
   ragConfig:
     vectorStoreConfig:
-      vectorStoreType: opensearch
+      vectorStoreType: pgvector
       vectorStoreProperties:
-        allowFromPublic: false
+        minCapacity: 2
+        maxCapacity: 3
+        useRDSProxy: true
     embeddingsModels:
       - provider: bedrock
         modelId: amazon.titan-embed-text-v2:0
