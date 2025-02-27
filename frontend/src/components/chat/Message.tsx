@@ -10,6 +10,7 @@ import { useDeleteChatMessageMutation, useMessageSources } from '../../hooks/cha
 import type { ChatMessage } from '../../react-query-hooks';
 import CopyText from '../buttons/CopyText';
 import { ModalButton } from '../buttons/ModalButton';
+import FeedbackPanel from './FeedbackPanel';
 
 type MessageProps = {
   message: ChatMessage;
@@ -130,6 +131,7 @@ export default function Message({ message, humanStyles = {}, aiStyles = {} }: Me
           }}
         >
           <h4>{headerText}</h4>
+          {message.type === 'ai' && <FeedbackPanel messageId={message.messageId} chatId={message.chatId} />}
           <span>
             {traceData && (
               <ModalButton
