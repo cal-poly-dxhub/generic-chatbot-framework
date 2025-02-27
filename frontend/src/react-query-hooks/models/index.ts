@@ -1,6 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './Chat';
+export * from './ChatCostRequestContent';
+export * from './ChatCostResponseContent';
 export * from './ChatMessage';
 export * from './ChatMessageSource';
 export * from './ClientErrorResponseContent';

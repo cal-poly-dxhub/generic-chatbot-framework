@@ -17,6 +17,8 @@ import * as runtime from '../runtime';
 import type {
   CreateChatMessageRequestContent,
   CreateChatMessageResponseContent,
+  ChatCostRequestContent,
+  ChatCostResponseContent,
   CreateChatRequestContent,
   CreateChatResponseContent,
   DeleteChatMessageResponseContent,
@@ -30,6 +32,12 @@ import type {
 import {
     CreateChatMessageRequestContentToJSON,
     CreateChatMessageResponseContentFromJSON,
+
+    ChatCostRequestContentToJSON,
+    ChatCostResponseContentToJSON,
+    ChatCostResponseContentFromJSON,
+    ChatCostRequestContentFromJSON,
+
     CreateChatRequestContentToJSON,
     CreateChatResponseContentFromJSON,
     DeleteChatMessageResponseContentFromJSON,
@@ -318,6 +326,31 @@ export class DefaultApi extends runtime.BaseAPI {
         const response = await this.listChatsRaw(initOverrides);
         return await response.value();
     }
+
+    /**
+     */
+    async getChatCostRaw(requestParameters: ChatCostRequestContent, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ChatCostResponseContent>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/chat/{chatId}/cost`.replace(`{${"chatId"}}`, encodeURIComponent(String(requestParameters.chatId))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ChatCostResponseContentFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getChatCost(requestParameters: ChatCostRequestContent, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ChatCostResponseContent> {
+        const response = await this.getChatCostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 
     /**
      */
