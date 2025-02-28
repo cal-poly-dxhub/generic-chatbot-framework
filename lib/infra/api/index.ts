@@ -158,6 +158,11 @@ export class Api extends Construct {
         });
         this.addMethod(chatMessageSourceResource, 'GET', chatApiHandler);
 
+        const chatCostResource = chatIdResource.addResource('cost', {
+            defaultCorsPreflightOptions,
+        });
+        this.addMethod(chatCostResource, 'GET', chatApiHandler);
+
         return chatApiHandler;
     }
 
