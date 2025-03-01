@@ -12,6 +12,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from francis_toolkit.utils import get_calling_identity
 from routes.chat_routes import router as chat_router
 from routes.internal_routes import router as internal_router
+from routes.feedback_routes import router as feedback_router
 
 tracer = Tracer()
 logger = Logger()
@@ -24,6 +25,7 @@ app = APIGatewayRestResolver(
 
 app.include_router(chat_router)
 app.include_router(internal_router)
+app.include_router(feedback_router)
 
 
 @logger.inject_lambda_context(log_event=True, correlation_id_path=correlation_paths.API_GATEWAY_REST)
