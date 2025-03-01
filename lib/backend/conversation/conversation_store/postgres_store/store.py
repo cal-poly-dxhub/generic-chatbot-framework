@@ -5,7 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import sqlalchemy
 from francis_toolkit.utils import get_timestamp
-from sqlalchemy import Column, Index, String, asc, desc
+from sqlalchemy import Column, Index, String, Enum, asc, desc
+from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import sessionmaker
 
@@ -52,6 +53,8 @@ class MessageEntity(Base):
     content = Column(String, nullable=False)
     created_at = Column(String, nullable=False)
 
+    thumb: Mapped[Optional[str]] = mapped_column(Enum("up", "down", name="thumb"), nullable=True)
+    feedback: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     __table_args__ = (Index("message_idx_user_id", user_id),)
 
 
@@ -188,6 +191,16 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             if not message:
                 raise ValueError("Message not found")
             session.delete(message)
+            session.commit()
+
+    def update_feedback(self, user_id: str, message_id: str, thumb: Optional[str], feedback: Optional[str]) -> None:
+        with self._session_maker() as session:
+            message = session.query(MessageEntity).filter_by(user_id=user_id, id=message_id).first()
+            if not message:
+                raise ValueError("Message not found")
+            message.thumb = thumb
+            message.feedback = feedback
+            message.updated_at = get_timestamp()
             session.commit()
 
     def _entity_to_message(self, entity: MessageEntity) -> ChatMessage:

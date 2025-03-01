@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Literal
 
 from pydantic import BaseModel
 
@@ -68,6 +68,17 @@ class BaseChatHistoryStore(ABC):
 
     @abstractmethod
     def delete_chat_message(self, user_id: str, message_id: str) -> None:
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    @abstractmethod
+    def update_feedback(
+        self, user_id: str, message_id: str, thumb: Optional[Literal["up", "down"]], feedback: Optional[str]
+    ) -> None:
+        raise NotImplementedError("This method should be implemented by subclasses.")
+
+    # NOTE: to reviewer: Added this to test the Dynamo backend
+    @abstractmethod
+    def update_cost(self, user_id: str, chat_id: str, tokens: int, model_id: str, message_type: str) -> Chat:
         raise NotImplementedError("This method should be implemented by subclasses.")
 
     @abstractmethod
