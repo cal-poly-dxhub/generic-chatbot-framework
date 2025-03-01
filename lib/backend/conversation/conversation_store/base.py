@@ -62,6 +62,7 @@ class BaseChatHistoryStore(ABC):
         chat_id: str,
         message_type: str,
         content: str,
+        tokens: int,
         sources: Optional[List[Dict[str, Any]]] = None,
     ) -> ChatMessage:
         raise NotImplementedError("This method should be implemented by subclasses.")
