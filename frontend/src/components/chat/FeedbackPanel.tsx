@@ -1,14 +1,15 @@
 /* eslint-disable */
 
 import React, { useState } from "react";
-import { Button, Modal, Form, Textarea, SpaceBetween } from "@cloudscape-design/components";
+import { Button, Modal, Form, Textarea, SpaceBetween, Spinner } from "@cloudscape-design/components";
+import { useUpdateFeedbackMutation } from '../../hooks/chats';
 
 type FeedbackPanelProps = {
   messageId: string;
   chatId: string;
 }
 
-const FeedbackPanel: React.FC<FeedbackPanelProps> = () => {
+const FeedbackPanel: React.FC<FeedbackPanelProps> = ({ messageId, chatId }) => {
   const [visible, setVisible] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<string>("");
   const [selectedThumb, setSelectedThumb] = useState<"up" | "down" | null>(null);
@@ -18,17 +19,28 @@ const FeedbackPanel: React.FC<FeedbackPanelProps> = () => {
     setVisible(true);
   };
 
+  const { mutate: updateFeedback, status: status } = useUpdateFeedbackMutation();
+  const isSubmitting = status === "loading";
+
   const submitFeedback = () => {
-    console.log("Feedback submitted:", { thumb: selectedThumb, feedback });
-    setFeedback("");
+    if (selectedThumb) {
+      updateFeedback({
+        chatId,
+        updateFeedbackRequestContent: {
+          thumb: selectedThumb,
+          feedback: feedback,
+          messageId: messageId,
+        }
+      });
+    }
     setVisible(false);
   };
 
   return (
     <div>
       <SpaceBetween direction="horizontal" size="xs">
-        <Button onClick={() => openModal("up")} iconName="thumbs-up"></Button>
-        <Button onClick={() => openModal("down")} iconName="thumbs-down"></Button>
+        <Button onClick={() => openModal("up")} iconName="thumbs-up" variant="icon"></Button>
+        <Button onClick={() => openModal("down")} iconName="thumbs-down" variant="icon"></Button>
       </SpaceBetween>
 
       <Modal
@@ -38,7 +50,9 @@ const FeedbackPanel: React.FC<FeedbackPanelProps> = () => {
         footer={
           <SpaceBetween direction="horizontal" size="s">
             <Button variant="link" onClick={() => setVisible(false)}>Cancel</Button>
-            <Button variant="primary" onClick={submitFeedback}>Submit</Button>
+            <Button variant="primary" onClick={submitFeedback} disabled={isSubmitting}>
+              {isSubmitting ? < Spinner /> : "Submit"}
+            </Button>
           </SpaceBetween>
         }
       >

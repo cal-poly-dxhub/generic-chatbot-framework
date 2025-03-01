@@ -130,8 +130,10 @@ export default function Message({ message, humanStyles = {}, aiStyles = {} }: Me
             width: '100%',
           }}
         >
-          <h4>{headerText}</h4>
-          {message.type === 'ai' && <FeedbackPanel messageId={message.messageId} chatId={message.chatId} />}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <h4 style={{ margin: 0 }}>{headerText}</h4>
+            {message.type === 'ai' && <FeedbackPanel messageId={message.messageId} chatId={message.chatId} />}
+          </div>
           <span>
             {traceData && (
               <ModalButton
