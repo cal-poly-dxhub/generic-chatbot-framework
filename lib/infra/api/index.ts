@@ -153,6 +153,11 @@ export class Api extends Construct {
         });
         this.addMethod(chatMessageIdResource, 'DELETE', chatApiHandler);
 
+        const feedbackResource = chatMessageIdResource.addResource('feedback', {
+            defaultCorsPreflightOptions,
+        });
+        this.addMethod(feedbackResource, 'PUT', chatApiHandler);
+
         const chatMessageSourceResource = chatMessageIdResource.addResource('source', {
             defaultCorsPreflightOptions,
         });
