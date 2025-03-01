@@ -22,6 +22,7 @@ import {
   useDeleteChatMessage,
   useListChatMessageSources,
   useUpdateChat,
+  useUpdateFeedback as _useUpdateFeedback,
 } from '../react-query-hooks';
 
 type PaginatedListChatMessagesResponse = InfiniteData<ListChatMessagesResponseContent>;
@@ -296,4 +297,8 @@ export function useMessageSources(chatId: string, messageId: string): UseQueryRe
       },
     },
   );
+}
+
+export function useUpdateFeedbackMutation(): ReturnType<typeof _useUpdateFeedback> {
+  return _useUpdateFeedback();
 }

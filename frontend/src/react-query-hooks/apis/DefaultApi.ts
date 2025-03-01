@@ -26,6 +26,8 @@ import type {
   ListChatsResponseContent,
   UpdateChatRequestContent,
   UpdateChatResponseContent,
+  UpdateFeedbackRequestContent,
+  UpdateFeedbackResponseContent,
 } from '../models';
 import {
     CreateChatMessageRequestContentToJSON,
@@ -39,6 +41,8 @@ import {
     ListChatsResponseContentFromJSON,
     UpdateChatRequestContentToJSON,
     UpdateChatResponseContentFromJSON,
+    UpdateFeedbackRequestContentToJSON,
+    UpdateFeedbackResponseContentFromJSON,
 } from '../models';
 
 export interface CreateChatRequest {
@@ -78,6 +82,12 @@ export interface ListChatMessagesRequest {
 export interface UpdateChatRequest {
     chatId: string;
     updateChatRequestContent: UpdateChatRequestContent;
+}
+
+export interface UpdateFeedbackRequest {
+    // TODO: Is this duplicated data?
+    chatId: string;
+    updateFeedbackRequestContent: UpdateFeedbackRequestContent;
 }
 
 /**
@@ -343,6 +353,7 @@ export class DefaultApi extends runtime.BaseAPI {
             query: queryParameters,
             body: UpdateChatRequestContentToJSON(requestParameters.updateChatRequestContent),
         }, initOverrides);
+        console.log("initOverrides: ", initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UpdateChatResponseContentFromJSON(jsonValue));
     }
@@ -351,6 +362,45 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async updateChat(requestParameters: UpdateChatRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UpdateChatResponseContent> {
         const response = await this.updateChatRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async updateFeedbackRaw(requestParameters: UpdateFeedbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UpdateFeedbackResponseContent>> {
+        console.log("updateFeedback requestParameters: ", requestParameters);
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const chatId = requestParameters.chatId;
+        const messageId = requestParameters.updateFeedbackRequestContent.messageId;
+
+        const body = UpdateFeedbackRequestContentToJSON(requestParameters.updateFeedbackRequestContent);
+
+        console.log("updateFeedback body: ", body);
+
+        const path = `/chat/{chatId}/message/{messageId}/feedback`.replace(`{${"chatId"}}`, encodeURIComponent(String(chatId))).replace(`{${"messageId"}}`, encodeURIComponent(String(messageId)));
+
+        console.log("updateFeedback path: ", path);
+
+        const response = await this.request({
+            path: path,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: body,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UpdateFeedbackResponseContentFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async updateFeedback(requestParameters: UpdateFeedbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UpdateFeedbackResponseContent> {
+        const response = await this.updateFeedbackRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

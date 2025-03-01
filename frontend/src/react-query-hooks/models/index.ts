@@ -24,6 +24,9 @@ export * from './StringAnyMap';
 export * from './StringMap';
 export * from './UpdateChatRequestContent';
 export * from './UpdateChatResponseContent';
+export * from './UpdateFeedbackRequestContent';
+export * from './UpdateFeedbackResponseContent';
 export * from './UpdateInferenceStatusRequestContent';
 export * from './StreamLLMResponseRequestContent';
 export * from './SendChatMessageRequestContent';
+
