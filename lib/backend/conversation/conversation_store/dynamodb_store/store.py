@@ -170,16 +170,14 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             updatedAt=int(updated_record["updatedAt"]),
             userId=user_id,
         )
+    
+    def get_chat_cost(self, user_id: str, chat_id: str) -> Dict[str, Any]:
+        chat_key = get_chat_key(user_id, chat_id)
 
-    def get_chat_cost(self, chat_id: str) -> Dict[str, Any]:
-        response = self.table.get_item(
-            Key={
-                "PK": f"CHAT#{chat_id}",
-                "SK": "COST"
-            }
-        )
-        
-        return response.get("Item", {})
+        response = self.table.get_item(Key=chat_key)
+
+        return response.get("Item", {}).get("cost", {})
+
 
 
     def list_chats(self, user_id: str) -> List[Chat]:

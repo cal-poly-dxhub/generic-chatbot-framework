@@ -34,6 +34,8 @@ import type {
   ListChatMessagesResponseContent,
   ListChatsResponseContent,
   UpdateChatResponseContent,
+  ChatCostRequestContent,
+  ChatCostResponseContent,
 } from '../models';
 
 // Import request parameter interfaces
@@ -169,6 +171,23 @@ export const useListChats = <TError = ResponseError>(
     throw NO_API_ERROR;
   }
   return useQuery(['listChats'], () => api.listChats(), {
+    context: DefaultApiDefaultContext,
+    ...(options as any),
+  });
+};
+
+/**
+ * useQuery hook for the GetChatCost operation
+ */
+export const useGetChatCost = <TError = ResponseError>(
+  params: ChatCostRequestContent, // Assuming this contains chat_id
+  options?: Omit<UseQueryOptions<ChatCostResponseContent, TError>, 'queryKey' | 'queryFn'>,
+): UseQueryResult<ChatCostResponseContent, TError> => {
+  const api = useContext(DefaultApiClientContext);
+  if (!api) {
+    throw NO_API_ERROR;
+  }
+  return useQuery(['getChatCost', params], () => api.getChatCost(params), {
     context: DefaultApiDefaultContext,
     ...(options as any),
   });

@@ -14,8 +14,10 @@ import {
   ListChatMessagesRequest,
   ListChatMessagesResponseContent,
   ListChatsResponseContent,
+  ChatCostResponseContent,
   useListChatMessages as _useListChatMessages,
   useListChats as _useListChats,
+  useGetChatCost as _useGetChatCost,
   useCreateChat,
   useCreateChatMessage,
   useDeleteChat,
@@ -51,6 +53,17 @@ export function useListChats(): ReturnType<typeof _useListChats> {
       });
     },
   });
+}
+
+export function useGetChatCost(chatId: string): ReturnType<typeof _useGetChatCost> {
+  return _useGetChatCost(
+    { chatId },
+    {
+      select: (costResponse: ChatCostResponseContent): ChatCostResponseContent => {
+        return costResponse;
+      },
+    },
+  );
 }
 
 export function useCreateChatMutation(

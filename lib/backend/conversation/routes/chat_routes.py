@@ -28,17 +28,15 @@ def list_chats_handler() -> Dict:
 @router.get("/chat/<chat_id>/cost")
 @tracer.capture_method
 def get_chat_cost_handler(chat_id: str) -> Dict:
-    logger.info(router.context)
 
     user_id = router.context.get("user_id", "")
+    chat_id = router.get("message", {}).get("_route_args", {}).get("chat_id")
 
     chat_history_store = get_chat_history_store()
 
-    chats = chat_history_store.get_chat_cost(chat_id)
+    chat_cost = chat_history_store.get_chat_cost(user_id, chat_id)
 
-    logger.info("COSTS" + str(chats))
-
-    return chat.dict()
+    return chat_cost
 
 
 @router.put("/chat")

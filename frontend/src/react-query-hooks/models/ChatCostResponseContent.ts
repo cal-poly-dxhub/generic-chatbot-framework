@@ -6,16 +6,16 @@
  * @interface ChatCostResponseContent
  */
 export interface ChatCostResponseContent {
-    totalTokens: number;
-    cost: number;
-    currency: string;
+    userCost: number;
+    totalCost: number;
+    assistantCost: number;
 }
 
 /**
  * Check if a given object implements the ChatCostResponseContent interface.
  */
 export function instanceOfChatCostResponseContent(value: object): boolean {
-    return "totalTokens" in value && "cost" in value && "currency" in value;
+    return "userCost" in value && "totalCost" in value && "assistantCost" in value;
 }
 
 /**
@@ -33,9 +33,9 @@ export function ChatCostResponseContentFromJSONTyped(json: any, _ignoreDiscrimin
         return json;
     }
     return {
-        totalTokens: json['totalTokens'],
-        cost: json['cost'],
-        currency: json['currency'],
+        userCost: Number(json['user_cost']),
+        totalCost: Number(json['total_cost']),
+        assistantCost: Number(json['assistant_cost']),
     };
 }
 
@@ -50,8 +50,8 @@ export function ChatCostResponseContentToJSON(value?: ChatCostResponseContent | 
         return null;
     }
     return {
-        totalTokens: value.totalTokens,
-        cost: value.cost,
-        currency: value.currency,
+        user_cost: value.userCost,
+        total_cost: value.totalCost,
+        assistant_cost: value.assistantCost,
     };
 }
