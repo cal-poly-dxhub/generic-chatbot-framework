@@ -255,6 +255,98 @@ const configSchema = {
                 },
             },
         },
+        handoffConfig: {
+            type: 'object',
+            description: 'Configuration for handing off conversations to a human agent',
+            required: ['modelConfig', 'handoffThreshold'],
+            properties: {
+                modelConfig: {
+                    type: 'object',
+                    description: 'Configuration for the handoff summarizer LLM model',
+                    properties: {
+                        provider: {
+                            type: 'string',
+                            const: 'bedrock',
+                        },
+                        modelId: {
+                            type: 'string',
+                            description:
+                                'Bedrock ID of the LLM to use for summarizing a conversation',
+                        },
+                        supportsSystemPrompt: {
+                            type: 'boolean',
+                            description:
+                                'Whether the LLM model supports system prompts via the Converse API',
+                            default: false,
+                        },
+                        modelKwArgs: {
+                            $ref: '#/definitions/ModelKwargs',
+                            default: {
+                                maxTokens: 1024,
+                                temperature: 0.1,
+                                topP: 0.95,
+                                stopSequences: [],
+                            },
+                        },
+                    },
+                },
+                handoffThreshold: {
+                    type: 'number',
+                    description:
+                        'Number of times the user requests a human before handoff',
+                    default: 1,
+                },
+                handoffPrompts: {
+                    type: 'object',
+                    description:
+                        'Responses the handoff summarizer provides to the user when they ask for a handoff.',
+                    properties: {
+                        handoffRequested: {
+                            type: 'string',
+                            description:
+                                'Response to send to the user when they ask for a handoff but the threshold has not been reached',
+                            default:
+                                "The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, 'Can we try again? Please tell me about your issue.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                        },
+                        handoffJustTriggered: {
+                            type: 'string',
+                            description:
+                                'Response to send to the user once a handoff is triggered',
+                            default:
+                                "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                        },
+                        handoffCompleting: {
+                            type: 'string',
+                            description:
+                                'Response to send to the user when they ask for a handoff but a handoff was already triggered',
+                            default:
+                                "The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want. Don't acknowledge that you're speaking to the human. Do not include any tone markers. Just speak to the person naturally.",
+                        },
+                    },
+                    default: {
+                        handoffRequested:
+                            "The user has requested to speak to a human. As if you're talking to the user, please explain that you're sorry you couldn't help. Ask, 'Can we try again? Please tell me about your issue.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                        handoffJustTriggered:
+                            "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                        handoffCompleting:
+                            "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                    },
+                },
+                details: {
+                    type: 'array',
+                    description:
+                        'Details for the handoff summarizer LLM to focus on (e.g., "Questions the user asked")',
+                    default: [
+                        'The main issue the user is trying to solve',
+                        'Questions the user asked',
+                        'Places where the user got stuck',
+                        'Instances where the user asked for help',
+                        'Instances where the user asked for a human',
+                        'Whether the user reported the issue as resolved',
+                    ],
+                },
+            },
+        },
         wafConfig: {
             type: 'object',
             description: 'Configuration for AWS WAF (Web Application Firewall)',
@@ -355,6 +447,12 @@ const configSchema = {
                     type: 'string',
                     description: 'ID of the LLM model',
                 },
+                supportsSystemPrompt: {
+                    type: 'boolean',
+                    description:
+                        'Whether the LLM model supports system prompts via the Converse API',
+                    default: false,
+                },
                 modelKwArgs: {
                     $ref: '#/definitions/ModelKwargs',
                 },
@@ -382,6 +480,7 @@ const configSchema = {
                 stopSequences: {
                     type: 'array',
                     description: 'Stop sequences for the LLM model output',
+                    default: [],
                     items: {
                         type: 'string',
                     },

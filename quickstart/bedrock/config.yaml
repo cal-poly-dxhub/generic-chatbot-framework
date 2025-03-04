@@ -63,3 +63,4 @@ systemConfig:
       corpusType: knowledgebase
   wafConfig:
     enableApiGatewayWaf: true
+

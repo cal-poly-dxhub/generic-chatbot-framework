@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import sqlalchemy
 from francis_toolkit.utils import get_timestamp
-from sqlalchemy import Column, Index, String, Enum, asc, desc
+from sqlalchemy import Column, Index, String, Enum, asc, desc, Integer
 from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, mapped_column
 
 try:
     from sqlalchemy.orm import declarative_base
@@ -28,6 +28,8 @@ class ChatEntity(Base):
     chat_title = Column(String, nullable=False)
     created_at = Column(String, nullable=False)
     updated_at = Column(String, nullable=False)
+    handoff_requests = mapped_column(Integer, nullable=False, default=0)
+    handoff_object = mapped_column(String, nullable=True)
 
     __table_args__ = (
         Index(
@@ -107,7 +109,15 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
     def create_chat(self, user_id: str, chat_title: str) -> Chat:
         with self._session_maker() as session:
             now = str(get_timestamp())
-            chat = ChatEntity(id=str(uuid.uuid4()), user_id=user_id, chat_title=chat_title, created_at=now, updated_at=now)
+            chat = ChatEntity(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                chat_title=chat_title,
+                created_at=now,
+                updated_at=now,
+                handoff_requests=0,
+                handoff_object=None,
+            )
             session.add(chat)
             session.commit()
             return self._entity_to_chat(chat)
@@ -120,6 +130,28 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             createdAt=int(entity.created_at),
             updatedAt=int(entity.updated_at),
         )
+
+    def increment_handoff_counter(self, user_id: str, chat_id: str) -> int:
+        with self._session_maker() as session:
+            chat = session.query(ChatEntity).filter_by(user_id=user_id, id=chat_id).first()
+            if not chat:
+                raise ValueError("Chat not found")
+
+            chat.handoff_requests += 1
+            chat.updated_at = get_timestamp()
+            session.commit()
+
+            return chat.handoff_requests
+
+    def populate_handoff(self, user_id: str, chat_id: str, handoff_object: str) -> None:
+        with self._session_maker() as session:
+            chat = session.query(ChatEntity).filter_by(user_id=user_id, id=chat_id).first()
+            if not chat:
+                raise ValueError("Chat not found")
+
+            chat.handoff_object = handoff_object
+            chat.updated_at = get_timestamp()
+            session.commit()
 
     def update_chat(self, user_id: str, chat_id: str, chat_title: str) -> Chat:
         with self._session_maker() as session:
@@ -153,7 +185,13 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             return [self._entity_to_chat(chat) for chat in chats]
 
     def create_chat_message(
-        self, user_id: str, chat_id: str, message_type: str, content: str, tokens: int, sources: Optional[List[Dict[str, Any]]] = None
+        self,
+        user_id: str,
+        chat_id: str,
+        message_type: str,
+        content: str,
+        tokens: int,
+        sources: Optional[List[Dict[str, Any]]] = None,
     ) -> ChatMessage:
         now = str(get_timestamp())
         with self._session_maker() as session:
@@ -233,7 +271,7 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
         except ValueError:
             return False
 
-    # NOTE: note to reviewer; this function was originally not implemented when token-counting 
+    # NOTE: note to reviewer; this function was originally not implemented when token-counting
     # features were added. This is a "passthrough" function that allows the Postgres conversation
     # store to not explode.
     # Note that update_chat was implemented on the DynamoChatHistoryStore, but not on this class nor th
