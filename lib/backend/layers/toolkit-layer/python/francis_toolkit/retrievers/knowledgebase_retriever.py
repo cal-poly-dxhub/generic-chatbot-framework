@@ -101,8 +101,9 @@ class AmazonKnowledgeBasesRetriever(BaseRetriever):
             "retrievalQuery": {"text": query.strip()},
             "knowledgeBaseId": self.knowledge_base_id,
             "retrievalConfiguration": correct_retrieve_config,
+            **({"nextToken": nextToken} if nextToken else {}),
         }
-        response = self.client.retrieve(**retrieve_params, nextToken=nextToken)
+        response = self.client.retrieve(**retrieve_params)
         results = response["retrievalResults"]
         documents = []
         for result in results:
