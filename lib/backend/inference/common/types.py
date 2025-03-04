@@ -23,6 +23,7 @@ class ClassificationType(str, Enum):
     GREETINGS_FAREWELLS = "greetings_farewells"
     UNRELATED = "unrelated"
     QUESTION = "question"
+    HANDOFF_REQUEST = "handoff_request"
 
 
 class StreamingContext(BaseModel):
