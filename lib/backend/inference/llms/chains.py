@@ -27,14 +27,16 @@ tracer = Tracer()
 DEFAULT_HANDOFF_THRESHOLD = 3
 
 
-def get_handoff_response(handoff_state: HandoffState, handoff_config: dict) -> str:
-    handoff_responses = handoff_config.get("handoffResponses", {})
+def get_handoff_prompt(handoff_state: HandoffState, handoff_config: dict) -> str:
+    handoff_prompts = handoff_config.get("handoffPrompts", {})
+    if not handoff_prompts:
+        logger.error("Handoff responses not found in handoff config (even though defaults should have been set)")
     if handoff_state == HandoffState.HANDOFF_JUST_TRIGGERED:
-        return handoff_responses.get("handoffJustTriggered", "")
+        return handoff_prompts.get("handoffJustTriggered", "")
     elif handoff_state == HandoffState.HANDOFF_COMPLETING:
-        return handoff_responses.get("handoffCompleting", "")
+        return handoff_prompts.get("handoffCompleting", "")
     else:  # HandoffState.NO_HANDOFF
-        return handoff_responses.get("handoffRequested", "")
+        return handoff_prompts.get("handoffRequested", "")
 
 
 @tracer.capture_method(capture_response=False)
@@ -263,22 +265,14 @@ def run_classification_step(
     handoff_state = HandoffState.NO_HANDOFF
     if handoff_config and classification_type == ClassificationType.HANDOFF_REQUEST:
         handoff_state = on_handoff_triggered()
-        handoff_prompts = handoff_config.get("handoffPrompts", {})
-
-        match handoff_state:
-            case HandoffState.HANDOFF_JUST_TRIGGERED:
-                handoff_prompt = handoff_prompts["handoffJustTriggered"]
-            case HandoffState.HANDOFF_COMPLETING:
-                handoff_prompt = handoff_prompts["handoffCompleting"]
-            case HandoffState.NO_HANDOFF:
-                handoff_prompt = handoff_prompts["handoffRequested"]
+        handoff_prompt = get_handoff_prompt(handoff_state, handoff_config)
 
         language = response.get("language", "English")
         if language != "English":
             language_suffix = f"Respond in the language {language}."
             handoff_prompt = f"{handoff_prompt} {language_suffix}"
 
-        handoff_response = llm.call_text_llms(
+        handoff_response, input_tokens, output_tokens = llm.call_text_llms(
             model_config=model_config,
             prompt_template=handoff_prompt,
             prompt_variables=[],
@@ -289,4 +283,4 @@ def run_classification_step(
 
     response["handoff_state"] = handoff_state.value
 
-    return parse_classification_response(llm_response), input_tokens, output_tokens
+    return response, input_tokens, output_tokens

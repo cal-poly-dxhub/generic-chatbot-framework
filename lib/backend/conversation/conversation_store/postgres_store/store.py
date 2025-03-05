@@ -5,7 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import sqlalchemy
 from francis_toolkit.utils import get_timestamp
-from sqlalchemy import Column, Index, String, asc, desc, Integer
+from sqlalchemy import Column, Index, String, Enum, asc, desc, Integer
+from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import sessionmaker, mapped_column
 
@@ -53,7 +54,9 @@ class MessageEntity(Base):
     )
     content = Column(String, nullable=False)
     created_at = Column(String, nullable=False)
-
+    tokens: Mapped[Optional[int]] = mapped_column(sqlalchemy.Integer, nullable=True)
+    thumb: Mapped[Optional[str]] = mapped_column(Enum("up", "down", name="thumb"), nullable=True)
+    feedback: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     __table_args__ = (Index("message_idx_user_id", user_id),)
 
 
@@ -182,7 +185,13 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             return [self._entity_to_chat(chat) for chat in chats]
 
     def create_chat_message(
-        self, user_id: str, chat_id: str, message_type: str, content: str, sources: Optional[List[Dict[str, Any]]] = None
+        self,
+        user_id: str,
+        chat_id: str,
+        message_type: str,
+        content: str,
+        tokens: int,
+        sources: Optional[List[Dict[str, Any]]] = None,
     ) -> ChatMessage:
         now = str(get_timestamp())
         with self._session_maker() as session:
@@ -192,6 +201,7 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
                 user_id=user_id,
                 chat_id=chat_id,
                 content=content,
+                tokens=tokens,
                 created_at=now,
             )
             session.add(message_entity)
@@ -222,6 +232,16 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             session.delete(message)
             session.commit()
 
+    def update_feedback(self, user_id: str, message_id: str, thumb: Optional[str], feedback: Optional[str]) -> None:
+        with self._session_maker() as session:
+            message = session.query(MessageEntity).filter_by(user_id=user_id, id=message_id).first()
+            if not message:
+                raise ValueError("Message not found")
+            message.thumb = thumb
+            message.feedback = feedback
+            message.updated_at = get_timestamp()
+            session.commit()
+
     def _entity_to_message(self, entity: MessageEntity) -> ChatMessage:
         return ChatMessage(
             messageId=str(entity.id),
@@ -250,6 +270,20 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             return True
         except ValueError:
             return False
+
+    # NOTE: note to reviewer; this function was originally not implemented when token-counting
+    # features were added. This is a "passthrough" function that allows the Postgres conversation
+    # store to not explode.
+    # Note that update_chat was implemented on the DynamoChatHistoryStore, but not on this class nor th
+    # base class.
+    def update_cost(self, user_id: str, chat_id: str, tokens: int, model_id: str, message_type: str) -> Chat:
+        with self._session_maker() as session:
+            chat = session.query(ChatEntity).filter_by(user_id=user_id, id=chat_id).first()
+            if not chat:
+                raise ValueError("Chat not found")
+            chat.updated_at = get_timestamp()
+            session.commit()
+            return self._entity_to_chat(chat)
 
     def list_chat_messages(
         self,

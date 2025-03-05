@@ -1,6 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Literal
 
 from francis_toolkit.utils import get_timestamp
 
@@ -248,6 +248,16 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
         ]
 
         return sources
+
+    def update_feedback(
+        self, user_id: str, message_id: str, thumb: Optional[Literal["up", "down"]], feedback: Optional[str]
+    ) -> None:
+        self.table.update_item(
+            Key=get_chat_message_key(user_id, message_id),
+            UpdateExpression="SET thumb = :thumb, feedback = :feedback",
+            ExpressionAttributeValues={":thumb": thumb, ":feedback": feedback},
+            ReturnValues="NONE",
+        )
 
     def list_chat_messages(
         self, user_id: str, chat_id: str, next_token: Optional[str] = None, limit: int = 50, ascending: bool = True

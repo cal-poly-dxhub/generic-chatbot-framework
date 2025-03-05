@@ -12,6 +12,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from francis_toolkit.utils import get_calling_identity
 from routes.chat_routes import router as chat_router
 from routes.internal_routes import router as internal_router
+from routes.feedback_routes import router as feedback_router
 from routes.summarization_routes import router as summarization_router
 
 tracer = Tracer()
@@ -25,6 +26,7 @@ app = APIGatewayRestResolver(
 
 app.include_router(chat_router)
 app.include_router(internal_router)
+app.include_router(feedback_router)
 app.include_router(summarization_router)
 
 

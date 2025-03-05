@@ -23,6 +23,7 @@ import {
   ListChatMessageSourcesRequest,
   ListChatMessagesRequest,
   UpdateChatRequest,
+  UpdateFeedbackRequest,
 } from './DefaultApi';
 import { DefaultApiDefaultContext, DefaultApiClientContext } from './DefaultApiClientProvider';
 import type {
@@ -34,6 +35,7 @@ import type {
   ListChatMessagesResponseContent,
   ListChatsResponseContent,
   UpdateChatResponseContent,
+  UpdateFeedbackResponseContent,
 } from '../models';
 
 // Import request parameter interfaces
@@ -185,6 +187,23 @@ export const useUpdateChat = <TError = ResponseError>(
     throw NO_API_ERROR;
   }
   return useMutation((params: UpdateChatRequest) => api.updateChat(params), {
+    context: DefaultApiDefaultContext,
+    ...options,
+  });
+};
+
+/**
+ * useMutation hook for the UpdateFeedback operation
+ */
+export const useUpdateFeedback = <TError = ResponseError>(
+  options?: Omit<UseMutationOptions<UpdateFeedbackResponseContent, TError, UpdateFeedbackRequest>, 'mutationFn'>,
+): UseMutationResult<UpdateFeedbackResponseContent, TError, UpdateFeedbackRequest> => {
+  console.log('Running _useUpdateFeedback');
+  const api = useContext(DefaultApiClientContext);
+  if (!api) {
+    throw NO_API_ERROR;
+  }
+  return useMutation((params: UpdateFeedbackRequest) => api.updateFeedback(params), {
     context: DefaultApiDefaultContext,
     ...options,
   });
