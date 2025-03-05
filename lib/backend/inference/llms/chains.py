@@ -278,7 +278,7 @@ def run_classification_step(
             language_suffix = f"Respond in the language {language}."
             handoff_prompt = f"{handoff_prompt} {language_suffix}"
 
-        handoff_response = llm.call_text_llms(
+        handoff_response, input_tokens, output_tokens = llm.call_text_llms(
             model_config=model_config,
             prompt_template=handoff_prompt,
             prompt_variables=[],
@@ -289,4 +289,4 @@ def run_classification_step(
 
     response["handoff_state"] = handoff_state.value
 
-    return parse_classification_response(llm_response), input_tokens, output_tokens
+    return response, input_tokens, output_tokens
