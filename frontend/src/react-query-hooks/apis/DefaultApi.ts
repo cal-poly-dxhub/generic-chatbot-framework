@@ -60,6 +60,8 @@ export interface CreateChatMessageRequest {
     createChatMessageRequestContent: CreateChatMessageRequestContent;
 }
 
+export interface DownloadFeedbackRequest {}
+
 export interface DeleteChatRequest {
     chatId: string;
 }
@@ -380,6 +382,30 @@ export class DefaultApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    async downloadFeedbackRaw(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<runtime.ApiResponse<Blob>> {
+        const queryParameters: any = {};
+        const headerParameters: runtime.HTTPHeaders = {
+            'Accept': 'text/plain', 
+        };
+
+        const response = await this.request({
+            path: `feedback/download`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    async downloadFeedback(
+        initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<Blob> {
+        const response = await this.downloadFeedbackRaw(initOverrides);
+        return await response.value();
+    }
     /**
      */
     async updateFeedbackRaw(requestParameters: UpdateFeedbackRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UpdateFeedbackResponseContent>> {
@@ -418,7 +444,6 @@ export class DefaultApi extends runtime.BaseAPI {
         const response = await this.updateFeedbackRaw(requestParameters, initOverrides);
         return await response.value();
     }
-
     /**
      */
     async loadExemptionTreeRaw(requestParameters: LoadExemptionTreeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LoadExemptionTreeResponseContent>> {

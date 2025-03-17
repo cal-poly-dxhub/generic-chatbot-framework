@@ -25,6 +25,7 @@ import {
   useUpdateFeedback as _useUpdateFeedback,
   useLoadExemptionTree as _useLoadExemptionTree,
   useCloseExemption as _useCloseExemption,
+  useDownloadFeedback as _useDownloadFeedback,
 } from '../react-query-hooks';
 
 type PaginatedListChatMessagesResponse = InfiniteData<ListChatMessagesResponseContent>;
@@ -54,6 +55,23 @@ export function useListChats(): ReturnType<typeof _useListChats> {
       });
     },
   });
+}
+
+export function useDownloadFeedbackReport() {
+  const downloadFeedback = _useDownloadFeedback({
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const currentDate = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `user_feedback_${currentDate}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+  });
+  return downloadFeedback;
 }
 
 export function useCreateChatMutation(

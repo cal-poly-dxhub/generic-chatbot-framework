@@ -16,8 +16,9 @@ import { ConversationView } from './ConversationView';
 import { useInprogressMessages } from '../../hooks';
 import { useUpdateChatMutation, useLoadExemptionTree, useCloseExemptionMutation } from '../../hooks/chats';
 import { Chat, useOnUpdateInferenceStatus } from '../../react-query-hooks';
-import InlineEditor from '../InlineEditor';
+import InlineEditor from '../InlineEditor'; 
 import DecisionTreeForm, { Answer, DecisionNode } from './exemption/ExemptionForm';
+import { FeedbackDownloadButton } from './components/FeedbackDownloadButton';
 
 async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -118,8 +119,9 @@ export default function ChatPanel(props: SessionChatProps) {
         variant="h3"
         actions={
           <SpaceBetween size="xxxs" direction="horizontal">
-            <ExportChat chat={props.chat} />
+            <FeedbackDownloadButton/>
             <DeleteChatButton chat={props.chat} />
+            <ExportChat chat={props.chat} />
           </SpaceBetween>
         }
       >
@@ -165,7 +167,7 @@ export default function ChatPanel(props: SessionChatProps) {
             // TODO: create a progress bar where these updates are bullets that show status
             // inprogressMessages.statusUpdates.map((update, idx) => (
             //   <StatusIndicator
-            //     key={`${update.messageId}-${idx}`}
+            //     key={`\${update.messageId}-\${idx}`}
             //     type={update.status === 'SUCCESS' ? 'success' : 'in-progress'}
             //   >
             //     {update.operation}

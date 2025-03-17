@@ -15,6 +15,7 @@ from routes.internal_routes import router as internal_router
 from routes.feedback_routes import router as feedback_router
 from routes.summarization_routes import router as summarization_router
 from routes.exemption_routes import router as exemption_router
+from routes.feedback_download_routes import router as feedback_download_router
 
 tracer = Tracer()
 logger = Logger()
@@ -29,6 +30,7 @@ app.include_router(chat_router)
 app.include_router(internal_router)
 app.include_router(feedback_router)
 app.include_router(summarization_router)
+app.include_router(feedback_download_router)
 app.include_router(exemption_router)
 
 
