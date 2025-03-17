@@ -542,12 +542,18 @@ This section provides instructions on how to ingest pdfs into the vector store u
 1. Add the URLs of the PDFs you want to download and process into a file named urls.txt.
 (This step is already done for you)
 
-2. Upload the pdf files to the input bucket using:
+2a. Upload the tax codes to the s3 input bucket using 
+```bash
+aws s3 sync s3://alameda-tax-codes/ s3://your-input-bucket-name/
+```
+2b. Replace 'YOUR_INPUT_ASSETS_BUCKET' in ./tools/pdf_to_bucket.py with the name of your input bucket
+
+2c. Upload the pdf files to the input bucket using:
 ```bash
 python3.11 pdf_to_bucket.py
 ```
 
-3. Once the pdfs are done uploading, find the state machine ARN of AWS step function from the deployment output starting with `StateMachineArn`. Execute the ingestion pipeline.
+1. Once the pdfs are done uploading, find the state machine ARN of AWS step function from the deployment output starting with `StateMachineArn`. Execute the ingestion pipeline.
 
 ```bash
 aws stepfunctions start-execution --state-machine-arn <state-machine-arn>
