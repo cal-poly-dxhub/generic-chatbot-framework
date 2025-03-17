@@ -71,7 +71,31 @@ def load_metadata(bucket_name: str, object_key: str) -> dict:
 
 
 def process_text_embeddings(content: str) -> List[Document]:
-    return [Document(page_content=content)]
+    # Check if content has the special metadata format
+    if content.startswith("<metadata>") and "</metadata>" in content:
+        # Extract metadata section
+        metadata_end_index = content.find("</metadata>") + len("</metadata>")
+        metadata_text = content[len("<metadata>"):content.find("</metadata>")].strip()
+        
+        # Extract the actual content (after metadata section)
+        document_content = content[metadata_end_index:].strip()
+        
+        # Create metadata dictionary
+        extracted_metadata = {
+            "legal_metadata": metadata_text  # Store the complete metadata
+        }
+        
+        # Extract URL if present
+        if "URL:" in metadata_text:
+            url_line = [line for line in metadata_text.split('\n') if line.strip().startswith("URL:")][0]
+            extracted_metadata["source_url"] = url_line.split("URL:", 1)[1].strip()
+        
+        # Create document with extracted metadata
+        return [Document(page_content=document_content, metadata=extracted_metadata)]
+    else:
+        # Original behavior for regular text files - no metadata modifications
+        return [Document(page_content=content)]
+    
 
 def process_csv_embeddings(content: str) -> List[Document]:
     csv_stream = io.StringIO(content)
