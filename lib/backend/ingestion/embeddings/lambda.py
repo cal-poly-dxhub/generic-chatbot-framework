@@ -71,30 +71,17 @@ def load_metadata(bucket_name: str, object_key: str) -> dict:
 
 
 def process_text_embeddings(content: str) -> List[Document]:
-    # Check if content has the special metadata format
     if content.startswith("<metadata>") and "</metadata>" in content:
-        # Extract metadata section
         metadata_end_index = content.find("</metadata>") + len("</metadata>")
-        metadata_text = content[len("<metadata>"):content.find("</metadata>")].strip()
-        
-        # Extract the actual content (after metadata section)
         document_content = content[metadata_end_index:].strip()
-        
-        # Create metadata dictionary
-        extracted_metadata = {
-            "legal_metadata": metadata_text  # Store the complete metadata
-        }
-        
-        # Extract URL if present
-        if "URL:" in metadata_text:
-            url_line = [line for line in metadata_text.split('\n') if line.strip().startswith("URL:")][0]
-            extracted_metadata["source_url"] = url_line.split("URL:", 1)[1].strip()
-        
-        # Create document with extracted metadata
-        return [Document(page_content=document_content, metadata=extracted_metadata)]
     else:
-        # Original behavior for regular text files - no metadata modifications
-        return [Document(page_content=content)]
+        document_content = content.strip()
+    
+    if not document_content:
+        logger.warning("Empty document content after processing")
+        return []
+    
+    return [Document(page_content=document_content)]
     
 
 def process_csv_embeddings(content: str) -> List[Document]:
@@ -176,7 +163,29 @@ def handler(event: dict, context: LambdaContext) -> dict:
         documents = create_documents_from_pdf(file_uri, content_type, source_url)
 
     elif content_type == "text/plain":
-        documents = process_text_embeddings(raw_content.decode("utf-8"))
+        content_str = raw_content.decode("utf-8")
+        
+        # Check if content is empty
+        if not content_str or not content_str.strip():
+            logger.warning(f"Empty text file detected: {file_uri}")
+            # Mark the file as ingested to avoid reprocessing
+            update_ingested_time(file_uri)
+            return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
+        
+        # Extract metadata if present
+        if content_str.startswith("<metadata>") and "</metadata>" in content_str:
+            metadata_text = content_str[len("<metadata>"):content_str.find("</metadata>")].strip()
+            if "URL:" in metadata_text:
+                url_line = [line for line in metadata_text.split('\n') if line.strip().startswith("URL:")][0]
+                metadata["source_url"] = url_line.split("URL:", 1)[1].strip()
+            metadata["legal_metadata"] = metadata_text
+        
+        documents = process_text_embeddings(content_str)
+    
+        if not documents:
+            logger.warning(f"No valid documents extracted from text file: {file_uri}")
+            update_ingested_time(file_uri)
+            return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
 
     elif content_type in ["text/csv", "application/csv"]:
         documents = process_csv_embeddings(raw_content.decode("utf-8"))
@@ -192,6 +201,22 @@ def handler(event: dict, context: LambdaContext) -> dict:
     # don't create tables in the ingesiton pipeline as it may lead to race condition due to Map iterations
     vector_store = get_vector_store(embedding_model)
     # Takes in Document, and adds embeddings to store
+
+    # Validate no empty documents
+    for i, doc in enumerate(documents):
+        if not doc.page_content or not doc.page_content.strip():
+            logger.warning(f"Empty document found at index {i}, removing")
+            documents[i] = None
+            
+    # Remove None entries
+    documents = [doc for doc in documents if doc is not None]
+
+    # Check if we still have documents to process
+    if not documents:
+        logger.warning(f"No valid documents to embed for {file_uri}")
+        # Mark as processed to avoid infinite retry
+        update_ingested_time(file_uri)
+        return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
     embeddings = vector_store.add_documents(documents=documents, document_source_uri=file_uri)
 
     update_ingested_time(file_uri)

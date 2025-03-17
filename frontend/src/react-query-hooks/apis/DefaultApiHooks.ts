@@ -26,6 +26,7 @@ import {
   UpdateFeedbackRequest,
   LoadExemptionTreeRequest,
   CloseExemptionRequest,
+  DownloadFeedbackRequest,
 } from './DefaultApi';
 import { DefaultApiDefaultContext, DefaultApiClientContext } from './DefaultApiClientProvider';
 import type {
@@ -98,6 +99,21 @@ export const useDeleteChat = <TError = ResponseError>(
   });
 };
 
+/**
+ * useMutation hook for downloading feedback
+ */
+export const useDownloadFeedback = <TError = ResponseError>(
+  options?: Omit<UseMutationOptions<Blob, TError, DownloadFeedbackRequest>, 'mutationFn'>,
+): UseMutationResult<Blob, TError, DownloadFeedbackRequest> => {
+  const api = useContext(DefaultApiClientContext);
+  if (!api) {
+    throw NO_API_ERROR;
+  }
+  return useMutation((params: DownloadFeedbackRequest = {}) => api.downloadFeedback(params), {
+    context: DefaultApiDefaultContext,
+    ...options,
+  });
+};
 /**
  * useMutation hook for the DeleteChatMessage operation
  */

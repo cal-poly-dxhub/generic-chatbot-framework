@@ -185,6 +185,17 @@ export class Api extends Construct {
 
         this.addMethod(handoffResource, 'GET', chatApiHandler);
 
+
+        const feedbackDownloadResource = api.root.addResource('feedback', {
+            defaultCorsPreflightOptions,
+        });
+
+        const downloadResource = feedbackDownloadResource.addResource('download', {
+            defaultCorsPreflightOptions,
+        });
+
+        this.addMethod(downloadResource, 'GET', chatApiHandler);
+
         return chatApiHandler;
     }
 
