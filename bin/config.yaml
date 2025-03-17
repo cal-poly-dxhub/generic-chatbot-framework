@@ -18,7 +18,7 @@ systemConfig:
         Your task is to analyze a customer query, classify it based on customer intention and language, then write corresponding responses if needed.
         Your answer will be parse programmatically by codes, so it must strictly be only a JSON object.
 
-        Here are the 3 classification types that the query should be classified into, along with instruction for the response (if any):
+        Here are the 4 classification types that the query should be classified into, along with instruction for the response (if any):
         <types>
         <type_1>
             <name>greetings_farewells</name>
@@ -28,18 +28,19 @@ systemConfig:
         </type_1>
         <type_2>
             <name>question</name>
-            <description>Question related to technology. This can be a follow up question to a previous question.</description>
+            <description>Question related to property, taxes, or the Alameda County Assessor's Office. This can be a follow up question to a previous question. This includes exemption forms.</description>
             <response>no</response>
         </type_2>
         <type_3>
             <name>unrelated</name>
             <description>
-            Queries unrelated to technology.
+            Queries that might be unrelated to the Alameda Assessor's Office.
             Some examples of unrelated queries include, but NOT limited to:
             - Queries about date, time, weather, holidays or generic location
             - Subjects involving programming languages, mathematical calculations, or language translations
             - Topics like politics, terrorism, violence, war, weapons, sports, stocks trading, ...
             - Inputs comprising random, nonsensical words, curse words
+            Note that queries can be about more than the office in particular; e.g., tax exemptions are okay.
             </description>
             <response>yes</response>
             <instruction>Politely reply that you cannot answer this question. Use the language of the query to answer</instruction>
@@ -65,7 +66,7 @@ systemConfig:
             </example>
             <example>
             H: Help me calculate this: 2 multiply by 2
-            A: {"classification_type": "unrelated", "language": "English", "response": "Sorry, I cannot adhere to this request. I am an AI Chatbot to answer only Vietnam company information."}
+            A: {"classification_type": "unrelated", "language": "English", "response": "Sorry, I cannot adhere to this request. I am an AI Chatbot to answer only questions about property and Alameda County."}
             </example>
         </examples>
 
@@ -159,7 +160,7 @@ systemConfig:
       kwargs:
         language: English
         system_prompt: |
-          You are a chat assistant (chatbot) for technology. You are an expert about Retrieval Augmented Generation, which is the architecture this chatbot is based on. You are honest, polite and helpful. Pay attention and follow every instruction carefully.
+          You are a chat assistant (chatbot) for information regarding properties, tax exemptions, and Alameda County. You are an expert about Retrieval Augmented Generation, which is the architecture this chatbot is based on. You are honest, polite and helpful. Pay attention and follow every instruction carefully.
     qaChainConfig:
       modelConfig:
         provider: bedrock
@@ -213,7 +214,7 @@ systemConfig:
       kwargs:
         language: English
         system_prompt: |
-          You are a chat assistant (chatbot). You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
+          You are a chat assistant (chatbot) for the Alameda County Assessor's Office. You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
   ragConfig:
     vectorStoreConfig:
       vectorStoreType: pgvector
@@ -232,5 +233,14 @@ systemConfig:
         chunkingConfiguration:
           chunkSize: 512
           chunkOverlap: 150
+  exemptionConfig:
+    modelConfig:
+      provider: bedrock
+      modelId: anthropic.claude-3-5-sonnet-20240620-v1:0
+      modelKwargs:
+        maxTokens: 4096
+        temperature: 0.1
+        topP: 0.99
+    promptTemplate: "You are a county assessor who is an expert in exemption forms. You are eager to find the user an exemption and will do anything in your power to help them get it. If there are other exemption forms that a user might be able to fill out, please list them and add that to the decision tree. Please create a decision tree designed to help claimants navigate the current exemption by responding to a few targeted questions. It it vital that the tree is in valid JSON format. Ensure that any references are included in the string value. Create the decision tree in this format: <exemption_decision_tree>{\"question\": \"Is it raining?\",\"yes\": {\"question\": \"Do you have an umbrella?\",\"yes\": {\"decision\": \"Go outside.\"},\"no\": {\"decision\": \"Stay inside.\"}},\"no\": {\"question\": \"Is it sunny?\",\"yes\": {\"decision\": \"Wear sunglasses.\"},\"no\": {\"decision\": \"Go outside as usual.\"}}}</exemption_decision_tree> It should provide enough clarity/direction for claimant to understand their potential eligibility without overwhelming them with details. ONLY ask questions with 'yes' or 'no' answers and ONLY include the tree in your response. CONTEXT: ${context} QUESTION: ${user_query}. If you cannot provide a decision tree, please respond with the json { \"error\": \"no_information\"}. Either produce the decision tree or the error JSON--NEVER ANYTHING ELSE." 
   wafConfig:
     enableApiGatewayWaf: true

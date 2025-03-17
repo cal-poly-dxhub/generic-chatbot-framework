@@ -28,6 +28,9 @@ import type {
   UpdateChatResponseContent,
   UpdateFeedbackRequestContent,
   UpdateFeedbackResponseContent,
+  LoadExemptionTreeResponseContent,
+  CloseExemptionResponseContent,
+  CloseExemptionRequestContent,
 } from '../models';
 import {
     CreateChatMessageRequestContentToJSON,
@@ -43,6 +46,9 @@ import {
     UpdateChatResponseContentFromJSON,
     UpdateFeedbackRequestContentToJSON,
     UpdateFeedbackResponseContentFromJSON,
+    LoadExemptionTreeResponseContentFromJSON,
+    CloseExemptionResponseContentFromJSON,
+    CloseExemptionRequestContentToJSON,
 } from '../models';
 
 export interface CreateChatRequest {
@@ -88,6 +94,15 @@ export interface UpdateFeedbackRequest {
     // TODO: Is this duplicated data?
     chatId: string;
     updateFeedbackRequestContent: UpdateFeedbackRequestContent;
+}
+
+export interface LoadExemptionTreeRequest {
+    chatId: string;
+}
+
+export interface CloseExemptionRequest {
+    chatId: string;
+    closeExemptionRequestContent: CloseExemptionRequestContent;
 }
 
 /**
@@ -404,4 +419,66 @@ export class DefaultApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     */
+    async loadExemptionTreeRaw(requestParameters: LoadExemptionTreeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LoadExemptionTreeResponseContent>> {
+        if (requestParameters.chatId === null || requestParameters.chatId === undefined) {
+            throw new runtime.RequiredError('chatId','Required parameter requestParameters.chatId was null or undefined when calling loadExemptionTree.');
+        }
+
+        console.log("Rerunning loadExemptionTree: ", requestParameters.chatId);
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const path = `/chat/{chatId}/exemption-tree`.replace(`{${"chatId"}}`, encodeURIComponent(String(requestParameters.chatId)));
+
+        const response = await this.request({
+            path: path,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LoadExemptionTreeResponseContentFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async loadExemptionTree(requestParameters: LoadExemptionTreeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LoadExemptionTreeResponseContent> {
+        const response = await this.loadExemptionTreeRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async closeExemptionRaw(request: CloseExemptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CloseExemptionResponseContent>> {
+        if (request.chatId === null || request.chatId === undefined) {
+            throw new runtime.RequiredError('chatId','Required parameter request.chatId was null or undefined when calling closeExemption.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const path = `/chat/{chatId}/exemption-tree`.replace(`{${"chatId"}}`, encodeURIComponent(String(request.chatId)));
+
+        const response = await this.request({
+            path: path,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CloseExemptionRequestContentToJSON(request.closeExemptionRequestContent),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CloseExemptionResponseContentFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async closeExemption(request: CloseExemptionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CloseExemptionResponseContent> {
+        const response = await this.closeExemptionRaw(request, initOverrides);
+        return await response.value();
+    }
 }

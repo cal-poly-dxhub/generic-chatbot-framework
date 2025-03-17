@@ -408,6 +408,20 @@ export class BaseInfra extends Construct {
         this.grantBedrockModelAccess(lambdaFunc, regionModelIds);
     }
 
+    public grantBedrockExemptionModelAccess(lambdaFunc: lambda.IFunction): void {
+        if (this.systemConfig.exemptionConfig?.modelConfig.provider !== 'bedrock') {
+            return;
+        }
+
+        const region =
+            this.systemConfig.exemptionConfig.modelConfig.region ?? cdk.Aws.REGION;
+        const regionModelIds = new Map<string, Set<string>>([
+            [region, new Set([this.systemConfig.exemptionConfig.modelConfig.modelId])],
+        ]);
+
+        this.grantBedrockModelAccess(lambdaFunc, regionModelIds);
+    }
+
     public grantBedrockModelAccess(
         lambdaFunc: lambda.IFunction,
         regionModelIds: Map<string, Set<string>>

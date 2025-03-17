@@ -23,6 +23,8 @@ import {
   useListChatMessageSources,
   useUpdateChat,
   useUpdateFeedback as _useUpdateFeedback,
+  useLoadExemptionTree as _useLoadExemptionTree,
+  useCloseExemption as _useCloseExemption,
 } from '../react-query-hooks';
 
 type PaginatedListChatMessagesResponse = InfiniteData<ListChatMessagesResponseContent>;
@@ -301,4 +303,97 @@ export function useMessageSources(chatId: string, messageId: string): UseQueryRe
 
 export function useUpdateFeedbackMutation(): ReturnType<typeof _useUpdateFeedback> {
   return _useUpdateFeedback();
+}
+
+export function useLoadExemptionTree(
+  ...args: Parameters<typeof _useLoadExemptionTree>
+): ReturnType<typeof _useLoadExemptionTree> {
+  const queryClient = useQueryClient();
+
+  return _useLoadExemptionTree(args[0], {
+    onSuccess: (data) => {
+      // Invalidate the chat messages query to display an error message
+      if (data.decisionTree && JSON.parse(data.decisionTree).error) {
+        queryClient
+          .invalidateQueries(queryKeyGenerators.listChatMessages(args[0].chatId))
+          .then(() => console.log('Invalidated chat messages query'))
+          .catch((error) =>
+            console.error('Failed to invalidate chat messages query after load exemption tree errored.', error),
+          );
+      }
+    },
+  });
+}
+
+// TODO: this function is the same as useCreateChatMessageMutation (with different
+// input parameters). Consider refactoring?
+export function useCloseExemptionMutation(
+  chatId: string,
+  onSuccess?: () => void,
+): ReturnType<typeof _useCloseExemption> {
+  const isAdmin = useIsAdmin();
+  const queryClient = useQueryClient();
+
+  const listChatMessagesQueryKey = queryKeyGenerators.listChatMessages(chatId);
+
+  const closeExemption = _useCloseExemption({
+    onSuccess: (response, _vars) => {
+      const { question, answer, sources, traceData } = response;
+
+      // No new messages if the exemption was closed without answers
+      if (!question || !answer) {
+        return;
+      }
+
+      if (isAdmin && traceData) {
+        set(answer, 'traceData', traceData);
+      }
+
+      queryClient.setQueryData(listChatMessagesQueryKey, (old: PaginatedListChatMessagesResponse | undefined) => {
+        return produce(old, (draft) => {
+          if (question && answer) {
+            const lastPage: ListChatMessagesResponseContent | undefined = last(draft?.pages || []) as any;
+
+            if (lastPage) {
+              const chatMessages = lastPage.chatMessages;
+
+              if (chatMessages == null) {
+                console.warn('Failed to inject new chat turn into query cache');
+                queryClient
+                  .resetQueries({
+                    queryKey: [listChatMessagesQueryKey],
+                  })
+                  .catch(console.error);
+              } else {
+                chatMessages.push(question, answer);
+              }
+            } else {
+              return {
+                pages: [
+                  {
+                    chatMessages: [question, answer],
+                  },
+                ],
+                pageParams: [null],
+              } as PaginatedListChatMessagesResponse;
+            }
+
+            onSuccess && onSuccess();
+          }
+          return draft;
+        });
+      });
+
+      // add sources
+      const listChatMessageSourcesQueryKey = queryKeyGenerators.listChatMessageSources(chatId, answer.messageId);
+      queryClient.setQueryData(listChatMessageSourcesQueryKey, (): ListChatMessageSourcesResponseContent => {
+        return {
+          chatMessageSources: sources,
+        };
+      });
+    },
+    mutationKey: ['closeExemption', chatId],
+  });
+
+  return closeExemption;
 }

@@ -25,6 +25,15 @@ class CreateChatMessageInput(ChatIdMixin):
     question: str
 
 
+class StoreDecisionTreeInput(BaseModel):
+    decision_tree: Optional[str]
+    sources: Optional[str]
+
+
+class CloseExemptionInput(BaseModel):
+    answers: Optional[List[str]]
+
+
 class CreateInternalChatMessagesInput(BaseModel):
     content: str
     role: Literal["user", "assistant", "system"]

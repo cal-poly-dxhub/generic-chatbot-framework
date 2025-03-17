@@ -255,6 +255,63 @@ const configSchema = {
                 },
             },
         },
+        exemptionConfig: {
+            type: 'object',
+            description: 'Configuration for generating exemption decision trees.',
+            required: ['modelConfig', 'promptTemplate'],
+            properties: {
+                modelConfig: {
+                    type: 'object',
+                    description: 'Configuration for the handoff summarizer LLM model',
+                    required: ['provider', 'modelId'],
+                    properties: {
+                        provider: {
+                            type: 'string',
+                            const: 'bedrock',
+                        },
+                        modelId: {
+                            type: 'string',
+                            description:
+                                'Bedrock ID of the LLM to use for summarizing a conversation',
+                        },
+                        supportsSystemPrompt: {
+                            type: 'boolean',
+                            description:
+                                'Whether the LLM model supports system prompts via the Converse API',
+                            default: false,
+                        },
+                        modelKwArgs: {
+                            $ref: '#/definitions/ModelKwargs',
+                            default: {
+                                maxTokens: 1024,
+                                temperature: 0.1,
+                                topP: 0.95,
+                                stopSequences: [],
+                            },
+                        },
+                    },
+                },
+                promptTemplate: {
+                    type: 'string',
+                    description:
+                        "Template for the prompt that generates exemption decision tree. Should be able to insert a user query with Python's .format function.",
+                    default:
+                        'You are a county assessor who is experienced in asking questions to the user to figure out if the exemption form is right for them.\nUse the users query for context: {user_query}\nGiven a list of documents wrapped in xml tags with format <doc_id>DOCUMENT_NAME</doc_id>:\n{documents}\nForm questions to ask a user from these documents to definitivley be able to suggest one to them based off of their answers.\nMake sure that the questions are open ended so that the user can provide their information. Do not ask a question that the user already answered in the context.\nInclude the questions in a tag like\n<questions>\n<question_1>Question1</question_1>\n<question_2>Question2</question_2>\n<question_n>Questionn</question_n>\n</questions>\nEnsure that based off of these questions you can decide what exemption form the user should fill out.',
+                },
+                corpusLimit: {
+                    type: 'number',
+                    description:
+                        'Number of documents to include in the exemption decision tree corpus',
+                    default: 5,
+                },
+                corpusSimilarityThreshold: {
+                    type: 'number',
+                    description:
+                        'Threshold for similarity score to include a document in the exemption decision tree corpus',
+                    default: 0.5,
+                },
+            },
+        },
         handoffConfig: {
             type: 'object',
             description: 'Configuration for handing off conversations to a human agent',
@@ -329,7 +386,7 @@ const configSchema = {
                         handoffJustTriggered:
                             "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
                         handoffCompleting:
-                            "The user has requested to speak to a human. As if you're talking to the user, state that you are connecting them to a representative. Also state, 'In the meantime, you can keep talking to me. I'm here to help.' Don't acknowledge that you're speaking to the human; just speak to them. Do not include any tone markers. Just speak to the person naturally.",
+                            "The user has requested to speak to a human. As if you're talking to the user, state that you have already contacted someone who can help. Also state that they can keep talking to you in the meantime if they want. Don't acknowledge that you're speaking to the human. Do not include any tone markers. Just speak to the person naturally.",
                     },
                 },
                 details: {

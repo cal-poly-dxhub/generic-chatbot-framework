@@ -30,6 +30,7 @@ def send_message(chat_id: str) -> Dict:
     system_config = load_config_from_dynamodb(os.getenv("CONFIG_TABLE_NAME"), "system_configuration")
 
     handoff_config = system_config.get("handoffConfig", None)
+    exemption_config = system_config.get("exemptionConfig", None)
 
     return run_rag_chain(
         llm_config=system_config["llmConfig"],
@@ -38,4 +39,5 @@ def send_message(chat_id: str) -> Dict:
         user_q=request.question,
         embedding_model=embedding_model,
         handoff_config=handoff_config,
+        exemption_config=exemption_config,
     )

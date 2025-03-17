@@ -161,6 +161,13 @@ export interface HandoffConfig {
     handoffPrompts: HandoffPrompts;
 }
 
+export interface ExemptionConfig {
+    modelConfig: BedRockLLMModel;
+    promptTemplate: string;
+    corpusLimit?: number;
+    corpusSimilarityThreshold?: number;
+}
+
 export interface GuardrailPiiConfig {
     type: string;
     action: string;
@@ -198,6 +205,7 @@ export interface SystemConfig {
         storeType: 'dynamodb' | 'aurora_postgres';
     };
     handoffConfig?: HandoffConfig;
+    exemptionConfig?: ExemptionConfig;
     wafConfig?: WafConfig;
 }
 

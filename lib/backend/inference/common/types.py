@@ -24,6 +24,7 @@ class ClassificationType(str, Enum):
     UNRELATED = "unrelated"
     QUESTION = "question"
     HANDOFF_REQUEST = "handoff_request"
+    EXEMPTION_LOGIC = "exemption_logic"
 
 
 class StreamingContext(BaseModel):

@@ -143,6 +143,7 @@ export class FrancisChatbotStack extends cdk.Stack {
             ],
             destinationBucket: frontend.assetBucket,
             distribution: frontend.cloudFrontDistribution,
+            memoryLimit: 1024,
         });
 
         new cdk.CfnOutput(this, 'CloudFrontDomain', {

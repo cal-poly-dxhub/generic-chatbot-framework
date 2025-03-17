@@ -40,7 +40,7 @@ export const applyNagSuppressions = (stack: Stack): void => {
     );
     NagSuppressions.addResourceSuppressionsByPath(
         stack,
-        `/${stack.stackName}/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C`,
+        `/${stack.stackName}/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C1024MiB`,
         [
             {
                 id: 'AwsSolutions-IAM5',

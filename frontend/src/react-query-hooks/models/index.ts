@@ -29,4 +29,6 @@ export * from './UpdateFeedbackResponseContent';
 export * from './UpdateInferenceStatusRequestContent';
 export * from './StreamLLMResponseRequestContent';
 export * from './SendChatMessageRequestContent';
-
+export * from './LoadExemptionTreeResponseContent';
+export * from './CloseExemptionRequestContent';
+export * from './CloseExemptionResponseContent';
