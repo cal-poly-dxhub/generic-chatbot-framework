@@ -14,7 +14,9 @@ from botocore.exceptions import ClientError
 from francis_toolkit.utils import find_embedding_model_by_ref_key, get_vector_store
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from process_pdf import create_documents_from_pdf
 from pydantic import BaseModel
+from aws_utils import retrieve_source_url_metadata
 
 logger = Logger()
 tracer = Tracer()
@@ -70,7 +72,6 @@ def load_metadata(bucket_name: str, object_key: str) -> dict:
 
 def process_text_embeddings(content: str) -> List[Document]:
     return [Document(page_content=content)]
-
 
 def process_csv_embeddings(content: str) -> List[Document]:
     csv_stream = io.StringIO(content)
@@ -128,6 +129,7 @@ def handler(event: dict, context: LambdaContext) -> dict:
     request = FileEmbeddingsRequest(**event)
     file_uri = request.FileURI
     content_type = request.ContentType
+    logger.info(event)
 
     embedding_model = find_embedding_model_by_ref_key(request.model_ref_key)
     if embedding_model is None:
@@ -144,7 +146,12 @@ def handler(event: dict, context: LambdaContext) -> dict:
     metadata["create_timestamp"] = int(time.time() * 1000)
     metadata["embeddings_model_id"] = embedding_model.modelId
 
-    if content_type == "text/plain":
+
+    if content_type == "application/pdf":
+        source_url = retrieve_source_url_metadata(file_uri)
+        documents = create_documents_from_pdf(file_uri, content_type, source_url)
+
+    elif content_type == "text/plain":
         documents = process_text_embeddings(raw_content.decode("utf-8"))
 
     elif content_type in ["text/csv", "application/csv"]:
@@ -158,17 +165,10 @@ def handler(event: dict, context: LambdaContext) -> dict:
         update_ingested_time(file_uri)
         return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE_DOC_SPLIT,
-        chunk_overlap=OVERLAP_FOR_DOC_SPLIT,
-        length_function=len,
-    )
-
-    chunks = text_splitter.create_documents([doc.page_content for doc in documents], metadatas=[metadata for _ in documents])
-
     # don't create tables in the ingesiton pipeline as it may lead to race condition due to Map iterations
     vector_store = get_vector_store(embedding_model)
-    embeddings = vector_store.add_documents(documents=chunks, document_source_uri=file_uri)
+    # Takes in Document, and adds embeddings to store
+    embeddings = vector_store.add_documents(documents=documents, document_source_uri=file_uri)
 
     update_ingested_time(file_uri)
 

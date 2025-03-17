@@ -14,6 +14,7 @@ import * as stepfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as stepfn_task from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as constants from '../common/constants';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { BaseInfra } from '../base-infra';
 import { Construct } from 'constructs';
 import { NagSuppressions } from 'cdk-nag';
@@ -80,6 +81,7 @@ export class IngestionPipeline extends Construct {
                 props.baseInfra.powerToolsLayer,
                 props.baseInfra.langchainLayer,
                 props.baseInfra.toolkitLayer,
+                props.baseInfra.pdftoolLayer,
             ],
         };
 
@@ -175,6 +177,22 @@ export class IngestionPipeline extends Construct {
                 /* eslint-enable @typescript-eslint/naming-convention */
             },
         });
+
+        // Adding S3 full access and Textract full access
+        embeddingsFunction.addToRolePolicy(
+            new iam.PolicyStatement({
+                actions: ['s3:*'],
+                resources: ['*'],
+            })
+        );
+
+        embeddingsFunction.addToRolePolicy(
+            new iam.PolicyStatement({
+                actions: ['textract:*'],
+                resources: ['*'],
+            })
+        );
+
         processedAssetsBucket.grantRead(embeddingsFunction);
         props.inputAssetsBucket.grantRead(embeddingsFunction);
         props.baseInfra.configTable.grantReadData(embeddingsFunction);

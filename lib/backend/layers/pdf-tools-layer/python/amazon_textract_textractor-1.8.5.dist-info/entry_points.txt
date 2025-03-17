@@ -1,0 +1,3 @@
+[console_scripts]
+textractor = textractor.cli.cli:textractor_cli
+

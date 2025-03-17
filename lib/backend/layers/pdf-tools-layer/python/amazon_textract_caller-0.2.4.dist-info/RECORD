@@ -1,0 +1,12 @@
+amazon_textract_caller-0.2.4.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+amazon_textract_caller-0.2.4.dist-info/LICENSE,sha256=CeipvOyAZxBGUsFoaFqwkx54aPnIKEtm9a5u2uXxEws,10142
+amazon_textract_caller-0.2.4.dist-info/METADATA,sha256=aREoSm9wB2Er4W2-dJZs-G_ye1OXrt7EKraFLl2eTPc,7190
+amazon_textract_caller-0.2.4.dist-info/RECORD,,
+amazon_textract_caller-0.2.4.dist-info/WHEEL,sha256=-G_t0oGuE7UD0DrSpVZnq1hHMBV9DD2XkS5v7XpmTnk,110
+amazon_textract_caller-0.2.4.dist-info/top_level.txt,sha256=d52QYs2UIfn0JS83vUELjRv60Xq77un3t7xbChHrVaM,15
+textractcaller/__init__.py,sha256=sSNAWJN6OJZeHw1Ru4xdwYJ5uNDZpFJ-Lzp_BOQnrtk,594
+textractcaller/__pycache__/__init__.cpython-311.pyc,,
+textractcaller/__pycache__/_version.cpython-311.pyc,,
+textractcaller/__pycache__/t_call.cpython-311.pyc,,
+textractcaller/_version.py,sha256=HRO2PLevRrN_gKwNaVvl95XC21zm5m3qNBQ9pMtDRDk,23
+textractcaller/t_call.py,sha256=ERTVl1vlGdK2vRFGEcuwUz1H1y3bHSo9YZ7VhX0iWMs,32889

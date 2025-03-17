@@ -538,14 +538,16 @@ The solution provides two methods for document ingestion. Here's a guide to help
 - Cost-sensitive deployments
 - Smaller to medium-sized document collections
 
-This section provides instructions on how to ingest documents into the vector store using our AWS Step Function-based ingestion pipeline. 
-1. Find the input bucket name from deployment output starting with `InputBucket`. Upload the documents from local directory to the input bucket.
+This section provides instructions on how to ingest pdfs into the vector store using our AWS Step Function-based ingestion pipeline. 
+1. Add the URLs of the PDFs you want to download and process into a file named urls.txt.
+(This step is already done for you)
 
+2. Upload the pdf files to the input bucket using:
 ```bash
-aws s3 cp <local_dir> s3://<input_bucket>/<input_prefix>/ --recursive
+python3.11 pdf_to_bucket.py
 ```
 
-2. Find the state machine ARN of AWS step function from the deployment output starting with `StateMachineArn`. Execute the ingestion pipeline.
+3. Once the pdfs are done uploading, find the state machine ARN of AWS step function from the deployment output starting with `StateMachineArn`. Execute the ingestion pipeline.
 
 ```bash
 aws stepfunctions start-execution --state-machine-arn <state-machine-arn>

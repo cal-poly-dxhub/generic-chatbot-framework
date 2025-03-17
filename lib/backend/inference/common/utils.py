@@ -39,8 +39,10 @@ def format_documents(docs: list) -> str:
     formatted_docs = []
     for doc in docs:
         pageContent = doc.get("pageContent", "")
+        source = doc.get("metadata", "").get("source_url", "")
         if pageContent:
-            formatted_docs.append(f"{pageContent}")
+            formatted_docs.append(f"{pageContent} SourceURL: {source}")
+
 
     if formatted_docs:
         return "\n".join(formatted_docs)

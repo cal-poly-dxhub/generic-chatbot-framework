@@ -1,0 +1,16 @@
+.gitignore,sha256=zbyuFRBda3geYggTx5x-hodA1OnMU85vX8u8Ejh630s,2
+editdistance-0.8.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+editdistance-0.8.1.dist-info/METADATA,sha256=ct8l9nawkEyNdsd5LSh-OhTU89M8j0fTYDmIyWOsQtE,3912
+editdistance-0.8.1.dist-info/RECORD,,
+editdistance-0.8.1.dist-info/WHEEL,sha256=i_Z_8B7NJPtxG_q1lbfWKKGA0g2oUnfuiQnqzZbYdbQ,153
+editdistance-0.8.1.dist-info/licenses/LICENSE,sha256=JBYjLEBfyMNd1eQ9WUSkedQaOKklS2BLaoR31_KROmE,1072
+editdistance/__init__.pxd,sha256=q6FG13h4UV_VxJt7spx0YGxz0bp0wogFGqXbaIWJYuc,83
+editdistance/__init__.py,sha256=3UIxvD-mMjSFbZrSnu6nYF-Kea4mT93SLVmarx50kgY,318
+editdistance/__pycache__/__init__.cpython-311.pyc,,
+editdistance/_editdistance.cpp,sha256=0dW3Q8oriJ-3or_CBjHqkweHc2F_4rYHPiR4QR5a1ZY,7597
+editdistance/_editdistance.h,sha256=Xo6RmNfu9hShsa0NfzZGOBMJsrMDlBcEfP7RXMhRuh0,527
+editdistance/bycython.cpp,sha256=CXmmoSiXigsIiARz2SuPDUNpuCK4sdOnk5KAK-9rxH4,294768
+editdistance/bycython.cpython-311-aarch64-linux-gnu.so,sha256=QNVSqEhNritO_tdg6Gb6vnyke9zgOhWxuEHMxiZDZrk,1443936
+editdistance/bycython.pxd,sha256=iYzF8XiZ_kV6-sz3BkUqaLWr2v2ux6Wvl6kMmJcSjJM,192
+editdistance/bycython.pyx,sha256=E9-CqFVkQ_FWY83RAcpAY_9JGz76z_7h85QR39Lmbcg,1998
+editdistance/def.h,sha256=jcpGekwJAbu5y2x6cUAnwEi3K3bZlRHGieO7g13n7CE,256

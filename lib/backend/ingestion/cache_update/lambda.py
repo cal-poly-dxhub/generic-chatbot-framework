@@ -33,7 +33,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             response = s3_client.head_object(Bucket=bucket_name, Key=object_key)
             content_type = response["ContentType"]
 
-            if content_type not in ["text/plain", "text/csv", "application/csv"]:
+            if content_type not in ["text/plain", "text/csv", "application/csv", "application/pdf"]:
                 logger.debug(f"Content type {content_type} for {s3_uri} is not supported. Skipping...")
                 continue
 
