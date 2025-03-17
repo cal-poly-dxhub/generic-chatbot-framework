@@ -33,6 +33,7 @@ export class BaseInfra extends Construct {
     public readonly powerToolsLayer: lambda.ILayerVersion;
     public readonly langchainLayer: lambda.ILayerVersion;
     public readonly toolkitLayer: lambda.ILayerVersion;
+    public readonly pdftoolLayer: lambda.ILayerVersion;
     public readonly wsAuthorizerLayer: lambda.ILayerVersion;
     public readonly solutionInfo: SolutionInfo;
     public readonly systemConfig: SystemConfig;
@@ -112,6 +113,14 @@ export class BaseInfra extends Construct {
                 path.join(constants.BACKEND_DIR, 'layers', 'toolkit-layer')
             ),
             description: 'Utilities to instantiate a pgvector and sagemaker embeddings.',
+            ...props,
+        });
+
+        this.pdftoolLayer = new lambda.LayerVersion(this, 'PdfToolLayer', {
+            code: lambda.Code.fromAsset(
+                path.join(constants.BACKEND_DIR, 'layers', 'pdf-tools-layer')
+            ),
+            description: 'Utilities to process pdfs (pdfplumber and textractor).',
             ...props,
         });
 
@@ -394,6 +403,20 @@ export class BaseInfra extends Construct {
             this.systemConfig.handoffConfig.modelConfig.region ?? cdk.Aws.REGION;
         const regionModelIds = new Map<string, Set<string>>([
             [region, new Set([this.systemConfig.handoffConfig.modelConfig.modelId])],
+        ]);
+
+        this.grantBedrockModelAccess(lambdaFunc, regionModelIds);
+    }
+
+    public grantBedrockExemptionModelAccess(lambdaFunc: lambda.IFunction): void {
+        if (this.systemConfig.exemptionConfig?.modelConfig.provider !== 'bedrock') {
+            return;
+        }
+
+        const region =
+            this.systemConfig.exemptionConfig.modelConfig.region ?? cdk.Aws.REGION;
+        const regionModelIds = new Map<string, Set<string>>([
+            [region, new Set([this.systemConfig.exemptionConfig.modelConfig.modelId])],
         ]);
 
         this.grantBedrockModelAccess(lambdaFunc, regionModelIds);

@@ -18,6 +18,7 @@ from common.utils import (
 from common.websocket_utils import stream_llm_response
 from francis_toolkit.types import EmbeddingModel
 from common.utils import add_and_check_handoff, HandoffState
+from exemption.exemption_generation import generate_exemption_tree
 
 from .models import get_llm_class, get_reranker_class
 
@@ -48,6 +49,7 @@ def run_rag_chain(
     embedding_model: EmbeddingModel,
     streaming_context: Optional[StreamingContext] = None,
     handoff_config: Optional[dict] = None,
+    exemption_config: Optional[dict] = None,
 ) -> dict:
     app_trace.reset()
     app_trace.add("llm_config", llm_config)
@@ -85,6 +87,7 @@ def run_rag_chain(
             classification_type == ClassificationType.GREETINGS_FAREWELLS
             or classification_type == ClassificationType.UNRELATED
             or classification_type == ClassificationType.HANDOFF_REQUEST
+            or classification_type == ClassificationType.EXEMPTION_LOGIC
         ):
             answer = classification_response.get("response", "")
             app_trace.add("answer", answer)
@@ -103,12 +106,16 @@ def run_rag_chain(
                 user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
             )
 
+            if (classification_type == ClassificationType.EXEMPTION_LOGIC) and exemption_config is not None:
+                generate_exemption_tree(user_q, exemption_config, embedding_model, chat_id, user_id)
+
             return {
                 "question": {**human_message, "text": user_q},
                 "answer": {**ai_message, "text": answer},
                 "sources": ai_message.get("sources"),
                 "traceData": app_trace.get_trace(),
                 "handoffTriggered": classification_response.get("handoff_state"),
+                "useExemptionLogic": classification_type == ClassificationType.EXEMPTION_LOGIC and exemption_config is not None,
             }
 
     standalone_q = user_q
@@ -138,7 +145,7 @@ def run_rag_chain(
     app_trace.add("documents", documents)
 
     human_message, ai_message = store_messages_in_history(
-        user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=[], input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
+        user_id=user_id, chat_id=chat_id, user_q=user_q, answer=answer, documents=documents, input_tokens=input_tokens, output_tokens=output_tokens, model_id=model_config['modelId']
     )
 
     return {

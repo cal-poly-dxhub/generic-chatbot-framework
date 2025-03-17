@@ -19,6 +19,7 @@ from .utils import (
 )
 from .cost import get_model_costs
 from decimal import Decimal
+import json
 
 
 class DynamoDBChatHistoryStore(BaseChatHistoryStore):
@@ -152,6 +153,36 @@ class DynamoDBChatHistoryStore(BaseChatHistoryStore):
             updatedAt=int(record["updatedAt"]),
             userId=user_id,
         )
+
+    def store_decision_tree(self, user_id: str, chat_id: str, decision_tree: Optional[str], sources: Optional[str]) -> None:
+
+        pair = {
+            "decisionTree": decision_tree,
+            "sources": sources,
+        }
+
+        self.table.update_item(
+            Key=get_chat_key(user_id, chat_id),
+            UpdateExpression="SET decisionTree = :decisionTree",
+            ExpressionAttributeValues={":decisionTree": pair},
+            ReturnValues="NONE",
+        )
+
+    def get_decision_tree(
+        self, user_id: str, chat_id: str, parse: bool = False
+    ) -> tuple[Optional[str | dict], Optional[str | list]]:
+        response = self.table.get_item(Key=get_chat_key(user_id, chat_id))
+        pair = response.get("Item", {}).get("decisionTree")
+        if pair is None:
+            return None, None
+
+        raw_dt = pair.get("decisionTree", {})
+        raw_sources = pair.get("sources", {})
+
+        if parse:
+            return json.loads(raw_dt) if raw_dt else None, json.loads(raw_sources) if raw_sources else None
+        else:
+            return raw_dt, raw_sources
 
     def update_cost(self, user_id: str, chat_id: str, tokens: int, model_id: str, message_type: str) -> Chat:
         response = self.table.get_item(Key=get_chat_key(user_id, chat_id))

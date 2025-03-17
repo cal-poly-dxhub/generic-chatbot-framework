@@ -7,6 +7,7 @@ from summarization.summarizer import Summarizer
 from aws_lambda_powertools.event_handler.api_gateway import Router
 from summarization.types import HandoffConfig
 from aws_lambda_powertools import Logger
+from conversation_store.cost_tools import update_costs
 import json
 
 
@@ -83,6 +84,22 @@ def handoff_chat(chat_id: str, user_id: str) -> dict:
     }
 
     store.populate_handoff(user_id, chat_id, json.dumps(handoff_ticket))
+
+    update_costs(
+        user_id=user_id,
+        chat_id=chat_id,
+        tokens=summary_response["output_tokens"],
+        model_id=handoff_config.modelConfig.modelId,
+        message_type="assistant",
+    )
+
+    update_costs(
+        user_id=user_id,
+        chat_id=chat_id,
+        tokens=summary_response["input_tokens"],
+        model_id=handoff_config.modelConfig.modelId,
+        message_type="user",
+    )
 
     return {
         "data": {

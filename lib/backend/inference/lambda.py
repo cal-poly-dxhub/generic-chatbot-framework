@@ -84,6 +84,7 @@ def handle_lambda_invocation_event(event: dict, context: LambdaContext) -> dict:
         raise ValueError("Streaming is not enabled")
 
     handoff_config = system_config.get("handoffConfig")
+    exemption_config = system_config.get("exemptionConfig")
 
     update_inference_status(
         connection_id,
@@ -104,6 +105,7 @@ def handle_lambda_invocation_event(event: dict, context: LambdaContext) -> dict:
         embedding_model=embedding_model,
         streaming_context=StreamingContext(chatId=request.chatId, messageId=request.tmpMessageId, connectionId=connection_id),
         handoff_config=handoff_config,
+        exemption_config=exemption_config,
     )
 
     update_inference_status(

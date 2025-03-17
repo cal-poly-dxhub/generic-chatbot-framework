@@ -14,7 +14,9 @@ from botocore.exceptions import ClientError
 from francis_toolkit.utils import find_embedding_model_by_ref_key, get_vector_store
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from process_pdf import create_documents_from_pdf
 from pydantic import BaseModel
+from aws_utils import retrieve_source_url_metadata
 
 logger = Logger()
 tracer = Tracer()
@@ -69,8 +71,18 @@ def load_metadata(bucket_name: str, object_key: str) -> dict:
 
 
 def process_text_embeddings(content: str) -> List[Document]:
-    return [Document(page_content=content)]
-
+    if content.startswith("<metadata>") and "</metadata>" in content:
+        metadata_end_index = content.find("</metadata>") + len("</metadata>")
+        document_content = content[metadata_end_index:].strip()
+    else:
+        document_content = content.strip()
+    
+    if not document_content:
+        logger.warning("Empty document content after processing")
+        return []
+    
+    return [Document(page_content=document_content)]
+    
 
 def process_csv_embeddings(content: str) -> List[Document]:
     csv_stream = io.StringIO(content)
@@ -128,6 +140,7 @@ def handler(event: dict, context: LambdaContext) -> dict:
     request = FileEmbeddingsRequest(**event)
     file_uri = request.FileURI
     content_type = request.ContentType
+    logger.info(event)
 
     embedding_model = find_embedding_model_by_ref_key(request.model_ref_key)
     if embedding_model is None:
@@ -144,8 +157,35 @@ def handler(event: dict, context: LambdaContext) -> dict:
     metadata["create_timestamp"] = int(time.time() * 1000)
     metadata["embeddings_model_id"] = embedding_model.modelId
 
-    if content_type == "text/plain":
-        documents = process_text_embeddings(raw_content.decode("utf-8"))
+
+    if content_type == "application/pdf":
+        source_url = retrieve_source_url_metadata(file_uri)
+        documents = create_documents_from_pdf(file_uri, content_type, source_url)
+
+    elif content_type == "text/plain":
+        content_str = raw_content.decode("utf-8")
+        
+        # Check if content is empty
+        if not content_str or not content_str.strip():
+            logger.warning(f"Empty text file detected: {file_uri}")
+            # Mark the file as ingested to avoid reprocessing
+            update_ingested_time(file_uri)
+            return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
+        
+        # Extract metadata if present
+        if content_str.startswith("<metadata>") and "</metadata>" in content_str:
+            metadata_text = content_str[len("<metadata>"):content_str.find("</metadata>")].strip()
+            if "URL:" in metadata_text:
+                url_line = [line for line in metadata_text.split('\n') if line.strip().startswith("URL:")][0]
+                metadata["source_url"] = url_line.split("URL:", 1)[1].strip()
+            metadata["legal_metadata"] = metadata_text
+        
+        documents = process_text_embeddings(content_str)
+    
+        if not documents:
+            logger.warning(f"No valid documents extracted from text file: {file_uri}")
+            update_ingested_time(file_uri)
+            return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
 
     elif content_type in ["text/csv", "application/csv"]:
         documents = process_csv_embeddings(raw_content.decode("utf-8"))
@@ -158,17 +198,26 @@ def handler(event: dict, context: LambdaContext) -> dict:
         update_ingested_time(file_uri)
         return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE_DOC_SPLIT,
-        chunk_overlap=OVERLAP_FOR_DOC_SPLIT,
-        length_function=len,
-    )
-
-    chunks = text_splitter.create_documents([doc.page_content for doc in documents], metadatas=[metadata for _ in documents])
-
     # don't create tables in the ingesiton pipeline as it may lead to race condition due to Map iterations
     vector_store = get_vector_store(embedding_model)
-    embeddings = vector_store.add_documents(documents=chunks, document_source_uri=file_uri)
+    # Takes in Document, and adds embeddings to store
+
+    # Validate no empty documents
+    for i, doc in enumerate(documents):
+        if not doc.page_content or not doc.page_content.strip():
+            logger.warning(f"Empty document found at index {i}, removing")
+            documents[i] = None
+            
+    # Remove None entries
+    documents = [doc for doc in documents if doc is not None]
+
+    # Check if we still have documents to process
+    if not documents:
+        logger.warning(f"No valid documents to embed for {file_uri}")
+        # Mark as processed to avoid infinite retry
+        update_ingested_time(file_uri)
+        return {"FileURI": file_uri, "EmbeddingsGenerated": 0}
+    embeddings = vector_store.add_documents(documents=documents, document_source_uri=file_uri)
 
     update_ingested_time(file_uri)
 
