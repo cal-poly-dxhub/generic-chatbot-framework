@@ -51,7 +51,7 @@ def extract_decision_tree(response: str) -> dict:
 @tracer.capture_method
 def _generate_exemption_tree(
     user_query: str, exemption_config: dict, embedding_model: EmbeddingModel, user_id: str
-) -> tuple[Dict, List]:
+) -> tuple[Dict, List, int, int]:
     """
     Creates an exemption decision tree based on a user query, producing a JSON
     string.
@@ -73,7 +73,7 @@ def _generate_exemption_tree(
 
     llm = get_llm_class(provider=exemption_config["modelConfig"]["provider"])
 
-    llm_response, _, _ = llm.call_text_llms(
+    llm_response, input_tokens, output_tokens = llm.call_text_llms(
         model_config=exemption_config["modelConfig"],
         prompt_template=exemption_config["promptTemplate"],
         prompt_variables=["user_query", "context"],
@@ -82,7 +82,7 @@ def _generate_exemption_tree(
 
     logger.info(f"TREE GENERATION - rag question: {question} llm_response: {llm_response} context: {context}")
     tree = extract_decision_tree(llm_response)
-    return tree, corpus_documents
+    return tree, corpus_documents, input_tokens, output_tokens
 
 
 # TODO: types
@@ -111,6 +111,25 @@ def _store_in_conversation_store(chat_id: str, user_id: str, decision_tree: dict
 
 
 @tracer.capture_method
+def _update_costs(chat_id: str, user_id: str, tokens: int, model_id: str, message_type: str) -> None:
+
+    body = {
+        "tokens": tokens,
+        "model_id": model_id,
+        "message_type": message_type,
+    }
+
+    request_payload = {
+        "path": f"/internal/user/{user_id}/chat/{chat_id}/costs",
+        "httpMethod": "PUT",
+        "pathParameters": {"chat_id": chat_id, "user_id": user_id},
+        "body": json.dumps(body),
+    }
+
+    _ = invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
+
+
+@tracer.capture_method
 def generate_exemption_tree(
     user_query: str, exemption_config: dict, embedding_model: EmbeddingModel, chat_id: str, user_id: str
 ) -> None:
@@ -118,5 +137,24 @@ def generate_exemption_tree(
     Creates an exemption decision tree based on a user query, producing a JSON
     string.
     """
-    decision_tree, sources = _generate_exemption_tree(user_query, exemption_config, embedding_model, user_id)
+
+    decision_tree, sources, input_tokens, output_tokens = _generate_exemption_tree(
+        user_query, exemption_config, embedding_model, user_id
+    )
     _store_in_conversation_store(chat_id=chat_id, user_id=user_id, decision_tree=decision_tree, sources=sources)
+
+    model_id = exemption_config["modelConfig"]["modelId"]
+    _update_costs(
+        chat_id=chat_id,
+        user_id=user_id,
+        tokens=input_tokens,
+        model_id=model_id,
+        message_type="user",
+    )
+    _update_costs(
+        chat_id=chat_id,
+        user_id=user_id,
+        tokens=output_tokens,
+        model_id=model_id,
+        message_type="assistant",
+    )
