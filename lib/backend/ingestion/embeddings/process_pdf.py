@@ -63,7 +63,7 @@ def split_list_items_(items: str) -> List[str]:
             output.extend(p.split('\n'))
     return output
 
-def process_document(document, local_pdf_path: str) -> [Dict, Dict]:
+def process_document(document, local_pdf_path: str, bucket_name: str) -> [Dict, Dict]:
     """Process a document from textract, extract different items."""
 
     config = TextLinearizationConfig(
@@ -105,7 +105,7 @@ def process_document(document, local_pdf_path: str) -> [Dict, Dict]:
 
                 table_pg_number = table.page
 
-                table_uri = save_table_image_to_s3(local_pdf_path, table_pg_number, bounding_box)
+                table_uri = save_table_image_to_s3(local_pdf_path, table_pg_number, bounding_box, bucket_name)
 
                 if ids in table_page:
                     table_page[ids].append(table_uri)
@@ -473,7 +473,7 @@ def create_documents_from_pdf(s3_uri, content_type, source_url):
 
     document, local_pdf_path = extract_textract_data(s3, s3_uri, bucket_name)
 
-    header_split, page_mapping = process_document(document, local_pdf_path)
+    header_split, page_mapping = process_document(document, local_pdf_path, bucket_name)
 
     doc_chunks = chunk_document(header_split, s3_file_path, bucket_name, page_mapping)
 

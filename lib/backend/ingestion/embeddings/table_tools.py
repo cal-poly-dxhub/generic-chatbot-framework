@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import re
 
-def save_table_image_to_s3(local_pdf_path, page_number, bounding_box, resolution=300, bucket_name="alm-test-data", folder="image_store"):
+def save_table_image_to_s3(local_pdf_path, page_number, bounding_box, bucket_name, resolution=300, folder="image_store"):
     s3_client = boto3.client("s3")
 
     file_name = os.path.basename(local_pdf_path).replace(" ", "_")
