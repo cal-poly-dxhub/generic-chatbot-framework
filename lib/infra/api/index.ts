@@ -128,11 +128,12 @@ export class Api extends Construct {
             ...(props.rdsEndpoint && { RDS_ENDPOINT: props.rdsEndpoint }),
             CONVERSATION_TABLE_NAME: props.conversationTable.tableName,
             CONVERSATION_INDEX_NAME: constants.CONVERSATION_STORE_GSI_INDEX_NAME,
+            COGNITO_USER_POOL_ID: props.authentication.userPool.userPoolId,
             /* eslint-enable @typescript-eslint/naming-convention */
         });
         props.conversationTable.grantReadWriteData(chatApiHandler);
         props.rdsSecret?.grantRead(chatApiHandler);
-
+        props.authentication.grantUserPoolAccess(chatApiHandler);
         props.baseInfra.grantBedrockHandoffModelAccess(chatApiHandler);
 
         this.addMethod(chatResource, 'GET', chatApiHandler);
@@ -184,7 +185,6 @@ export class Api extends Construct {
         });
 
         this.addMethod(handoffResource, 'GET', chatApiHandler);
-
 
         const feedbackDownloadResource = api.root.addResource('feedback', {
             defaultCorsPreflightOptions,
