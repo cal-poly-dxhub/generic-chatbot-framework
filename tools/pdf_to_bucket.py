@@ -2,10 +2,16 @@ import os
 import requests
 import boto3
 from urllib.parse import urlparse
-import json
+import argparse
+
+# Get the first argument as the S3 input bucket
+parser = argparse.ArgumentParser()
+parser.add_argument("bucket_name", help="The name of the S3 bucket to upload PDFs to")
+args = parser.parse_args()
+bucket_name = args.bucket_name
 
 # Initialize an S3 client
-s3_client = boto3.client('s3')
+s3_client = boto3.client("s3")
 
 
 def download_pdf(url, download_folder):
@@ -27,7 +33,7 @@ def download_pdf(url, download_folder):
     try:
         response = requests.get(url)
         response.raise_for_status()
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(response.content)
         print(f"Downloaded {file_name}")
         return file_path
@@ -40,28 +46,25 @@ def upload_to_s3(file_path, bucket_name, source_url):
     """Uploads a file to an S3 bucket with custom metadata using put_object."""
     file_name = os.path.basename(file_path)
     s3_key = f"{file_name}"
-    
+
     try:
         # Read file content
-        with open(file_path, 'rb') as file:
+        with open(file_path, "rb") as file:
             file_content = file.read()
-        
+
         # Upload using put_object instead of upload_file
         s3_client.put_object(
-            Body=file_content,
-            Bucket=bucket_name,
-            Key=s3_key,
-            ContentType='application/pdf',
-            Metadata={'source_url': source_url}
+            Body=file_content, Bucket=bucket_name, Key=s3_key, ContentType="application/pdf", Metadata={"source_url": source_url}
         )
         print(f"Uploaded {file_name} to S3 at {s3_key} with source URL: {source_url}")
-        
+
         os.remove(file_path)
         print(f"Removed local file: {file_path}")
-        
+
     except Exception as e:
         print(f"Failed to upload {file_name} to S3: {e}")
         import traceback
+
         traceback.print_exc()
 
 
@@ -84,11 +87,10 @@ def process_pdfs_from_urls(url_list, download_folder, bucket_name):
 
 
 def main():
-    with open('urls.txt', 'r') as file:
-        pdf_urls = [line.strip() for line in file if line.strip()] 
+    with open("urls.txt", "r") as file:
+        pdf_urls = [line.strip() for line in file if line.strip()]
 
     # Bucket and folder details
-    bucket_name = 'YOUR_INPUT_ASSETS_BUCKET'
     download_folder = "./pdfs"
 
     # Start processing PDFs
@@ -97,5 +99,6 @@ def main():
     print("PDF Processing Complete!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
