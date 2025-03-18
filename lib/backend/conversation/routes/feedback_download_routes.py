@@ -1,10 +1,11 @@
-# lib/backend/conversation/routes/feedback_download_routes.py
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
+import os
+import boto3
+from botocore.exceptions import ClientError
 from typing import Dict, List
 from datetime import datetime
 from decimal import Decimal
-
 
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler.api_gateway import Router, Response
@@ -13,6 +14,37 @@ from conversation_store import get_chat_history_store
 tracer = Tracer()
 router = Router()
 logger = Logger()
+cognito_client = boto3.client('cognito-idp')
+
+email_cache = {}
+
+@tracer.capture_method
+def get_user_email(user_id, user_pool_id):
+    """Get user email from Cognito by user ID"""
+    if user_id in email_cache:
+        return email_cache[user_id]
+        
+    try:
+        if '/' in user_id:
+            user_id = user_id.split('/')[-1]
+            
+        response = cognito_client.admin_get_user(
+            UserPoolId=user_pool_id,
+            Username=user_id
+        )
+        
+        for attr in response.get('UserAttributes', []):
+            if attr['Name'] == 'email':
+                email_cache[user_id] = attr['Value']
+                return attr['Value']
+                
+        email_cache[user_id] = user_id
+        return user_id
+        
+    except ClientError as e:
+        logger.warning(f"Error fetching user email for {user_id}: {str(e)}")
+        email_cache[user_id] = user_id
+        return user_id
 
 @router.get("/feedback/download")
 @tracer.capture_method
@@ -20,6 +52,8 @@ def download_feedback() -> Dict:
     """Download all feedback as a text file"""    
     user_id = router.context.get("user_id", "")
     logger.info(f"User {user_id} is downloading feedback")
+    
+    user_pool_id = os.environ.get('COGNITO_USER_POOL_ID', '')
     
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
@@ -153,9 +187,9 @@ def download_feedback() -> Dict:
     lines.append(f"Total Input Tokens: {total_input_tokens:,}")
     lines.append(f"Total Output Tokens: {total_output_tokens:,}")
     lines.append(f"Total Tokens: {(total_input_tokens + total_output_tokens):,}")
-    lines.append(f"User Cost: ${float(total_user_cost):.6f}")
-    lines.append(f"Assistant Cost: ${float(total_assistant_cost):.6f}")
-    lines.append(f"Total Cost: ${float(total_cost):.6f}")
+    lines.append(f"User Cost: \${float(total_user_cost):.6f}")
+    lines.append(f"Assistant Cost: \${float(total_assistant_cost):.6f}")
+    lines.append(f"Total Cost: \${float(total_cost):.6f}")
     lines.append("=" * 80)
     lines.append("")
     
@@ -163,9 +197,10 @@ def download_feedback() -> Dict:
     lines.append("=" * 80)
     lines.append("")
     
-    # Process each feedback item
     for item in feedback_items:
         user_id = item.get("userId", "unknown")
+        user_email = get_user_email(user_id, user_pool_id) if user_pool_id and user_id != "unknown" else user_id
+        
         message_id = item.get("messageId", "unknown")
         chat_id = item.get("chatId", "unknown")
         thumb = item.get("thumb", "none")
@@ -194,7 +229,7 @@ def download_feedback() -> Dict:
                     user_question = messages[i].content
                     break
         
-        lines.append(f"USER ID: {user_id}")
+        lines.append(f"USER EMAIL: {user_email}")
         lines.append(f"CHAT ID: {chat_id}")
         lines.append(f"MESSAGE ID: {message_id}")
         lines.append(f"TIMESTAMP: {created_at}")

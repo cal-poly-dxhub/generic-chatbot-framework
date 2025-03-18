@@ -4,7 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 */
 import * as cdk from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cognitoIdentityPool from '@aws-cdk/aws-cognito-identitypool-alpha';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { SolutionInfo } from '../common/types';
 import * as constants from '../common/constants';
@@ -129,5 +131,15 @@ export class Authentication extends Construct {
         this.userPool = userPool;
         this.identityPool = identityPool;
         this.appClientId = userPoolClient.userPoolClientId;
+    }
+
+    public grantUserPoolAccess(lambda: lambda.IFunction): void {
+        lambda.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['cognito-idp:AdminGetUser', 'cognito-idp:ListUsers'],
+                resources: [this.userPool.userPoolArn],
+            })
+        );
     }
 }
