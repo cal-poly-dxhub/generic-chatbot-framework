@@ -553,7 +553,7 @@ aws s3 sync s3://alameda-tax-codes/ s3://your-input-bucket-name/
 python3.11 pdf_to_bucket.py
 ```
 
-1. Once the pdfs are done uploading, find the state machine ARN of AWS step function from the deployment output starting with `StateMachineArn`. Execute the ingestion pipeline.
+3. Once the pdfs are done uploading, find the state machine ARN of AWS step function from the deployment output starting with `StateMachineArn`. Execute the ingestion pipeline.
 
 ```bash
 aws stepfunctions start-execution --state-machine-arn <state-machine-arn>
@@ -561,7 +561,7 @@ aws stepfunctions start-execution --state-machine-arn <state-machine-arn>
 
 Capture the ARN of execution.
 
-3. Monitor the execution status of the Step Function through the AWS Management Console or using the AWS CLI.
+ Monitor the execution status of the Step Function through the AWS Management Console or using the AWS CLI.
 ```bash
 aws stepfunctions describe-execution --execution-arn <execution-arn>
 ```
