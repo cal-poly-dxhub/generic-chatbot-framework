@@ -46,7 +46,8 @@ def save_table_image_to_s3(local_pdf_path, page_number, bounding_box, bucket_nam
         s3_client.upload_fileobj(buffered, bucket_name, image_filename, ExtraArgs={"ContentType": "image/png"})
 
         # Generate and return the S3 URL
-        s3_url = f"https://{bucket_name}.s3.us-east-1.amazonaws.com/{image_filename}"
+        aws_region = os.getenv("AWS_REGION")
+        s3_url = f"https://{bucket_name}.s3.{aws_region}.amazonaws.com/{image_filename}"
         return s3_url
 
 def extract_table_content(passage_chunk):
