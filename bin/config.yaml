@@ -1,8 +1,35 @@
 systemConfig:
   retainData: false
-  applicationName: almed
+  applicationName: test-almed
   llmConfig:
     streaming: true
+    guardrailConfig:
+      contentFilters:
+        - type: HATE            
+          inputStrength: HIGH
+          outputStrength: HIGH
+        - type: VIOLENCE         
+          inputStrength: HIGH
+          outputStrength: HIGH
+        - type: SEXUAL           
+          inputStrength: MEDIUM
+          outputStrength: MEDIUM
+      piiFilters:
+        - type: EMAIL            
+          action: ANONYMIZE         
+        - type: PHONE           
+          action: ANONYMIZE        
+        - type: NAME            
+          action: ANONYMIZE          
+      blockedMessages:
+        input: "I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question."
+        output: "I apologize, but I cannot provide that type of response. Please try asking a different question."
+    rerankingConfig:
+      modelConfig:
+        provider: bedrock
+        modelId: cohere.rerank-v3-5:0
+      kwargs:
+        numberOfResults: 10
     maxConversationHistory: 5
     maxCorpusDocuments: 5
     corpusSimilarityThreshold: 0.5
@@ -45,6 +72,14 @@ systemConfig:
             <response>yes</response>
             <instruction>Politely reply that you cannot answer this question. Use the language of the query to answer</instruction>
         </type_3>
+        <type_4>
+            <name>exemption_logic</name>
+            <description>
+            Questions about whether a user qualifies for a tax exemption. Note: the user must specifically ask you to help them determine forms to fill out to obtain a tax exemption.
+            </description> 
+            <response>yes</response>
+            <instruction>Say the words "Searching..."--NOTHING MORE.</instruction>
+        </type_4>
         </types>
 
         ###
@@ -177,7 +212,7 @@ systemConfig:
         2. Use only information provided in the context documents or associated image, do NOT use your own knowledge to answer
         3. If no relevant information is found in the context, apologize and state that you don't have sufficient information to answer the question
         4. For instructional, guidance questions or answers about an address, make sure to answer exactly as stated in the context documents, do NOT rephrase the step-by-step instruction or shorten the address.
-        5. When using content from the context, integrate them seamlessly into the answer WITH explicitly citing the context section. Answer confidently and return the source url in the answer where you get information from. You must return the url in this format: <a href="SOURCE_URL">SOURCE_NAME</a>
+        5. When using content from the context, integrate them seamlessly into the answer WITHOUT explicitly citing the context section. Answer confidently.
         6. Provide concise answer, focused on the specific ask of the question. Use bullet points if more than 3-4 sentences is necessary. Avoid redundancy and do NOT repeat the question.
         7. Be professional and conversational. Respond naturally and directly like a human chat agent.
 
