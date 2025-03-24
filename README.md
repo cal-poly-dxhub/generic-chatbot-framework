@@ -152,7 +152,7 @@ Both configurations maintain the same high-level architecture while offering dif
 -   The computer must have Docker and Docker Compose installed (tested versions: Docker 25.0.8 with Docker Compose 2.34.0)
 -   You should also have the Git CLI installed and clone permissions for this repository
 
-The AMI with ID `ami-0a62dc91e643b7ea3` establishes a tested deployment environment; we recommend deploying it on a `t4g.large` instance with 100 GiB gpi3 storage. See [this link](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html) for instructions on configuring such a system. 
+The AMI with ID `ami-052fc449700c299de` establishes a tested deployment environment; we recommend deploying it on a `t4g.large` instance with 100 GiB gpi3 storage. See [this link](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html) for instructions on configuring such a system. 
 
 ### AWS account
 
