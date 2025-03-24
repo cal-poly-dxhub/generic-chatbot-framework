@@ -28,7 +28,7 @@ const userPoolProperties = {
         requireSymbols: true,
         tempPasswordValidity: cdk.Duration.days(3),
     },
-    mfa: cognito.Mfa.REQUIRED,
+    mfa: cognito.Mfa.OFF,
     mfaSecondFactor: { sms: true, otp: true },
     signInCaseSensitive: false,
     advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,

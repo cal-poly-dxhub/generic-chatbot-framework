@@ -87,7 +87,7 @@ def process_pdfs_from_urls(url_list, download_folder, bucket_name):
 
 
 def main():
-    with open("urls.txt", "r") as file:
+    with open("tools/urls.txt", "r") as file:
         pdf_urls = [line.strip() for line in file if line.strip()]
 
     # Bucket and folder details
@@ -101,4 +101,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

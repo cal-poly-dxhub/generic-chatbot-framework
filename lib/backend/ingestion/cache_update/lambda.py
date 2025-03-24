@@ -3,6 +3,7 @@
 import os
 import time
 from typing import Any, Dict, Optional
+from urllib.parse import unquote
 
 import boto3
 from aws_lambda_powertools import Logger, Tracer
@@ -30,6 +31,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         s3_uri = f"s3://{bucket_name}/{object_key}"
 
         try:
+            object_key = unquote(object_key)
             response = s3_client.head_object(Bucket=bucket_name, Key=object_key)
             content_type = response["ContentType"]
 

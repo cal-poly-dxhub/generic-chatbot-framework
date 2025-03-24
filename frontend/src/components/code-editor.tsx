@@ -13,8 +13,8 @@ import 'ace-builds/css/theme/dawn.css';
 import 'ace-builds/css/theme/tomorrow_night_bright.css';
 import 'ace-builds/src-noconflict/ext-language_tools';
 
-export type Ace = typeof import('ace-builds/ace');
-export type AceEditor = typeof import('ace-builds/ace').Editor;
+export type Ace = typeof import('ace-builds');
+export type AceEditor = typeof import('ace-builds').Editor;
 
 export interface AceEditorCallback {
   (ace: Ace): void;

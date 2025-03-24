@@ -1,0 +1,15 @@
+name: alameda-francis-deployment
+services:
+    deployment:
+        platform: linux/arm64
+        privileged: true # Required for Docker-in-Docker
+        env_file:
+            - path: ./deployment/credentials.env
+              required: true
+        volumes:
+            - .:/app
+        build:
+            context: .
+            dockerfile: ./deployment/Dockerfile
+        stdin_open: true
+        tty: true

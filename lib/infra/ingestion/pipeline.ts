@@ -27,6 +27,8 @@ export interface IngestionPipelineProps {
     readonly inputAssetsBucket: s3.IBucket;
 }
 
+const embeddingsMemorySize = 3008; // Overrides default pipeline lambda memory size
+
 export class IngestionPipeline extends Construct {
     public readonly ingestionStateMachine: stepfn.StateMachine;
 
@@ -154,6 +156,7 @@ export class IngestionPipeline extends Construct {
         // Lambda function performing the embedding job
         const embeddingsFunction = new lambda.Function(this, 'embeddingsFunction', {
             ...ingestionLambdaCommonProps,
+            memorySize: embeddingsMemorySize,
             code: lambda.Code.fromAsset(
                 path.join(constants.BACKEND_DIR, 'ingestion', 'embeddings')
             ),
@@ -284,6 +287,7 @@ export class IngestionPipeline extends Construct {
                     stepfn.JsonPath.stringAt('$$.Execution.Name')
                 ),
             }),
+            toleratedFailurePercentage: 50,
         }).itemProcessor(embeddingsTask);
 
         const succeedTask = new stepfn.Succeed(this, 'Succeed');
