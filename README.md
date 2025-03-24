@@ -167,6 +167,8 @@ The AMI with ID `ami-052fc449700c299de` establishes a tested deployment environm
 
 -   Ensure you have the Git CLI (tested: v2.47.1), Docker (tested: v25.0.8), and Docker Compose (tested: v2.34.0) installed and that you are on an ARM computer.
 
+-   The EC2 AMI mentioned above comes with this repository cloned; if using it run `cd francis-alameda`. Otherwise, run `git clone https://github.com/cal-poly-dxhub/francis-alameda/ && cd francis-alameda`. 
+
 -   Set your AWS credentials and an administrator email in `deployment/credentials.env`.
 
 -   Run `docker-compose run deployment`.
