@@ -55,8 +55,7 @@ def increment_handoff_requests(chat_id: str, user_id: str) -> dict:
 
 @router.put("/internal/chat/<chat_id>/user/<user_id>/handoff")
 def handoff_chat(chat_id: str, user_id: str) -> dict:
-    extra = {"chat_id": chat_id, "user_id": user_id, "event": "handoff_chat"}
-    logger.info("Handoff triggered", extra=extra)
+    logger.info("Handoff triggered")
     if not (table_name := os.getenv("CONFIG_TABLE_NAME")):
         raise ValueError("CONFIG_TABLE_NAME environment variable not set")
 

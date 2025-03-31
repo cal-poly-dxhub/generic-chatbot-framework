@@ -93,7 +93,6 @@ export interface UpdateChatRequest {
 }
 
 export interface UpdateFeedbackRequest {
-    // TODO: Is this duplicated data?
     chatId: string;
     updateFeedbackRequestContent: UpdateFeedbackRequestContent;
 }

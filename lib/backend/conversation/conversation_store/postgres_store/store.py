@@ -179,7 +179,6 @@ class PostgresChatHistoryStore(BaseChatHistoryStore):
             return self._entity_to_chat(chat)
 
     def list_chats(self, user_id: str) -> List[Chat]:
-        # TODO: add paging support
         with self._session_maker() as session:
             chats = session.query(ChatEntity).filter_by(user_id=user_id).order_by(desc(ChatEntity.created_at)).all()
             return [self._entity_to_chat(chat) for chat in chats]

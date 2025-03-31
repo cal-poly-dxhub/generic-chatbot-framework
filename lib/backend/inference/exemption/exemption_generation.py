@@ -33,7 +33,6 @@ def _report_decision_tree_error(chat_id: str, user_id: str) -> None:
 @tracer.capture_method
 def extract_decision_tree(response: str) -> dict:
     """Extracts the decision tree JSON from the model's response."""
-    logger.info(f"extract_decision_tree - Extracting decision tree from response: {response}")
     match = re.search(r"<exemption_decision_tree>(.*?)</exemption_decision_tree>", response, re.DOTALL)
 
     if match:
@@ -47,7 +46,6 @@ def extract_decision_tree(response: str) -> dict:
     return {"error": f"no_information"}
 
 
-# TODO: better types
 @tracer.capture_method
 def _generate_exemption_tree(
     user_query: str, exemption_config: dict, embedding_model: EmbeddingModel, user_id: str
@@ -58,7 +56,6 @@ def _generate_exemption_tree(
     """
     kwargs = exemption_config["modelConfig"].get("modelKwargs", {})
 
-    # TODO: generic wrapping for this prompt?
     question = f"What tax exemptions are associated with this query?: {user_query}"
     corpus_documents = get_corpus_documents(
         question=question,
@@ -80,12 +77,10 @@ def _generate_exemption_tree(
         **kwargs,
     )
 
-    logger.info(f"TREE GENERATION - rag question: {question} llm_response: {llm_response} context: {context}")
     tree = extract_decision_tree(llm_response)
     return tree, corpus_documents, input_tokens, output_tokens
 
 
-# TODO: types
 def _store_in_conversation_store(chat_id: str, user_id: str, decision_tree: dict, sources: list) -> None:
 
     pair = {

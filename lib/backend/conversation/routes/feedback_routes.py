@@ -21,8 +21,6 @@ class Feedback(BaseModel):
 @router.put("/chat/<chat_id>/message/<message_id>/feedback")
 @tracer.capture_method
 def update_feedback(chat_id: str, message_id: str) -> Dict:
-    # TODO: returns?
-    logger.info("Running update_feedback")
     raw_feedback = router.current_event.json_body
     user_id = router.context.get("user_id", None)
     if not user_id:

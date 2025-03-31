@@ -255,8 +255,6 @@ def _perform_handoff(user_id: str, chat_id: str) -> None:
         "pathParameters": {"user_id": user_id, "chat_id": chat_id},
     }
     invoke_lambda_function(CONVERSATION_LAMBDA_FUNC_NAME, request_payload)
-    # TODO: Account for tokens from summarization here. The call above returns
-    # a dict like "{'data': {'input_tokens': <m>, 'output_tokens': <n>}}"
 
 
 @tracer.capture_method

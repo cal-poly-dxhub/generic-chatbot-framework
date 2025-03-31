@@ -4,7 +4,6 @@ from pydantic import BaseModel
 ModelProvider = Literal["sagemaker", "bedrock"]
 
 
-# TODO: where do these types belong?
 class ModelKwargs(BaseModel):
     maxTokens: Optional[int] = None
     temperature: Optional[float] = None

@@ -69,7 +69,6 @@ def store_decision_tree(chat_id: str, user_id: str) -> Dict:
     if decision_tree is not None and json.loads(decision_tree).get("error"):
         report_decision_tree_error(chat_id, user_id, decision_tree, store)
     else:
-        logger.info(f"store_decision_tree in exemption_routes got sources: {sources}")
         store.store_decision_tree(user_id, chat_id, decision_tree, sources)
 
     return {
@@ -154,8 +153,6 @@ def close_exemption(chat_id: str):
         user_id=user_id, chat_id=chat_id, content=decision, message_type="ai", tokens=0, sources=sources
     ).model_dump()
 
-    # TODO: inconsistent types between the ChatMessage frontend model
-    # and the backend PyDantic model
     form_message["text"] = form_message.pop("content")
     decision_message["text"] = decision_message.pop("content")
     form_message["type"] = form_message.pop("messageType")
