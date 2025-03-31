@@ -150,9 +150,8 @@ Both configurations maintain the same high-level architecture while offering dif
 -   The computer used to build the solution must be able to access the internet
 -   It must also run on an ARM architecture
 -   The computer must have Docker and Docker Compose installed (tested versions: Docker 25.0.8 with Docker Compose 2.34.0)
--   You should also have the Git CLI installed and clone permissions for this repository
-
-The AMI with ID `ami-052fc449700c299de` establishes a tested deployment environment; we recommend deploying it on a `t4g.large` instance with 100 GiB gpi3 storage. See [this link](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-instance-wizard.html) for instructions on configuring such a system. Using SSH or EC2 Instance Connect, log in as `ec2-user`.
+    -   If deploying from Amazon Linux 2023, the `deployment/docker_amazon_linux_2023.sh` script installs the recommended versions of Docker and Docker Compose
+-   You should also have the Git CLI installed and clone permissions for this repository (`sudo dnf install git` on Amazon Linux 2023)
 
 ### AWS account
 
@@ -167,7 +166,7 @@ The AMI with ID `ami-052fc449700c299de` establishes a tested deployment environm
 
 -   Ensure you have the Git CLI (tested: v2.47.1), Docker (tested: v25.0.8), and Docker Compose (tested: v2.34.0) installed and that you are on an ARM computer.
 
--   The EC2 AMI mentioned above comes with this repository cloned; if using it run `cd francis-alameda`. Otherwise, run `git clone https://github.com/cal-poly-dxhub/francis-alameda/ && cd francis-alameda`. 
+-   Run `git clone https://github.com/cal-poly-dxhub/francis-alameda/ && cd francis-alameda`.
 
 -   Set your AWS credentials and an administrator email in `deployment/credentials.env`.
 
