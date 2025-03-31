@@ -12,7 +12,9 @@ import { Configuration, DefaultApi, DefaultApiClientProvider } from '../react-qu
 
 export const useApiClient = () => {
   const runtimeConfig = useRuntimeConfig();
-  const client = useSigv4Client();
+
+  // Accept Cognito token caching; remove credentials on user logout.
+  const client = useSigv4Client('execute-api', false);
 
   return useMemo(
     () =>

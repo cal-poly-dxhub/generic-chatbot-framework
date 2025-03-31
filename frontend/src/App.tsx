@@ -83,7 +83,9 @@ const App: React.FC = () => {
             iconName: 'user-profile',
             onItemClick: (event) => {
               if (event.detail.id === 'signout') {
+                const CREDENTIALS_KEY = 'northstar.sigv4fetch.session';
                 getAuthenticatedUser && getAuthenticatedUser()?.signOut();
+                window.sessionStorage.removeItem(CREDENTIALS_KEY);
                 window.location.href = '/';
               }
             },
