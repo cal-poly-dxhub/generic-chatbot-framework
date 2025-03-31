@@ -8,6 +8,27 @@ systemConfig:
     maxConversationHistory: 5
     maxCorpusDocuments: 5
     corpusSimilarityThreshold: 0.5
+    guardrailConfig:
+      contentFilters:
+          - type: HATE
+            inputStrength: HIGH
+            outputStrength: HIGH
+          - type: VIOLENCE
+            inputStrength: HIGH
+            outputStrength: HIGH
+          - type: SEXUAL
+            inputStrength: HIGH
+            outputStrength: HIGH
+      piiFilters:
+          - type: EMAIL
+            action: ANONYMIZE
+          - type: PHONE
+            action: ANONYMIZE
+          - type: NAME
+            action: ANONYMIZE
+      blockedMessages:
+          input: 'I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question.'
+          output: 'I apologize, but I cannot provide that type of response. Please try asking a different question.'
     classificationChainConfig:
       modelConfig:
         provider: bedrock
