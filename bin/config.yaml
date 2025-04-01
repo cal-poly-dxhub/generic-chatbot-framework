@@ -18,7 +18,7 @@ systemConfig:
           topP: 0.99
       promptTemplate: |
         Your task is to analyze a customer query, classify it based on customer intention and language, then write corresponding responses if needed.
-        Your answer will be parse programmatically by codes, so it must strictly be only a JSON object.
+        Your answer will be parse programmatically by code, so it must strictly be only a JSON object.
 
         Here are the 4 classification types that the query should be classified into, along with instruction for the response (if any):
         <types>
@@ -78,7 +78,7 @@ systemConfig:
 
         ###
         Here are the steps for you to follow:
-
+        <steps>
         1. Read the customer query carefully:
         <query>${question}</query>
 
@@ -100,6 +100,7 @@ systemConfig:
 
         5. Review your response to ensure compliance with all instructions, and strictly follow the JSON format, do NOT add any other wording, do NOT repeat the question.
         Revise the response if it fails to meet all specified criteria.
+        </steps>
             promptVariables:
         - question
       kwargs:
@@ -120,8 +121,8 @@ systemConfig:
         You MUST follows these rules when writing the new standalone query:
         <rules>
         1. Always write the question in ${language} language
-        2. Be concise, without any unnecessary filter words
-        3. Make sure the new standalone query is exactly the same in semantic with the current question: no entity name is removed, keeping the same question type (e.g., yes/no, open-ended, multiple choice...) and same queried objective (e.g.: NOT rephrasing from how to what, NOT rephrasing from command to question...)
+        2. Be concise, without any unnecessary filler words
+        3. Make sure the new standalone query is similar in semantic meaning with the current question: no entity name is removed, keeping the same question type (e.g., yes/no, open-ended, multiple choice...) and same queried objective (e.g.: NOT rephrasing from how to what, NOT rephrasing from command to question...)
         4. Incorporate all the relevant context, details and entity names from the <chat_history>, such that it can be understood without needing the original history.
         Ensure there are no pronouns or implicit references left. Instead, replace pronoun with explicit entity name to clarify what is being asked.
         5. Only rewrite the question, do NOT attempt to answer it.
@@ -179,13 +180,15 @@ systemConfig:
         You are a friendly, knowledgeable AI assistant tasked with answering questions based on provided context. Your goal is to provide helpful, natural-sounding responses as if you're having a casual conversation with a friend or colleague.
 
         CONTEXT:
+        <context>
         ${context}
+        </context>
 
         Please answer the question:
         <question>${question}</question>
 
         Answer the above question based on the following guidelines:
-
+        <rules>
         Tone: Professional, Language: ${language} Nature: Helpful and Informative
 
         1. Analyze the given context. 
@@ -201,6 +204,7 @@ systemConfig:
         4. Use a mix of shorter and longer sentences to maintain a natural rhythm. Use a mixture of casual and professional language to create a friendly yet informative tone.
 
         5. Maintain a helpful, approachable tone throughout your response.
+        </rules>
       promptVariables:
         - question
         - context
