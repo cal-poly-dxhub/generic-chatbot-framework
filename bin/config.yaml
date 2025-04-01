@@ -6,36 +6,15 @@ systemConfig:
   llmConfig:
     streaming: true
     maxConversationHistory: 5
-    maxCorpusDocuments: 5
-    corpusSimilarityThreshold: 0.5
-    guardrailConfig:
-      contentFilters:
-          - type: HATE
-            inputStrength: HIGH
-            outputStrength: HIGH
-          - type: VIOLENCE
-            inputStrength: HIGH
-            outputStrength: HIGH
-          - type: SEXUAL
-            inputStrength: HIGH
-            outputStrength: HIGH
-      piiFilters:
-          - type: EMAIL
-            action: ANONYMIZE
-          - type: PHONE
-            action: ANONYMIZE
-          - type: NAME
-            action: ANONYMIZE
-      blockedMessages:
-          input: 'I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question.'
-          output: 'I apologize, but I cannot provide that type of response. Please try asking a different question.'
+    maxCorpusDocuments: 10
+    corpusSimilarityThreshold: 0.3
     classificationChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: anthropic.claude-3-haiku-20240307-v1:0
+        modelId: anthropiic.claude-3-5-haiku-20241022-v1:0
         modelKwargs:
           maxTokens: 1024
-          temperature: 0.1
+          temperature: 0
           topP: 0.99
       promptTemplate: |
         Your task is to analyze a customer query, classify it based on customer intention and language, then write corresponding responses if needed.
@@ -92,10 +71,6 @@ systemConfig:
         Here are some query examples and corresponding output:
         <examples>
             <example>
-            H: Xin chào bạn
-            A: {"classification_type": "greetings_farewells", "language": "Vietnamese", "response": "Chào bạn. Chúc bạn một ngày tốt lành. Tôi là AI Chatbot. Tôi rất vui được hỗ trợ bạn."}
-            </example>
-            <example>
             H: Help me calculate this: 2 multiply by 2
             A: {"classification_type": "unrelated", "language": "English", "response": "Sorry, I cannot adhere to this request. I am an AI Chatbot to answer only questions about property and Alameda County."}
             </example>
@@ -125,7 +100,7 @@ systemConfig:
 
         5. Review your response to ensure compliance with all instructions, and strictly follow the JSON format, do NOT add any other wording, do NOT repeat the question.
         Revise the response if it fails to meet all specified criteria.
-      promptVariables:
+            promptVariables:
         - question
       kwargs:
         system_prompt: |
@@ -133,10 +108,10 @@ systemConfig:
     standaloneChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: anthropic.claude-3-haiku-20240307-v1:0
+        modelId: anthropic.claude-3-5-haiku-20241022-v1:0
         modelKwargs:
           maxTokens: 1024
-          temperature: 0.1
+          temperature: 0
           topP: 0.99
       promptTemplate: |
         Your task is to create a condensed, standalone query in ${language} language based on the provided conversation history and current question.
@@ -148,7 +123,7 @@ systemConfig:
         2. Be concise, without any unnecessary filter words
         3. Make sure the new standalone query is exactly the same in semantic with the current question: no entity name is removed, keeping the same question type (e.g., yes/no, open-ended, multiple choice...) and same queried objective (e.g.: NOT rephrasing from how to what, NOT rephrasing from command to question...)
         4. Incorporate all the relevant context, details and entity names from the <chat_history>, such that it can be understood without needing the original history.
-        Ensure there is no pronoun (such as "này", "đó"...) left. Instead, replace pronoun with explicit entity name to clarify what is being asked.
+        Ensure there are no pronouns or implicit references left. Instead, replace pronoun with explicit entity name to clarify what is being asked.
         5. Only rewrite the question, do NOT attempt to answer it.
         </rules>
 
@@ -170,14 +145,14 @@ systemConfig:
 
         2. Examine carefully the current <question>.
 
-        4.a. If the <question> is self-contained (can be understood without additional context), or if the <chat_history> is unrelated to this question: reproduce the question verbatim in ${language} language, do NOT rephrase or alter its content.
+        3. If the <question> is self-contained (can be understood without additional context), or if the <chat_history> is unrelated to this question: reproduce the question verbatim in ${language} language, do NOT rephrase or alter its content.
 
-        4.b. If contextual information from the <chat_history> is necessary to fully understand the question: synthesize key information from the conversation history with the current question to create a comprehensive standalone question. Follow guidances in <rules> section in your writing.
+        4. If contextual information from the <chat_history> is necessary to fully understand the question: synthesize key information from the conversation history with the current question to create a comprehensive standalone question. Follow guidances in <rules> section in your writing.
 
         5. Review your standalone question. Compare it with the current <question>, make sure:
         a. If no contextual information was added, the new standalone question is identical to the current <question> (translated if necessary).
         b. Otherwise, it still has the same question type, and same queried objective with current <question>, all the entities mentioned in current <question> are present.
-        Re-write your answer to fit this requirement if needed. Remember NOT answer the question, ONLY rewrite.
+        Re-write your answer to fit this requirement if needed. Remember to NOT answer the question, ONLY rewrite.
 
         6. Format your final standalone question as a JSON object:
         {"standalone_question" : "[Standalone question in ${language} language]"}
@@ -195,10 +170,10 @@ systemConfig:
     qaChainConfig:
       modelConfig:
         provider: bedrock
-        modelId: anthropic.claude-3-haiku-20240307-v1:0
+        modelId: anthropic.claude-3-5-sonnet-20241022-v2:0
         modelKwargs:
           maxTokens: 1024
-          temperature: 0.1
+          temperature: 0
           topP: 0.99
       promptTemplate: |
         You are a friendly, knowledgeable AI assistant tasked with answering questions based on provided context. Your goal is to provide helpful, natural-sounding responses as if you're having a casual conversation with a friend or colleague.
@@ -221,12 +196,7 @@ systemConfig:
 
            a. Do not say something like "Based on the information you provided..." or "According to the context...". Do NOT mention the context whatsoever.
 
-           b. Present your answer in a flowing, conversational manner. Use numbered points only to ensure clarity:
-              1. [First point]
-              2. [Second point]
-              3. [Third point]
-
-           c. Wrap up with a brief, friendly conclusion that summarizes the key points and offers further assistance if needed.
+           b. Present your answer in a flowing, conversational manner. Start with an objective answer that summarizes the key points, then use numbered points to provide supporting information from the sources provided that helped guide your answer.
 
         4. Use a mix of shorter and longer sentences to maintain a natural rhythm. Use a mixture of casual and professional language to create a friendly yet informative tone.
 
