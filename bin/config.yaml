@@ -8,6 +8,14 @@ systemConfig:
     maxConversationHistory: 5
     maxCorpusDocuments: 10
     corpusSimilarityThreshold: 0.3
+    rerankingConfig:
+      modelConfig:
+          provider: bedrock
+          modelId: cohere.rerank-v3-5:0
+      kwargs:
+          numberOfResults: 10
+          additionalModelRequestFields:
+              max_tokens_per_doc: 4000
     classificationChainConfig:
       modelConfig:
         provider: bedrock
