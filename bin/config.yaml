@@ -101,7 +101,7 @@ systemConfig:
         5. Review your response to ensure compliance with all instructions, and strictly follow the JSON format, do NOT add any other wording, do NOT repeat the question.
         Revise the response if it fails to meet all specified criteria.
         </steps>
-            promptVariables:
+      promptVariables:
         - question
       kwargs:
         system_prompt: |
