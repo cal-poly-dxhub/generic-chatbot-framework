@@ -159,12 +159,22 @@ systemConfig:
 
         You MUST follows these rules when writing the new standalone query:
         <rules>
-        1. Always write the question in ${language} language
-        2. Be concise, without any unnecessary filler words
-        3. Make sure the new standalone query is similar in semantic meaning with the current question: no entity name is removed, keeping the same question type (e.g., yes/no, open-ended, multiple choice...) and same queried objective (e.g.: NOT rephrasing from how to what, NOT rephrasing from command to question...)
-        4. Incorporate all the relevant context, details and entity names from the <chat_history>, such that it can be understood without needing the original history.
-        Ensure there are no pronouns or implicit references left. Instead, replace pronoun with explicit entity name to clarify what is being asked.
-        5. Only rewrite the question, do NOT attempt to answer it.
+        1. Create a complete query in ${language} that preserves ALL specific details from the user's question.
+
+        2. PRIORITIZE CLARITY OVER BREVITY - include all details needed for a complete understanding, even if the query becomes longer.
+
+        3. MAINTAIN CONTEXT CONTINUITY by:
+          - Reviewing the entire <chat_history> for relevant information
+          - Replacing all pronouns (it, they, this, etc.) with specific property tax terms
+          - Including previous mentions of property types, exemptions, or situations
+          - Ensuring time references are clear (tax years, filing periods, deadlines)
+
+        4. PRESERVE QUERY STRUCTURE:
+          - Keep the same question type (how, what, why, yes/no)
+          - Maintain the original objective of the question
+          - Only expand abbreviations if necessary for clarity
+
+        5. ASSUME LIMITED BACKGROUND KNOWLEDGE - make the query self-contained so relevant information can be retrieved without requiring extensive background context.
         </rules>
 
         ###
@@ -180,22 +190,39 @@ systemConfig:
 
         Here are the steps to follow:
         <steps>
-        1. Review the conversation history in <chat_history> section. This history may provide relevant context and background information for the current question.
-        Prioritize entities in the last question as preferred main topic.
+        1. Carefully analyze the <chat_history> section, looking for:
+          - Previous mentions of specific property types (residential, commercial, land)
+          - References to exemption types (homeowner, disabled veteran, church, welfare)
+          - Prior questions about assessment events (purchase, construction, transfer)
+          - Any specific property addresses, parcel numbers, or dates mentioned
+          - Recent questions that the current question might be following up on
 
-        2. Examine carefully the current <question>.
+        2. Examine the current <question> to identify:
+          - The specific property tax topic (assessment, exemption, appeal, value, etc.)
+          - Any technical terms that might need clarification
+          - Whether it's a follow-up to a previous question
 
-        3. If the <question> is self-contained (can be understood without additional context), or if the <chat_history> is unrelated to this question: reproduce the question verbatim in ${language} language, do NOT rephrase or alter its content.
+        3. If the <question> is complete on its own (contains all necessary context) or the <chat_history> is unrelated:
+          - Use the original question verbatim in ${language}
+          - Only expand abbreviations if necessary for clarity (e.g., ADU to "Accessory Dwelling Unit")
+          - Do not alter property tax terminology that appears correctly used
 
-        4. If contextual information from the <chat_history> is necessary to fully understand the question: synthesize key information from the conversation history with the current question to create a comprehensive standalone question. Follow guidances in <rules> section in your writing.
+        4. If the <question> relies on context from <chat_history>:
+          - Replace all pronouns (it, they, this, these) with specific property tax terms from history
+          - Include property-specific details from previous messages (type, location, status)
+          - Incorporate previously mentioned exemption types or assessment situations
+          - Merge relevant prior questions with current question for complete context
+          - Ensure all tax years, filing periods, or deadlines are clearly specified
 
-        5. Review your standalone question. Compare it with the current <question>, make sure:
-        a. If no contextual information was added, the new standalone question is identical to the current <question> (translated if necessary).
-        b. Otherwise, it still has the same question type, and same queried objective with current <question>, all the entities mentioned in current <question> are present.
-        Re-write your answer to fit this requirement if needed. Remember to NOT answer the question, ONLY rewrite.
+        5. Review your standalone question for property tax accuracy:
+          - Verify that all technical terms are preserved correctly
+          - Confirm that ownership situations are clearly specified
+          - Ensure exemption types are explicitly named rather than generalized
+          - Check that assessment events (purchase, construction, etc.) are clearly identified
+          - Make sure filing deadlines or tax years are explicitly stated when mentioned
 
         6. Format your final standalone question as a JSON object:
-        {"standalone_question" : "[Standalone question in ${language} language]"}
+          {"standalone_question": "[Complete standalone question in ${language}]"}
 
         7. Provide only the JSON object as your response. Do not include any additional text or explanations.
         </steps>
