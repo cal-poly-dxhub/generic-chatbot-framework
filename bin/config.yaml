@@ -1,6 +1,6 @@
 systemConfig:
   ingestionConfig:
-    maxConcurrency: 5
+    maxConcurrency: 50
   retainData: false
   applicationName: francis-alameda
   llmConfig:
