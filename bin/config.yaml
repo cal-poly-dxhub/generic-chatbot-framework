@@ -38,7 +38,20 @@ systemConfig:
         </type_1>
         <type_2>
             <name>question</name>
-            <description>Question related to property, taxes, or the Alameda County Assessor's Office. This can be a follow up question to a previous question. This includes exemption forms.</description>
+            <description>
+            Questions related to property, taxes, or the Alameda County Assessor's Office, including:
+            - General information about property tax concepts
+            - Information about assessment processes
+            - Appeal procedures and deadlines
+            - Supplemental assessments and bills
+            - Property transfers and ownership changes
+            - General information about exemptions (definitions, amounts, deadlines)
+            - How to obtain or fill out specific exemption forms
+            - Information about tax bills and payment processes
+            - Follow-up questions to previous answers
+            
+            Most questions about property taxes should be classified here, including general exemption questions that don't require determining eligibility through multiple criteria.
+            </description>
             <response>no</response>
         </type_2>
         <type_3>
@@ -58,12 +71,30 @@ systemConfig:
         <type_4>
             <name>exemption_logic</name>
             <description>
-            Questions about whether a user qualifies for a tax exemption. Note: the user must specifically ask you to help them determine forms to fill out to obtain a tax exemption. This is NOT THE SAME AS ASKING ABOUT EXEMPTIONS IN GENERAL. They must ask which forms they need to fill out for particular exemptions.
+            ONLY classify queries as exemption_logic when they EXPLICITLY ask for help determining WHICH EXEMPTION FORMS they qualify for or need to fill out based on their SPECIFIC SITUATION.
+            
+            Examples that SHOULD be classified as exemption_logic:
+            - "What exemption forms should I fill out as a disabled veteran?"
+            - "Which forms do I need for a church exemption?"
+            - "Can you help me figure out which exemption forms I need for my nonprofit?"
+            - "What exemption form should I fill out for my house?"
+            - "My organization is a nonprofit, what exemption forms do we qualify for?"
+            
+            Examples that should NOT be classified as exemption_logic (classify as question instead):
+            - "What is a homeowner's exemption?"
+            - "How do I apply for the Homeowners' Exemption?"
+            - "What are the requirements for the Disabled Veterans' Exemption?"
+            - "When is the deadline to file for exemptions?"
+            - "How do I fill out form BOE-266?"
+            
+            The key distinction: Only use exemption_logic when the user is asking you to help determine WHICH specific exemption forms they qualify for based on their circumstances, requiring a multi-step decision tree with yes/no questions.
             </description> 
             <response>yes</response>
             <instruction>Say the words "Searching..."--NOTHING MORE.</instruction>
         </type_4>
         </types>
+
+        If you are uncertain between classifying as exemption_logic (type_4) or question (type_2), default to question unless the user is EXPLICITLY asking which exemption forms they qualify for or need to fill out based on their specific situation.
 
         ###
 
@@ -90,7 +121,7 @@ systemConfig:
         1. Read the customer query carefully:
         <query>${question}</query>
 
-        2. Categorize the query into one of the 3 types predefined above and the query language.
+        2. Categorize the query into one of the 4 types predefined above and the query language.
 
         3. For types requiring a response (where <response> is "yes"), adhere to the corresponding <instruction> to write a response to the customer. Follow the <rules> listed above when writing the response
 
