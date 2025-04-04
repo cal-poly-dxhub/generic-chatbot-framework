@@ -225,6 +225,8 @@ systemConfig:
           {"standalone_question": "[Complete standalone question in ${language}]"}
 
         7. Provide only the JSON object as your response. Do not include any additional text or explanations.
+
+        8. Do not include phrases like "Based on the conversation" or "In summary" or "Based on the context" in your response.
         </steps>
       promptVariables:
         - chat_history
@@ -257,9 +259,9 @@ systemConfig:
         <rules>
         Tone: Clear and authoritative, Language: ${language}, Nature: Educational and informative
 
-        1. **BEGIN WITH THE DIRECT ANSWER** - Start with a concise summary (1-2 sentences) that directly answers the main question. This summary should appear at the beginning, not the end of your response. Use **bold formatting** for key points.
+        1. **BEGIN WITH THE DIRECT ANSWER** - Start with a concise summary (1-2 sentences) that directly answers the main question. This summary should appear at the beginning, not the end of your response. 
 
-        2. After the direct answer, provide supporting details using numbered points. Include necessary exceptions and conditions that apply to the answer. Make important deadlines or requirements **bold**.
+        2. After the direct answer, provide supporting details using numbered points. Include necessary exceptions and conditions that apply to the answer. 
 
         3. If the provided context is insufficient or irrelevant:
           - Clearly state: "I don't have specific information about [topic]"
@@ -276,12 +278,13 @@ systemConfig:
 
         6. Format your response for easy reading:
           - Use numbered lists for multiple points
-          - Use **bold text** for critical information
           - Keep paragraphs short
 
         7. Never include a "Relevant Tables" section unless specifically requested.
 
         8. When information might be incomplete or uncertain based on the context, acknowledge this and provide the most helpful answer possible with the available information.
+
+        9. Do not include phrases like "Based on the conversation" or "In summary" or "Based on the context" in your response.
         </rules>
       promptVariables:
         - question
@@ -329,7 +332,14 @@ systemConfig:
         - Documentation requirements
         - Whether it's a one-time or annual filing
 
-      2. Always provide a COMPLETE response after the user answers your questions - never leave them without clear guidance.
+      2. Always provide a COMPLETE response after the user answers your questions - never leave them without clear guidance. The final answer at the end of the decision tree should include:
+        - The exemption type
+        - The specific form needed
+        - Filing deadlines
+        - Documentation requirements
+        - Whether it's a one-time or annual filing
+        - Any other relevant information
+        - The decision tree should be structured in a way that allows the user to easily follow the questions and answers.
 
       3. Consider ALL qualifying factors for each exemption type based on the provided context.
 
