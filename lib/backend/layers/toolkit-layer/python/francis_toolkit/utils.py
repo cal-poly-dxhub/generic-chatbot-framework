@@ -21,7 +21,6 @@ from .clients import (
 )
 from .embeddings.bedrock_embeddings import BedrockEmbeddings
 from .embeddings.sagemaker_embeddings import SagemakerEndpointEmbeddings
-from .pgvector.vectorstores import PGVector
 from .retrievers.knowledgebase_retriever import AmazonKnowledgeBasesRetriever, RetrievalConfig
 from .types import EmbeddingModel
 
@@ -65,14 +64,8 @@ def get_embeddings(embedding_model: EmbeddingModel) -> Embeddings:
         raise ValueError(f"Invalid provider: {embedding_model.provider}")
 
 
-def get_vector_store(embedding_model: EmbeddingModel, **kwargs: Any) -> VectorStore:
-    embeddings = get_embeddings(embedding_model)
-
-    vector_store = PGVector(
-        embeddings=embeddings, collection_name=embedding_model.modelRefKey, connection=get_rds_connection_string(), **kwargs
-    )
-
-    return vector_store
+def get_vector_store(embedding_model: EmbeddingModel, **kwargs: Any) -> VectorStore:  # pragma: no cover
+    raise NotImplementedError("PGVector is not supported in the minimal S3 Vectors build")
 
 
 def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) -> BaseRetriever:
@@ -94,32 +87,13 @@ def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) ->
             min_score_confidence=score_threshold,
         )
     else:
-        vector_store = get_vector_store(embedding_model)
-        _retriever = vector_store.as_retriever(
-            search_type="similarity_score_threshold", search_kwargs={"score_threshold": score_threshold, "k": k}
-        )
+        raise ValueError("This build only supports 'knowledgebase' corpus with S3 Vectors")
 
     return _retriever
 
 
-def get_rds_connection_string() -> str:
-    try:
-        get_secret_value_response = secrets_manager_client.get_secret_value(SecretId=os.getenv("RDS_SECRET_ARN"))
-    except botocore.exceptions.ClientError as e:
-        raise Exception(f"Error retrieving secret: {e.response['Error']['Code']}")  # noqa: B904
-
-    secret = get_secret_value_response["SecretString"]
-    secret_dict = json.loads(secret)
-
-    host = os.getenv("RDS_ENDPOINT")
-    port = secret_dict["port"]
-    db_name = secret_dict["dbname"]
-    username = secret_dict["username"]
-    password = secret_dict["password"]
-
-    connection_string = f"postgresql+pg8000://{username}:{password}@{host}:{port}/{db_name}"
-
-    return connection_string
+def get_rds_connection_string() -> str:  # pragma: no cover
+    raise NotImplementedError("RDS/PGVector is not supported in the minimal S3 Vectors build")
 
 
 def get_calling_identity(cognito_authentication_provider: str) -> Tuple[str, str]:

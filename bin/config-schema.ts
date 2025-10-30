@@ -167,26 +167,44 @@ const configSchema = {
                         vectorStoreType: {
                             description: 'Type of vector store',
                             type: 'string',
-                            enum: ['pgvector', 'opensearch'],
+                            enum: ['s3vectors'],
                         },
                         vectorStoreProperties: {
-                            description: 'Properties of the vector store',
+                            description: 'Properties of the S3 Vectors store',
                             type: 'object',
                             properties: {
-                                minCapacity: {
+                                distanceMetric: {
                                     description:
-                                        'The minimum capacity (in Aurora Capacity Units) for the vector store.',
-                                    type: 'integer',
+                                        "Distance metric used for similarity search ('euclidean' | 'cosine')",
+                                    type: 'string',
+                                    enum: ['euclidean', 'cosine'],
                                 },
-                                maxCapacity: {
+                                metadataConfiguration: {
                                     description:
-                                        'The maximum capacity (in Aurora Capacity Units) for the vector store.',
-                                    type: 'integer',
+                                        'Metadata configuration for non-filterable keys',
+                                    type: 'object',
+                                    properties: {
+                                        nonFilterableMetadataKeys: {
+                                            type: 'array',
+                                            items: { type: 'string' },
+                                        },
+                                    },
                                 },
-                                useRDSProxy: {
-                                    description:
-                                        'Whether to use an RDS Proxy for the vector store connection.',
-                                    type: 'boolean',
+                                encryptionConfiguration: {
+                                    description: 'Server-side encryption configuration',
+                                    type: 'object',
+                                    properties: {
+                                        sseType: {
+                                            type: 'string',
+                                            enum: ['AES256', 'aws:kms'],
+                                            description: 'Server-side encryption type',
+                                        },
+                                        kmsKey: {
+                                            type: 'string',
+                                            description:
+                                                'KMS Key ID/ARN if sseType is aws:kms',
+                                        },
+                                    },
                                 },
                             },
                         },

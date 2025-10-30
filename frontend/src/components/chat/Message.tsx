@@ -6,11 +6,11 @@ Licensed under the Amazon Software License http://aws.amazon.com/asl/
 import { Button, TextContent, Box, Modal, SpaceBetween, Spinner } from '@cloudscape-design/components';
 import { useState } from 'react';
 import { SourceDocument } from './components/SourceDocument';
+import FeedbackPanel from './FeedbackPanel';
 import { useDeleteChatMessageMutation, useMessageSources } from '../../hooks/chats';
 import type { ChatMessage } from '../../react-query-hooks';
 import CopyText from '../buttons/CopyText';
 import { ModalButton } from '../buttons/ModalButton';
-import FeedbackPanel from './FeedbackPanel';
 
 type MessageProps = {
   message: ChatMessage;

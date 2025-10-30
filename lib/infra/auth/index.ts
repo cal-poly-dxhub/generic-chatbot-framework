@@ -29,7 +29,6 @@ const userPoolProperties = {
     mfa: cognito.Mfa.REQUIRED,
     mfaSecondFactor: { sms: true, otp: true },
     signInCaseSensitive: false,
-    advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,
     signInAliases: { email: true },
     accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
     selfSignUpEnabled: false,
@@ -78,6 +77,12 @@ export class Authentication extends Construct {
             ...userPoolProperties,
             removalPolicy: props.removalPolicy,
         });
+
+        // Enforce Cognito advanced security mode to satisfy AwsSolutions-COG3
+        const cfnUserPool = userPool.node.defaultChild as cognito.CfnUserPool;
+        cfnUserPool.userPoolAddOns = {
+            advancedSecurityMode: 'ENFORCED',
+        };
 
         const userPoolClient = userPool.addClient('UserPoolClient', {
             generateSecret: false,

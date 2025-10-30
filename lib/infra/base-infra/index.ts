@@ -12,7 +12,6 @@ import * as bedrock from 'aws-cdk-lib/aws-bedrock';
 import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
-import * as sagemaker from '@aws-cdk/aws-sagemaker-alpha';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as path from 'path';
 import * as ddb_util from '@aws-sdk/util-dynamodb';
@@ -111,7 +110,7 @@ export class BaseInfra extends Construct {
             code: lambda.Code.fromAsset(
                 path.join(constants.BACKEND_DIR, 'layers', 'toolkit-layer')
             ),
-            description: 'Utilities to instantiate a pgvector and sagemaker embeddings.',
+            description: 'Utilities for embeddings and vector operations.',
             ...props,
         });
 
@@ -129,13 +128,16 @@ export class BaseInfra extends Construct {
                 name: 'francis-chatbot-safety',
                 blockedInputMessaging: config.blockedMessages.input,
                 blockedOutputsMessaging: config.blockedMessages.output,
-                contentPolicyConfig: config.contentFilters && {
-                    filtersConfig: config.contentFilters.map((filter) => ({
-                        inputStrength: filter.inputStrength,
-                        outputStrength: filter.outputStrength,
-                        type: filter.type,
-                    })),
-                },
+                contentPolicyConfig:
+                    config.contentFilters.length > 0
+                        ? {
+                              filtersConfig: config.contentFilters.map((filter) => ({
+                                  inputStrength: filter.inputStrength,
+                                  outputStrength: filter.outputStrength,
+                                  type: filter.type,
+                              })),
+                          }
+                        : undefined,
                 sensitiveInformationPolicyConfig: config.piiFilters && {
                     piiEntitiesConfig: config.piiFilters.map((filter) => ({
                         action: filter.action,
@@ -181,12 +183,6 @@ export class BaseInfra extends Construct {
 
         vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
             service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-            privateDnsEnabled: true,
-            open: true,
-        });
-
-        vpc.addInterfaceEndpoint('SageMakerRuntimeEndpoint', {
-            service: ec2.InterfaceVpcEndpointAwsService.SAGEMAKER_RUNTIME,
             privateDnsEnabled: true,
             open: true,
         });
@@ -245,73 +241,6 @@ export class BaseInfra extends Construct {
         customResource.node.addDependency(configTable);
 
         return configTable;
-    }
-
-    public grantSagemakerEmbeddingsModelAccess(lambdaFunc: lambda.IFunction): void {
-        const endpointSet = new Set<string>();
-        const sagemakerEndpoints: sagemaker.IEndpoint[] = [];
-
-        this.systemConfig.ragConfig.embeddingsModels.forEach((model) => {
-            if (model.provider === 'sagemaker') {
-                if (!endpointSet.has(model.modelEndpointName)) {
-                    endpointSet.add(model.modelEndpointName);
-                    sagemakerEndpoints.push(
-                        sagemaker.Endpoint.fromEndpointName(
-                            this,
-                            `SagemakerEndpoint${endpointSet.size}`,
-                            model.modelEndpointName
-                        )
-                    );
-                }
-            }
-        });
-
-        sagemakerEndpoints.forEach((endpoint) => {
-            lambdaFunc.addToRolePolicy(
-                new iam.PolicyStatement({
-                    actions: [
-                        'sagemaker:InvokeEndpoint',
-                        'sagemaker:InvokeEndpointWithResponseStream',
-                    ],
-                    resources: [endpoint.endpointArn],
-                })
-            );
-        });
-    }
-
-    public grantSagemakerTextModelAccess(lambdaFunc: lambda.IFunction): void {
-        const endpointSet = new Set<string>();
-        const sagemakerEndpoints: sagemaker.IEndpoint[] = [];
-
-        const chains = [
-            this.systemConfig.llmConfig.qaChainConfig,
-            this.systemConfig.llmConfig.classificationChainConfig,
-            this.systemConfig.llmConfig.standaloneChainConfig,
-        ];
-
-        chains.forEach((chain) => {
-            if (chain && chain.modelConfig.provider == 'sagemaker') {
-                if (!endpointSet.has(chain.modelConfig.modelEndpointName)) {
-                    endpointSet.add(chain.modelConfig.modelEndpointName);
-                    sagemakerEndpoints.push(
-                        sagemaker.Endpoint.fromEndpointName(
-                            this,
-                            `SagemakerEndpoint${endpointSet.size}`,
-                            chain.modelConfig.modelEndpointName
-                        )
-                    );
-                }
-            }
-        });
-
-        sagemakerEndpoints.forEach((endpoint) => {
-            lambdaFunc.addToRolePolicy(
-                new iam.PolicyStatement({
-                    actions: ['sagemaker:InvokeEndpoint'],
-                    resources: [endpoint.endpointArn],
-                })
-            );
-        });
     }
 
     public grantBedrockEmbeddingsModelAccess(lambdaFunc: lambda.IFunction): void {

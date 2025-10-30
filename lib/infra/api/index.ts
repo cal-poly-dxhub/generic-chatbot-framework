@@ -9,20 +9,18 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as constants from '../common/constants';
-import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { BaseInfra } from '../base-infra';
 import { Authentication } from '../auth';
 import { WebSocket } from '../websocket';
+import { S3VectorStore } from '../vectorstore';
 
 export interface ApiProps {
     readonly baseInfra: BaseInfra;
     readonly authentication: Authentication;
-    readonly rdsSecret?: secretsmanager.ISecret;
-    readonly rdsEndpoint?: string;
-    readonly knowledgeBaseId?: string;
     readonly conversationTable: ddb.ITable;
+    readonly s3VectorStore?: S3VectorStore;
 }
 
 const defaultCorsPreflightOptions = {
@@ -122,16 +120,11 @@ export class Api extends Construct {
 
         const chatApiHandler = this.createLambdaHandler('conversation', props, {
             /* eslint-disable @typescript-eslint/naming-convention */
-            ...(props.rdsSecret && {
-                RDS_SECRET_ARN: props.rdsSecret.secretArn,
-            }),
-            ...(props.rdsEndpoint && { RDS_ENDPOINT: props.rdsEndpoint }),
             CONVERSATION_TABLE_NAME: props.conversationTable.tableName,
             CONVERSATION_INDEX_NAME: constants.CONVERSATION_STORE_GSI_INDEX_NAME,
             /* eslint-enable @typescript-eslint/naming-convention */
         });
         props.conversationTable.grantReadWriteData(chatApiHandler);
-        props.rdsSecret?.grantRead(chatApiHandler);
 
         props.baseInfra.grantBedrockHandoffModelAccess(chatApiHandler);
 
@@ -187,27 +180,14 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
 
-        const corpusApiHandler = this.createLambdaHandler('corpus', props, {
-            /* eslint-disable @typescript-eslint/naming-convention */
-            ...(props.rdsSecret && {
-                RDS_SECRET_ARN: props.rdsSecret.secretArn,
-            }),
-            ...(props.rdsEndpoint && { RDS_ENDPOINT: props.rdsEndpoint }),
-            ...(props.knowledgeBaseId && { KNOWLEDGE_BASE_ID: props.knowledgeBaseId }),
-            /* eslint-enable @typescript-eslint/naming-convention */
-        });
-        corpusApiHandler.addToRolePolicy(
-            new iam.PolicyStatement({
-                effect: iam.Effect.ALLOW,
-                actions: ['bedrock:Retrieve'],
-                resources: [
-                    `arn:aws:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:knowledge-base/${props.knowledgeBaseId}`,
-                ],
-            })
-        );
-        props.rdsSecret?.grantRead(corpusApiHandler);
-        props.baseInfra.grantSagemakerEmbeddingsModelAccess(corpusApiHandler);
+        const corpusApiHandler = this.createLambdaHandler('corpus', props, {});
         props.baseInfra.grantBedrockEmbeddingsModelAccess(corpusApiHandler);
+
+        // Grant S3 vector permissions if using S3 vectors
+        if (props.s3VectorStore) {
+            props.s3VectorStore.grantVectorWrite(corpusApiHandler);
+            props.s3VectorStore.grantVectorRead(corpusApiHandler);
+        }
 
         const embeddingResource = corpusResource.addResource('embedding', {
             defaultCorsPreflightOptions,
@@ -248,9 +228,14 @@ export class Api extends Construct {
             /* eslint-enable @typescript-eslint/naming-convention */
         });
         props.baseInfra.grantBedrockTextModelAccess(inferenceLambda);
-        props.baseInfra.grantSagemakerTextModelAccess(inferenceLambda);
         props.baseInfra.grantBedrockRerankingAccess(inferenceLambda);
         props.baseInfra.grantBedrockGuardrailAccess(inferenceLambda);
+
+        // Grant S3 vector permissions if using S3 vectors
+        if (props.s3VectorStore) {
+            props.s3VectorStore.grantVectorRead(inferenceLambda);
+            props.s3VectorStore.grantKnowledgeBaseQuery(inferenceLambda);
+        }
 
         conversationLambda.grantInvoke(inferenceLambda);
         corpusLambda.grantInvoke(inferenceLambda);

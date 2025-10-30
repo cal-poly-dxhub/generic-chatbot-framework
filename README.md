@@ -1,25 +1,25 @@
 ### Table of contents
 
-- [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
-- [Licence](#licence)
-- [Key Features](#key-features)
-- [Architecture overview](#architecture-overview)
-  - [Architecture reference diagram](#architecture-reference-diagram)
-  - [Solution components](#solution-components)
-- [Prerequisites](#prerequisites)
-  - [Build environment specifications](#build-environment-specifications)
-  - [AWS account](#aws-account)
-  - [Tools](#tools)
-- [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
-  - [Configuration](#configuration)
-  - [Build and deploy](#build-and-deploy)
-- [RAG Processing Flows](#rag-processing-flows)
-- [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
-  - [Method 1: Default Pipeline (Aurora PostgreSQL)](#method-1-default-pipeline-aurora-postgresql)
-  - [Method 2: Amazon Bedrock Knowledge Base (OpenSearch Serverless)](#method-2-amazon-bedrock-knowledge-base-opensearch-serverless)
-- [Access the solution web UI](#access-the-solution-web-ui)
-- [File structure](#file-structure)
-- [Uninstall the solution](#uninstall-the-solution)
+-   [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
+-   [Licence](#licence)
+-   [Key Features](#key-features)
+-   [Architecture overview](#architecture-overview)
+    -   [Architecture reference diagram](#architecture-reference-diagram)
+    -   [Solution components](#solution-components)
+-   [Prerequisites](#prerequisites)
+    -   [Build environment specifications](#build-environment-specifications)
+    -   [AWS account](#aws-account)
+    -   [Tools](#tools)
+-   [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
+    -   [Configuration](#configuration)
+    -   [Build and deploy](#build-and-deploy)
+-   [RAG Processing Flows](#rag-processing-flows)
+-   [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
+    -   [Method 1: Default Pipeline (Aurora PostgreSQL)](#method-1-default-pipeline-aurora-postgresql)
+    -   [Method 2: Amazon Bedrock Knowledge Base (OpenSearch Serverless)](#method-2-amazon-bedrock-knowledge-base-opensearch-serverless)
+-   [Access the solution web UI](#access-the-solution-web-ui)
+-   [File structure](#file-structure)
+-   [Uninstall the solution](#uninstall-the-solution)
 
 ---
 
@@ -38,32 +38,37 @@ Licensed under the Apache License Version 2.0 (the "License"). You may not use t
 or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ## Key Features
+
 1. **Flexible Document Ingestion Pipeline**: The chatbot offers two powerful ingestion paths:
-   - **Default Pipeline**: A customizable pipeline that processes various document formats (CSV, plain text) using Lambda functions and stores embeddings in Aurora PostgreSQL.
-   - **Amazon Bedrock Knowledge Base**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in OpenSearch Serverless.
 
-2. **Dual Vector Store Support**: 
-   - **Postgres pgvector**: Efficient vector similarity search using Aurora PostgreSQL with the pgvector extension, ideal for smaller to medium-sized datasets and cost-sensitive deployments.
-   - **OpenSearch Serverless**: Managed vector search solution that seamlessly integrates with Amazon Bedrock Knowledge Base, offering better scalability for larger datasets.
+    - **Default Pipeline**: A customizable pipeline that processes various document formats (CSV, plain text) using Lambda functions and stores embeddings in Aurora PostgreSQL.
+    - **Amazon Bedrock Knowledge Base**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in OpenSearch Serverless.
 
-3. **AWS Bedrock Integration**: 
-   - Direct access to state-of-the-art foundation models through AWS Bedrock
-   - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
-   - Support for various embedding models, text generation and reranking models
-   - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
-   - Support for Bedrock Guardrails to filter harmful content and redact sensitive information 
+2. **Dual Vector Store Support**:
+
+    - **Postgres pgvector**: Efficient vector similarity search using Aurora PostgreSQL with the pgvector extension, ideal for smaller to medium-sized datasets and cost-sensitive deployments.
+    - **OpenSearch Serverless**: Managed vector search solution that seamlessly integrates with Amazon Bedrock Knowledge Base, offering better scalability for larger datasets.
+
+3. **AWS Bedrock Integration**:
+
+    - Direct access to state-of-the-art foundation models through AWS Bedrock
+    - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
+    - Support for various embedding models, text generation and reranking models
+    - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
+    - Support for Bedrock Guardrails to filter harmful content and redact sensitive information
 
 4. **Interactive Chatbot Interface**: User-friendly interface supporting:
-   - Natural language conversations
-   - Context-aware responses
-   - Real-time document querying
-   - Follow-up questions and clarifications
+
+    - Natural language conversations
+    - Context-aware responses
+    - Real-time document querying
+    - Follow-up questions and clarifications
 
 5. **Enterprise-Ready Features**:
-   - High availability options with OpenSearch Serverless standby replicas
-   - Scalable architecture supporting both serverless and provisioned resources
-   - Comprehensive security controls and encryption
-   - Flexible deployment options to match your requirements
+    - High availability options with OpenSearch Serverless standby replicas
+    - Scalable architecture supporting both serverless and provisioned resources
+    - Comprehensive security controls and encryption
+    - Flexible deployment options to match your requirements
 
 ---
 
@@ -75,58 +80,60 @@ The following diagram represents the solution's architecture design.
 
 ![Diagram](docs/images/solution_architecture_diagram.png)
 
-
 ### Solution components
 
 The solution deploys the following components:
 
-- **Web Application Firewall**: AWS WAF is utilized to safeguard web frontend and API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources. 
+-   **Web Application Firewall**: AWS WAF is utilized to safeguard web frontend and API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources.
 
-- **Amazon CloudFront Distribution**: Amazon CloudFront distribution is used to serve the ChatBot Web UI. CloudFront delivers low latency, high performance, and secure static web hosting. An Amazon Simple Storage Service (Amazon S3) web UI bucket hosts the static web application artifacts.
+-   **Amazon CloudFront Distribution**: Amazon CloudFront distribution is used to serve the ChatBot Web UI. CloudFront delivers low latency, high performance, and secure static web hosting. An Amazon Simple Storage Service (Amazon S3) web UI bucket hosts the static web application artifacts.
 
-- **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution's functionalities without extensive configuration.
+-   **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution's functionalities without extensive configuration.
 
-- **Amazon API Gateway**: It exposes a set of RESTful APIs and routes incoming requests to the backend lambda functions.
+-   **Amazon API Gateway**: It exposes a set of RESTful APIs and routes incoming requests to the backend lambda functions.
 
-- **Chat Lambda Function**: This lambda function stores and retrieves chat messages for user's chat sessions in a DynamoDB table, enabling the maintenance of conversational context.
+-   **Chat Lambda Function**: This lambda function stores and retrieves chat messages for user's chat sessions in a DynamoDB table, enabling the maintenance of conversational context.
 
-- **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with either the similarity search function or Bedrock Knowledge Base to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
+-   **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with either the similarity search function or Bedrock Knowledge Base to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
 
-- **Vector Store**: The solution supports two vector store options:
-  - **Amazon Aurora PostgreSQL**: A serverless cluster with the PGVector extension to store document chunks and embeddings when using the default ingestion pipeline.
-  - **Amazon OpenSearch Serverless**: A managed vector search service that integrates with Bedrock Knowledge Base, offering enhanced scalability and built-in high availability through standby replicas.
+-   **Vector Store**: The solution supports two vector store options:
 
-- **Document Ingestion**: The solution provides two ingestion paths:
-  - **Default Pipeline**: An AWS Step Function that orchestrates document processing, including:
-    - Document chunking and preprocessing
-    - Embedding generation
-    - Vector store ingestion (Aurora PostgreSQL)
-  - **Amazon Bedrock Knowledge Base**: A managed document ingestion service that provides:
-    - Built-in document processing and chunking
-    - Automatic embedding generation
-    - Direct integration with OpenSearch Serverless
-    - Simplified management through Bedrock console
+    -   **Amazon Aurora PostgreSQL**: A serverless cluster with the PGVector extension to store document chunks and embeddings when using the default ingestion pipeline.
+    -   **Amazon OpenSearch Serverless**: A managed vector search service that integrates with Bedrock Knowledge Base, offering enhanced scalability and built-in high availability through standby replicas.
 
-- **Chat History Data Store**: A DynamoDB table which stores the user's chat session messages.
+-   **Document Ingestion**: The solution provides two ingestion paths:
 
-- **Amazon Bedrock**: Provides access to:
-  - Foundation Models for text generation
-  - Embedding Models for vector generation
-  - Knowledge Base for document ingestion and retrieval
-  - Built-in RAG capabilities when using Knowledge Base
+    -   **Default Pipeline**: An AWS Step Function that orchestrates document processing, including:
+        -   Document chunking and preprocessing
+        -   Embedding generation
+        -   Vector store ingestion (Aurora PostgreSQL)
+    -   **Amazon Bedrock Knowledge Base**: A managed document ingestion service that provides:
+        -   Built-in document processing and chunking
+        -   Automatic embedding generation
+        -   Direct integration with OpenSearch Serverless
+        -   Simplified management through Bedrock console
+
+-   **Chat History Data Store**: A DynamoDB table which stores the user's chat session messages.
+
+-   **Amazon Bedrock**: Provides access to:
+    -   Foundation Models for text generation
+    -   Embedding Models for vector generation
+    -   Knowledge Base for document ingestion and retrieval
+    -   Built-in RAG capabilities when using Knowledge Base
 
 The solution architecture adapts based on the chosen ingestion path and vector store configuration:
 
 1. **Default Pipeline with Aurora PostgreSQL**:
-   - Uses Step Functions for document processing
-   - Stores vectors in Aurora PostgreSQL
-   - Provides full control over the ingestion process
+
+    - Uses Step Functions for document processing
+    - Stores vectors in Aurora PostgreSQL
+    - Provides full control over the ingestion process
 
 2. **Bedrock Knowledge Base with OpenSearch Serverless**:
-   - Leverages managed document processing
-   - Stores vectors in OpenSearch Serverless
-   - Offers simplified management and scalability
-   - Enables built-in Bedrock RAG capabilities
+    - Leverages managed document processing
+    - Stores vectors in OpenSearch Serverless
+    - Offers simplified management and scalability
+    - Enables built-in Bedrock RAG capabilities
 
 Both configurations maintain the same high-level architecture while offering different trade-offs in terms of management overhead, scalability, and control.
 
@@ -165,6 +172,7 @@ Time to deploy: approximately 20 minutes
 Use the `bin/config.yaml` file to configure the solution. It is recommended to copy from an example in the `quickstart` folder based on the hosting platform (`Amazon Bedrock` or `Amazon SageMaker`) for the large language models, and make changes to suit your use cases accordingly.
 
 Example:
+
 ```bash
 cp quickstart/bedrock/config.yaml bin/
 ```
@@ -180,6 +188,7 @@ retainData: false,
 **Application name (optional)**
 
 An unique identifier, composed of ASCII characters, is used to support multiple deployments within the same account. The application name will be appended to the CloudFormation stack name, ensuring each CloudFormation stack remains unique.
+
 ```yaml
 applicationName: <string>
 ```
@@ -189,129 +198,142 @@ applicationName: <string>
 Specify settings for the large language models, including streaming, conversation history length, corpus document limits, similarity thresholds, and prompt configurations for standalone question rephrasing and question-answering chains.
 
 -   **streaming (optional)**: Whether to enable streaming responses from the language model. Default is false.
+
     ```yaml
     streaming: <true|false>
     ```
 
 -   **maxConversationHistory (optional)**: The maximum number of chat messages to include in the conversation history for rephrasing a follow-up question into a standalone question. Default is 5.
+
     ```yaml
     maxConversationHistory: <integer>
     ```
 
 -   **maxCorpusDocuments (optional)**: The maximum number of documents to include in the context for a question-answering prompt. Default is 5.
+
     ```yaml
     maxCorpusDocuments: <integer>
     ```
 
 -   **corpusSimilarityThreshold (optional)**: The minimum similarity score required for a document to be considered relevant to the question. Default is 0.25.
+
     ```yaml
     corpusSimilarityThreshold: <float>
     ```
 
--   **standaloneChainConfig (optional)**: Configuration for the standalone question rephrasing chain.  If this chain is not configured, the original user questions will be used directly for answering without any rephrasing.
+-   **standaloneChainConfig (optional)**: Configuration for the standalone question rephrasing chain. If this chain is not configured, the original user questions will be used directly for answering without any rephrasing.
+
     -   **modelConfig**: configuration for the language model used in this chain
+
         ```yaml
         modelConfig:
-          provider: <the provider of the language model (e.g., bedrock, sagemaker).>
-          modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-haiku-20240307-v1:0, us.anthropic.claude-3-haiku-20240307-v1:0)>
-          modelEndpointName: <the name of SageMaker endpoint if the model provider is set to sagemaker. Leave it to empty if the provider is bedrock.>
-          modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
+            provider: <the provider of the language model (e.g., bedrock, sagemaker).>
+            modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
+            modelEndpointName: <the name of SageMaker endpoint if the model provider is set to sagemaker. Leave it to empty if the provider is bedrock.>
+            modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
         ```
 
         Example:
+
         ```yaml
         modelConfig:
-          provider: bedrock
-          modelId: anthropic.claude-3-haiku-20240307-v1:0
-          modelKwargs:
-            maxTokens: 1024
-            temperature: 0.1
-            topP: 0.99
-            stopSequences:
-              - "Asisstant:"
+            provider: bedrock
+            modelId: anthropic.claude-3-7-sonnet-20250219-v1:0
+            modelKwargs:
+                maxTokens: 1024
+                temperature: 0.1
+                topP: 0.99
+                stopSequences:
+                    - 'Asisstant:'
         ```
 
         To find more information about `modelKwargs`, please refer to the [inference parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html).
 
     -   **promptTemplate**: The prompt template used for rephrasing questions.
+
         ```yaml
         promptTemplate: <string>
         ```
 
         Example:
+
         ```yaml
         promptTemplate: |
-          Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language. 
-          If there is no chat history, just rephrase the question to be a standalone question.
+            Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language. 
+            If there is no chat history, just rephrase the question to be a standalone question.
 
-          Chat History:
-          ${chat_history}
-          Follow Up Input: ${question}
+            Chat History:
+            ${chat_history}
+            Follow Up Input: ${question}
         ```
-    
+
     -   **promptVariables**: The list of variables used in the prompt template.
+
         ```yaml
         promptVariables:
-          - <variable1>
-          - <variable2>
+            - <variable1>
+            - <variable2>
         ```
 
         Example:
+
         ```yaml
         promptVariables:
-          - chat_history
-          - question
+            - chat_history
+            - question
         ```
 
     -   **kwargs**: Addtional keyword arguments used in this chain.
+
         ```yaml
         kwargs:
-          <key>: <value>
+            <key>: <value>
         ```
-        
+
         Example:
+
         ```yaml
         kwargs:
-          system_prompt: |
-            You are an AI assistant. Your primary role is to assist users with a wide range of questions and tasks. However, do not provide advice or information related to buying or selling stocks, investments, or financial trading. If asked about these topics, politely decline and suggest the user consult a financial professional.
-          input_label: inputs
-          model_kwargs_label: parameters
-          output_label: generated_text
+            system_prompt: |
+                You are an AI assistant. Your primary role is to assist users with a wide range of questions and tasks. However, do not provide advice or information related to buying or selling stocks, investments, or financial trading. If asked about these topics, politely decline and suggest the user consult a financial professional.
+            input_label: inputs
+            model_kwargs_label: parameters
+            output_label: generated_text
         ```
 
 -   **qaChainConfig**: Configuration for the question-answering chain.
+
     -   **modelConfig**: Configuration for the language model used in this chain (similar to standaloneChainConfig.modelConfig).
         ```yaml
         modelConfig:
-          provider: <the provider of the language model (e.g., bedrock, sagemaker).>
-          modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-haiku-20240307-v1:0, us.anthropic.claude-3-haiku-20240307-v1:0)>
-          modelEndpointName: <The name of the SageMaker endpoint for the language model (required for SageMaker models).>
-          modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
+            provider: <the provider of the language model (e.g., bedrock, sagemaker).>
+            modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
+            modelEndpointName: <The name of the SageMaker endpoint for the language model (required for SageMaker models).>
+            modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
         ```
-    
     -   **promptTemplate**: The prompt template used for answering questions.
         ```yaml
         prompteTemplate: <string>
         ```
-    
     -   **promptVariables**: The list of variables used in the prompt template.
         ```yaml
         promptVariables:
-          - <variable1>
-          - <variable2>
+            - <variable1>
+            - <variable2>
         ```
-    
-    -   **kwargs**: Addtional keyword arguments used in this chain. 
+    -   **kwargs**: Addtional keyword arguments used in this chain.
         ```yaml
         kwargs:
-          <key>: <value>
+            <key>: <value>
         ```
         To enable promotion image handling, firstly you need to upload the document to the input bucket, and then specify the promotion image URL using the `promotion_image_url` parameter in the `kwargs`.
         ```yaml
         kwargs:
-          promotion_image_url: <s3>
+            promotion_image_url: <s3>
         ```
+
 -   **rerankingConfig (optional)**: Configuration for reranking retrieved documents to improve relevance and accuracy of responses. Reranking helps refine the initial similarity search results by applying a more sophisticated model to assess document relevance.
+
     ```yaml
     rerankingConfig:
       modelConfig:
@@ -324,15 +346,16 @@ Specify settings for the large language models, including streaming, conversatio
     ```
 
     Example:
+
     ```yaml
     rerankingConfig:
-      modelConfig:
-        provider: bedrock
-        modelId: cohere.rerank-v3-5:0
-      kwargs:
-        numberOfResults: 10
-        additionalModelRequestFields:
-          max_tokens_per_doc: 4000
+        modelConfig:
+            provider: bedrock
+            modelId: cohere.rerank-v3-5:0
+        kwargs:
+            numberOfResults: 10
+            additionalModelRequestFields:
+                max_tokens_per_doc: 4000
     ```
 
     When enabled, reranking is applied after the initial vector similarity search and before sending context to the LLM. This can significantly improve the quality of retrieved documents, especially for complex queries.
@@ -340,43 +363,45 @@ Specify settings for the large language models, including streaming, conversatio
     > **Note**: Reranking may increase latency and costs as it involves an additional model inference step.
 
 -   **guardrailConfig (optional)**: Configuration for content moderation and PII protection. Guardrails help ensure safe and compliant interactions by filtering inappropriate content and handling sensitive information.
+
     ```yaml
     guardrailConfig:
-      contentFilters:
-        - type: <content filter type (HATE, VIOLENCE, SEXUAL)>
-          inputStrength: <filter strength for input (LOW, MEDIUM, HIGH)>
-          outputStrength: <filter strength for output (LOW, MEDIUM, HIGH)>
-      piiFilters:
-        - type: <PII filter type (EMAIL, PHONE, NAME, etc.)>
-          action: <action to take on PII (ANONYMIZE, BLOCK)>
-      blockedMessages:
-        input: <custom message for blocked input>
-        output: <custom message for blocked output>
+        contentFilters:
+            - type: <content filter type (HATE, VIOLENCE, SEXUAL)>
+              inputStrength: <filter strength for input (LOW, MEDIUM, HIGH)>
+              outputStrength: <filter strength for output (LOW, MEDIUM, HIGH)>
+        piiFilters:
+            - type: <PII filter type (EMAIL, PHONE, NAME, etc.)>
+              action: <action to take on PII (ANONYMIZE, BLOCK)>
+        blockedMessages:
+            input: <custom message for blocked input>
+            output: <custom message for blocked output>
     ```
 
     Example:
+
     ```yaml
     guardrailConfig:
-      contentFilters:
-        - type: HATE            
-          inputStrength: HIGH
-          outputStrength: HIGH
-        - type: VIOLENCE         
-          inputStrength: HIGH
-          outputStrength: HIGH
-        - type: SEXUAL           
-          inputStrength: MEDIUM
-          outputStrength: MEDIUM
-      piiFilters:
-        - type: EMAIL            
-          action: ANONYMIZE         
-        - type: PHONE           
-          action: ANONYMIZE        
-        - type: NAME            
-          action: ANONYMIZE          
-      blockedMessages:
-        input: "I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question."
-        output: "I apologize, but I cannot provide that type of response. Please try asking a different question."
+        contentFilters:
+            - type: HATE
+              inputStrength: HIGH
+              outputStrength: HIGH
+            - type: VIOLENCE
+              inputStrength: HIGH
+              outputStrength: HIGH
+            - type: SEXUAL
+              inputStrength: MEDIUM
+              outputStrength: MEDIUM
+        piiFilters:
+            - type: EMAIL
+              action: ANONYMIZE
+            - type: PHONE
+              action: ANONYMIZE
+            - type: NAME
+              action: ANONYMIZE
+        blockedMessages:
+            input: 'I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question.'
+            output: 'I apologize, but I cannot provide that type of response. Please try asking a different question.'
     ```
 
     When enabled, guardrails are applied to both user inputs and AI responses. Content filters help prevent harmful or inappropriate content, while PII filters protect sensitive personal information.
@@ -387,56 +412,65 @@ Specify settings for the large language models, including streaming, conversatio
 
     ```yaml
     vectorStoreConfig:
-      vectorStoreType: <pgvector | opensearch>
-      vectorStoreProperties:
-        # For pgvector (Aurora PostgreSQL)
-        minCapacity: <The minimum capacity (in Aurora Capacity Units) for the vector store.>
-        maxCapacity: <The maximum capacity (in Aurora Capacity Units) for the vector store.>
-        useRDSProxy: <Boolean flag indicating if RDS proxy is used for database connections.>
+        vectorStoreType: <pgvector | opensearch>
+        vectorStoreProperties:
+            # For pgvector (Aurora PostgreSQL)
+            minCapacity: <The minimum capacity (in Aurora Capacity Units) for the vector store.>
+            maxCapacity: <The maximum capacity (in Aurora Capacity Units) for the vector store.>
+            useRDSProxy: <Boolean flag indicating if RDS proxy is used for database connections.>
 
-        # For OpenSearch Serverless
-        standbyReplicas: <'ENABLED' | 'DISABLED', Indicates whether to use standby replicas for the collection. Default is ENABLED>
-        allowFromPublic: <Boolean flag determining whether the collection is accessible over the internet from public networks. Default is false>
+            # For OpenSearch Serverless
+            standbyReplicas: <'ENABLED' | 'DISABLED', Indicates whether to use standby replicas for the collection. Default is ENABLED>
+            allowFromPublic: <Boolean flag determining whether the collection is accessible over the internet from public networks. Default is false>
     ```
+
     Example for pgvector:
+
     ```yaml
     vectorStoreConfig:
-      vectorStoreType: pgvector
-      vectorStoreProperties:
-        minCapacity: 2
-        maxCapacity: 8
-        useRDSProxy: true
-    ```
-    Example for OpenSearch Serverless:
-    ```yaml
-    vectorStoreConfig:
-      vectorStoreType: opensearch
-      vectorStoreProperties:
-        standbyReplicas: ENABLED
-        allowFromPublic: false
+        vectorStoreType: pgvector
+        vectorStoreProperties:
+            minCapacity: 2
+            maxCapacity: 8
+            useRDSProxy: true
     ```
 
--   **embeddingsModels**: A list of embeddings models used for generating document embeddings. 
+    Example for OpenSearch Serverless:
+
+    ```yaml
+    vectorStoreConfig:
+        vectorStoreType: opensearch
+        vectorStoreProperties:
+            standbyReplicas: ENABLED
+            allowFromPublic: false
+    ```
+
+-   **embeddingsModels**: A list of embeddings models used for generating document embeddings.
+
     ```yaml
     embeddingsModels:
-      - provider: <The provider of the embeddings model (e.g., bedrock, sagemaker).>
-        modelId: <The ID of the embeddings model.>
-        modelRefKey: <A reference key for the embeddings model.>
-        dimensions: <The dimensionality of the embeddings produced by the model.>
-        modelEndpointName: <The name of the SageMaker endpoint for the embeddings model (required for SageMaker models).>
+        - provider: <The provider of the embeddings model (e.g., bedrock, sagemaker).>
+          modelId: <The ID of the embeddings model.>
+          modelRefKey: <A reference key for the embeddings model.>
+          dimensions: <The dimensionality of the embeddings produced by the model.>
+          modelEndpointName: <The name of the SageMaker endpoint for the embeddings model (required for SageMaker models).>
     ```
+
     If multiple embedding models are configured, the first model in the list will be chosen by default unless modelRefKey is specified.
 
--  **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution provides two ingestion paths:
+-   **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution provides two ingestion paths:
+
     1. **Default Pipeline**: Uses Aurora PostgreSQL as the vector store
-      - Automatically provisions an ingestion pipeline
-      - Processes documents through Lambda functions
-      - Stores embeddings in Aurora PostgreSQL
+
+    -   Automatically provisions an ingestion pipeline
+    -   Processes documents through Lambda functions
+    -   Stores embeddings in Aurora PostgreSQL
 
     2. **Amazon Bedrock Knowledge Base**: Uses OpenSearch Serverless as the vector store
-      - Leverages Amazon Bedrock's built-in ingestion capabilities
-      - Requires OpenSearch Serverless as the vector store
-      - Provides managed chunking and processing
+
+    -   Leverages Amazon Bedrock's built-in ingestion capabilities
+    -   Requires OpenSearch Serverless as the vector store
+    -   Provides managed chunking and processing
 
     > **Important**: To use Amazon Bedrock Knowledge Base, you must configure OpenSearch Serverless as your vector store in the `vectorStoreConfig` section. To use default ingestion pipeline, you must configure Aurora PostgreSQL as the vector store in the `vectorStoreConfig`.
 
@@ -456,7 +490,7 @@ Specify settings for the large language models, including streaming, conversatio
               maxTokens: <Maximum tokens per chunk (1-1000), default is 512>
               overlapPercentage: <Overlap between chunks (0-100), default is 20>
             # For SEMANTIC strategy
-            semanticChunkingConfiguration: 
+            semanticChunkingConfiguration:
               maxTokens: <Maximum tokens per chunk (1-1000)>
               overlapPercentage: <Overlap between chunks (0-100)>
               boundaryType: <'SENTENCE' | 'PARAGRAPH'>
@@ -464,33 +498,34 @@ Specify settings for the large language models, including streaming, conversatio
 
 **Chat history configuration (optional)**
 By default, this solution uses DynamoDB to store chat history. Alternatively, it supports storing chat history in the same PostgreSQL database as the vector store.
+
 ```yaml
 chatHistoryConfig:
-  storeType: <dynamodb | aurora_postgres>
+    storeType: <dynamodb | aurora_postgres>
 ```
 
 **Handoff mechanism configuration (optional)**
-This solution supports a handoff mechanism to transfer the conversation to a human agent after a certain number of requests from the user. 
+This solution supports a handoff mechanism to transfer the conversation to a human agent after a certain number of requests from the user.
 
 Under classificationChainConfig -> promptTemplate, the model should be configured to return another classification type "handoff_request". If handoff is not enabled, this type should not be present.
 
 ```yaml
 handoffConfig:
-  model:
-    provider: <bedrock> 
-    modelId: <the Bedrock ID of the handoff model>
-    supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
-    modelKwArgs: # Optional; uses Bedrock defaults if not set
-      maxTokens: 1024
-      temperature: 0.1
-      topP: 0.99
-      stopSequences: [ '...' ]
-  handoffThreshold: <the (integer) number of requests after which the handoff mechanism is triggered>
-  details: <optional list of details for the summarizer LLM to focus on>
-  handoffPrompts: # Each field is individually optional and handoffPrompts is optional
-    handoffRequested: <optional prompt for the model when the user requests a handoff and one has not been triggered>
-    handoffJustTriggered: <optional prompt for the model when the most recent request triggered handoff>
-    handoffCompleting: <optional prompt for the model when the handoff has been triggered and the user asks for a human again>
+    model:
+        provider: <bedrock>
+        modelId: <the Bedrock ID of the handoff model>
+        supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
+        modelKwArgs: # Optional; uses Bedrock defaults if not set
+            maxTokens: 1024
+            temperature: 0.1
+            topP: 0.99
+            stopSequences: ['...']
+    handoffThreshold: <the (integer) number of requests after which the handoff mechanism is triggered>
+    details: <optional list of details for the summarizer LLM to focus on>
+    handoffPrompts: # Each field is individually optional and handoffPrompts is optional
+        handoffRequested: <optional prompt for the model when the user requests a handoff and one has not been triggered>
+        handoffJustTriggered: <optional prompt for the model when the most recent request triggered handoff>
+        handoffCompleting: <optional prompt for the model when the handoff has been triggered and the user asks for a human again>
 ```
 
 **AWS WAF configuration (optional)**
@@ -498,19 +533,19 @@ This solution provisions AWS WAF Web ACL for API Gateway resources, by default. 
 
 ```yaml
 wafConfig:
-  enableApiGatewayWaf: <true|false>
-  cloudfrontWebAclArn: <The ARN of existing Waf WebAcl to link with CloudFront. It has to be created on us-east-1.>
-  allowedExternalIpRanges: <A list of IP prefixes. e.g. 192.168.0.0/24, 10.0.0.0/8>
+    enableApiGatewayWaf: <true|false>
+    cloudfrontWebAclArn: <The ARN of existing Waf WebAcl to link with CloudFront. It has to be created on us-east-1.>
+    allowedExternalIpRanges: <A list of IP prefixes. e.g. 192.168.0.0/24, 10.0.0.0/8>
 ```
 
 Example WAF Configuration:
 
 ```yaml
 wafConfig:
-  enableApiGatewayWaf: true
-  allowedExternalIpRanges:
-    - 192.168.0.0/24
-    - 10.0.0.0/8
+    enableApiGatewayWaf: true
+    allowedExternalIpRanges:
+        - 192.168.0.0/24
+        - 10.0.0.0/8
 ```
 
 ### Build and deploy
@@ -528,17 +563,21 @@ The GenAI RAG chatbot supports three primary data flows: `Classification Flow`, 
 ![Diagram](docs/images/sequence_diagram.png)
 
 ## How to ingest the documents into vector store
+
 The solution provides two methods for document ingestion. Here's a guide to help you choose the right method for your use case:
 
 ### Method 1: Default Pipeline (Aurora PostgreSQL)
-**Best For:**
-- Custom document preprocessing requirements
-- Fine-grained control over the ingestion process
-- Integration with existing PostgreSQL workflows
-- Cost-sensitive deployments
-- Smaller to medium-sized document collections
 
-This section provides instructions on how to ingest documents into the vector store using our AWS Step Function-based ingestion pipeline. 
+**Best For:**
+
+-   Custom document preprocessing requirements
+-   Fine-grained control over the ingestion process
+-   Integration with existing PostgreSQL workflows
+-   Cost-sensitive deployments
+-   Smaller to medium-sized document collections
+
+This section provides instructions on how to ingest documents into the vector store using our AWS Step Function-based ingestion pipeline.
+
 1. Find the input bucket name from deployment output starting with `InputBucket`. Upload the documents from local directory to the input bucket.
 
 ```bash
@@ -554,6 +593,7 @@ aws stepfunctions start-execution --state-machine-arn <state-machine-arn>
 Capture the ARN of execution.
 
 3. Monitor the execution status of the Step Function through the AWS Management Console or using the AWS CLI.
+
 ```bash
 aws stepfunctions describe-execution --execution-arn <execution-arn>
 ```
@@ -561,20 +601,25 @@ aws stepfunctions describe-execution --execution-arn <execution-arn>
 4. Review the logs generated by the Lambda functions for any errors or issues during the ingestion process. Logs can be accessed through AWS CloudWatch.
 
 ### Method 2: Amazon Bedrock Knowledge Base (OpenSearch Serverless)
-**Best For:**
-- Simplified operations and management
-- Large-scale document collections
-- Quick setup and deployment
-- Integration with other Bedrock features
-- Production workloads requiring high availability
 
-This section provides instructions on how to ingest documents into Amazon Bedrock Knowledge Base using the AWS CLI. 
+**Best For:**
+
+-   Simplified operations and management
+-   Large-scale document collections
+-   Quick setup and deployment
+-   Integration with other Bedrock features
+-   Production workloads requiring high availability
+
+This section provides instructions on how to ingest documents into Amazon Bedrock Knowledge Base using the AWS CLI.
+
 1. Find the input bucket name from deployment output starting with `InputBucket`. Upload the documents from local directory to the input bucket.
+
 ```bash
 aws s3 cp <local_dir> s3://<input_bucket>/<input_prefix>/ --recursive
 ```
 
 2. Find the knowledge base ID and data source ID from deployment output starting with 'KnowledgeBase'. Start the ingestion job using the AWS CLI.
+
 ```bash
 aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id>
 ```
@@ -582,6 +627,7 @@ aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id> --
 Capture the ID of ingestion job.
 
 3. Monitor the ingestion job status with the AWS CLI.
+
 ```bash
 aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id> --ingestion-job-id <job-id>
 ```

@@ -10,8 +10,6 @@ import * as cdk from 'aws-cdk-lib';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import path = require('path');
 
-export const PGVECTOR_DATABASE_NAME = 'embeddings';
-
 export const CONVERSATION_STORE_GSI_INDEX_NAME = 'GSI1';
 
 export const METRICS_NAMESPACE = 'AWSPrototyping/Francis';
@@ -29,8 +27,6 @@ export const LAMBDA_POWERTOOLS_PYTHON_VERSION = 'python311';
 export const CHUNK_SIZE_DOC_SPLIT = '1000';
 
 export const OVERLAP_FOR_DOC_SPLIT = '200';
-
-export const INGESTION_LAMBDA_MEMORY_SIZE = 1024;
 
 export const COGNITO_ADMIN_GROUP_NAME = 'Administrators';
 

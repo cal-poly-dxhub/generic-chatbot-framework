@@ -5,13 +5,14 @@ SPDX-License-Identifier: Apache-2.0
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { CfnDataSource } from 'aws-cdk-lib/aws-bedrock';
+import { IKey } from 'aws-cdk-lib/aws-kms';
 
 export interface SolutionInfo {
     readonly solutionName: string;
     readonly solutionVersion: string;
 }
 
-export type VectorStoreType = 'pgvector' | 'opensearch';
+export type VectorStoreType = 'pgvector' | 'opensearch' | 's3vectors';
 
 export interface PgVectorStoreConfig {
     readonly vectorStoreType: 'pgvector';
@@ -40,7 +41,24 @@ export interface OpenSearchVectorStoreConfig {
     };
 }
 
-export type VectorStoreConfig = PgVectorStoreConfig | OpenSearchVectorStoreConfig;
+export interface S3VectorStoreConfig {
+    readonly vectorStoreType: 's3vectors';
+    readonly vectorStoreProperties?: {
+        readonly distanceMetric?: 'euclidean' | 'cosine';
+        readonly metadataConfiguration?: {
+            readonly nonFilterableMetadataKeys: string[];
+        };
+        readonly encryptionConfiguration?: {
+            readonly sseType: 'AES256' | 'aws:kms';
+            readonly kmsKey?: IKey;
+        };
+    };
+}
+
+export type VectorStoreConfig =
+    | PgVectorStoreConfig
+    | OpenSearchVectorStoreConfig
+    | S3VectorStoreConfig;
 
 export type CorpusType = 'knowledgebase' | 'default';
 

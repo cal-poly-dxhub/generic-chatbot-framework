@@ -4,22 +4,18 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 import * as cdk from 'aws-cdk-lib';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3deployment from 'aws-cdk-lib/aws-s3-deployment';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { SolutionInfo, SystemConfig } from '../common/types';
 import { BaseInfra } from '../base-infra';
-import { PgVectorStore } from '../vectorstore/pg-vectorstore';
 import { Authentication } from '../auth';
 import { Frontend } from '../frontend';
 import { Api } from '../api';
 import * as path from 'path';
 import * as constants from '../common/constants';
-import { IngestionPipeline } from '../ingestion/pipeline';
 import { ConversationStore } from '../conversation-store';
-import { OpenSearchVectorStore } from '../vectorstore/opensearch-vectorstore';
-import { KnowledgeBase } from '../knowledgebase';
+import { S3VectorStore } from '../vectorstore';
 
 export interface FrancisChatbotStackProps extends cdk.StackProps {
     readonly systemConfig: SystemConfig;
@@ -70,49 +66,14 @@ export class FrancisChatbotStack extends cdk.Stack {
             serverAccessLogsBucket: baseInfra.serverAccessLogsBucket,
         });
 
-        const apiProps = {};
-
+        // Create S3 Vectors infrastructure if configured
+        let s3VectorStore: S3VectorStore | undefined;
         if (
-            baseInfra.systemConfig.ragConfig.corpusConfig?.corpusType == 'knowledgebase'
+            props.systemConfig.ragConfig.vectorStoreConfig.vectorStoreType === 's3vectors'
         ) {
-            const bedrockRole = new iam.Role(this, 'BedrockExecutionRole', {
-                assumedBy: new iam.ServicePrincipal('bedrock.amazonaws.com'),
-            });
-
-            const vectorStore = new OpenSearchVectorStore(this, 'OpenSearchVectorStore', {
+            s3VectorStore = new S3VectorStore(this, 'S3VectorStore', {
                 baseInfra,
-                dataAccessRoles: [bedrockRole],
-            });
-
-            const knowledgeBase = new KnowledgeBase(this, 'KnolwedgeBase', {
-                baseInfra,
-                bedrockRole,
-                vectorStore,
-                inputAssetsBucket,
-            });
-
-            knowledgeBase.knowledgeBase.node.addDependency(
-                vectorStore.opensearchSetupHandler
-            );
-
-            Object.assign(apiProps, {
-                knowledgeBaseId: knowledgeBase.knowledgeBase.attrKnowledgeBaseId,
-            });
-        } else {
-            const vectorStore = new PgVectorStore(this, 'PgVectorStore', {
-                baseInfra,
-            });
-
-            new IngestionPipeline(this, 'IngestionPipeline', {
-                baseInfra,
-                inputAssetsBucket,
-                rdsSecret: vectorStore.cluster.secret!,
-                rdsEndpoint: vectorStore.rdsEndpoint,
-            });
-
-            Object.assign(apiProps, {
-                rdsSecret: vectorStore.cluster.secret!,
-                rdsEndpoint: vectorStore.rdsEndpoint,
+                documentBucket: inputAssetsBucket,
             });
         }
 
@@ -120,7 +81,7 @@ export class FrancisChatbotStack extends cdk.Stack {
             baseInfra,
             authentication,
             conversationTable: conversationStore.conversationTable,
-            ...apiProps,
+            s3VectorStore,
         });
 
         // Allow inference lambda to read the promotion image in the input asset
