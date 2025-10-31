@@ -37,8 +37,8 @@ ragConfig:
         # kmsKey: <KMS Key ID>  # Required if sseType is 'aws:kms'
   embeddingsModels:
     - provider: bedrock
-      modelId: cohere.embed-multilingual-v3
-      modelRefKey: cohere.embed-multilingual-v3
+      modelId: amazon.titan-embed-text-v2:0
+      modelRefKey: titan-embed-text-v2
       dimensions: 1024
   corpusConfig:
     corpusType: knowledgebase  # Use 'knowledgebase' for S3 Vectors

@@ -16,6 +16,7 @@ import * as path from 'path';
 import * as constants from '../common/constants';
 import { ConversationStore } from '../conversation-store';
 import { S3VectorStore } from '../vectorstore';
+import { NagSuppressions } from 'cdk-nag';
 
 export interface FrancisChatbotStackProps extends cdk.StackProps {
     readonly systemConfig: SystemConfig;
@@ -87,24 +88,55 @@ export class FrancisChatbotStack extends cdk.Stack {
         // Allow inference lambda to read the promotion image in the input asset
         inputAssetsBucket.grantRead(api.inferenceLambda);
 
-        new s3deployment.BucketDeployment(this, 'FrontendDeployment', {
-            sources: [
-                s3deployment.Source.asset(
-                    path.resolve(__dirname, '../../../frontend/build')
-                ),
-                s3deployment.Source.jsonData('runtime-config.json', {
-                    apiUrl: api.restApi.url,
-                    wsApiUrl: api.webSocket.webSocketApiStage.url,
-                    region: cdk.Aws.REGION,
-                    identityPoolId: authentication.identityPool.identityPoolId,
-                    userPoolId: authentication.userPool.userPoolId,
-                    userPoolWebClientId: authentication.appClientId,
-                    useStreaming: props.systemConfig.llmConfig.streaming ?? false,
-                }),
+        const frontendDeployment = new s3deployment.BucketDeployment(
+            this,
+            'FrontendDeployment',
+            {
+                sources: [
+                    s3deployment.Source.asset(
+                        path.resolve(__dirname, '../../../frontend/build'),
+                        {
+                            exclude: ['**/*.map', '**/*.LICENSE.txt'],
+                        }
+                    ),
+                    s3deployment.Source.jsonData('runtime-config.json', {
+                        apiUrl: api.restApi.url,
+                        wsApiUrl: api.webSocket.webSocketApiStage.url,
+                        region: cdk.Aws.REGION,
+                        identityPoolId: authentication.identityPool.identityPoolId,
+                        userPoolId: authentication.userPool.userPoolId,
+                        userPoolWebClientId: authentication.appClientId,
+                        useStreaming: props.systemConfig.llmConfig.streaming ?? false,
+                    }),
+                ],
+                destinationBucket: frontend.assetBucket,
+                distribution: frontend.cloudFrontDistribution,
+                memoryLimit: 3008, // Max Lambda memory (3008 MiB) for better network throughput
+                ephemeralStorageSize: cdk.Size.mebibytes(1024), // Helps with large zip operations
+                exclude: ['**/*.map', '**/*.LICENSE.txt'], // Belt and suspenders: exclude unnecessary files
+            }
+        );
+
+        // Add cdk-nag suppressions directly to the BucketDeployment construct
+        // This avoids issues with dynamic resource IDs that change based on configuration
+        NagSuppressions.addResourceSuppressions(
+            frontendDeployment,
+            [
+                {
+                    id: 'AwsSolutions-IAM5',
+                    reason: 'CDK deployment resources are managed by CDK',
+                },
+                {
+                    id: 'AwsSolutions-IAM4',
+                    reason: 'CDK deployment resources are managed by CDK, it uses AWSLambdaBasicExecutionRole managed policy',
+                },
+                {
+                    id: 'AwsSolutions-L1',
+                    reason: "CDK deployment resources are managed by CDK, can't control the runtime version",
+                },
             ],
-            destinationBucket: frontend.assetBucket,
-            distribution: frontend.cloudFrontDistribution,
-        });
+            true
+        );
 
         new cdk.CfnOutput(this, 'CloudFrontDomain', {
             value: frontend.cloudFrontDistribution.distributionDomainName,

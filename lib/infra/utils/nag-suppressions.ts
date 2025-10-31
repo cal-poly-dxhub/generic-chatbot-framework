@@ -28,26 +28,6 @@ export const applyNagSuppressions = (stack: Stack): void => {
         ]
     );
 
-    NagSuppressions.addResourceSuppressionsByPath(
-        stack,
-        `/${stack.stackName}/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C`,
-        [
-            {
-                id: 'AwsSolutions-IAM5',
-                reason: 'CDK deployment resources are managed by CDK',
-            },
-            {
-                id: 'AwsSolutions-IAM4',
-                reason: 'CDK deployment resources are managed by CDK, it uses AWSLambdaBasicExecutionRole managed policy',
-            },
-            {
-                id: 'AwsSolutions-L1',
-                reason: "CDK deployment resources are managed by CDK, can't control the runtime version",
-            },
-        ],
-        true
-    );
-
     [
         'Api/WebSocket/WsAuthorizerHandler/ServiceRole/Resource',
         'Api/WebSocket/WsApiHandler/ServiceRole/Resource',
@@ -222,5 +202,41 @@ export const applyNagSuppressions = (stack: Stack): void => {
                 reason: 'cdk-s3-vectors and Bedrock KB integrations require wildcard permissions to manage dynamically named resources.',
             },
         ]);
+    });
+
+    // Suppressions for BucketDeployment custom resources
+    // The custom resource ID is dynamically hashed based on configuration (memory, storage, etc.)
+    // The custom resource appears directly under the stack, not under FrontendDeployment
+    // We need to find all constructs with Custom::CDKBucketDeployment in their path
+    const findAllResources = (construct: any, results: any[] = []): any[] => {
+        // Check if this construct's node path contains the custom resource pattern
+        const nodePath = construct.node.path;
+        if (nodePath.includes('Custom::CDKBucketDeployment')) {
+            results.push(construct);
+        }
+        // Recursively search children
+        for (const child of construct.node.children) {
+            findAllResources(child, results);
+        }
+        return results;
+    };
+
+    const bucketDeploymentResources = findAllResources(stack);
+    bucketDeploymentResources.forEach((resource) => {
+        // Suppress on the custom resource and all its children (ServiceRole, DefaultPolicy, etc.)
+        NagSuppressions.addResourceSuppressions(
+            resource,
+            [
+                {
+                    id: 'AwsSolutions-IAM4',
+                    reason: 'BucketDeployment custom resources use AWSLambdaBasicExecutionRole managed policy which is provided by CDK.',
+                },
+                {
+                    id: 'AwsSolutions-IAM5',
+                    reason: 'BucketDeployment requires wildcard permissions to manage S3 assets and CDK asset buckets.',
+                },
+            ],
+            true // applyToChildren
+        );
     });
 };

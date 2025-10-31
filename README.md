@@ -351,7 +351,7 @@ Specify settings for the large language models, including streaming, conversatio
     rerankingConfig:
         modelConfig:
             provider: bedrock
-            modelId: cohere.rerank-v3-5:0
+            modelId: amazon.titan-embed-text-v2:0
         kwargs:
             numberOfResults: 10
             additionalModelRequestFields:

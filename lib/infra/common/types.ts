@@ -12,34 +12,7 @@ export interface SolutionInfo {
     readonly solutionVersion: string;
 }
 
-export type VectorStoreType = 'pgvector' | 'opensearch' | 's3vectors';
-
-export interface PgVectorStoreConfig {
-    readonly vectorStoreType: 'pgvector';
-    readonly vectorStoreProperties?: {
-        /**
-         * Minimum capacity for serverless cluster; 1 unit = 2GB
-         * @default 1 (2GB)
-         */
-        readonly minCapacity?: number;
-
-        /**
-         * Maximum capacity for serverless cluster; 1 unit = 2GB
-         * @default 50 (100GB)
-         */
-        readonly maxCapacity?: number;
-
-        readonly useRDSProxy?: boolean;
-    };
-}
-
-export interface OpenSearchVectorStoreConfig {
-    readonly vectorStoreType: 'opensearch';
-    readonly vectorStoreProperties?: {
-        readonly standbyReplicas: 'ENABLED' | 'DISABLED';
-        readonly allowFromPublic: boolean;
-    };
-}
+export type VectorStoreType = 's3vectors';
 
 export interface S3VectorStoreConfig {
     readonly vectorStoreType: 's3vectors';
@@ -55,10 +28,7 @@ export interface S3VectorStoreConfig {
     };
 }
 
-export type VectorStoreConfig =
-    | PgVectorStoreConfig
-    | OpenSearchVectorStoreConfig
-    | S3VectorStoreConfig;
+export type VectorStoreConfig = S3VectorStoreConfig;
 
 export type CorpusType = 'knowledgebase' | 'default';
 

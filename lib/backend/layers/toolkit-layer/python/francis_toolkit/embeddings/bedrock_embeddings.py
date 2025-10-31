@@ -28,7 +28,7 @@ class BedrockEmbeddings(BaseModel, Embeddings):
     See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html
     """
 
-    model_id: str = "amazon.titan-embed-text-v1"
+    model_id: str = "amazon.titan-embed-text-v2:0"
     """Id of the model to call, e.g., amazon.titan-embed-text-v1, this is
     equivalent to the modelId property in the list-foundation-models api"""
 
@@ -53,12 +53,7 @@ class BedrockEmbeddings(BaseModel, Embeddings):
         # format input body for provider
         _model_kwargs = self.model_kwargs or {}
         input_body = {**_model_kwargs}
-        if self.model_provider == "cohere":
-            input_body["input_type"] = kwargs.get("input_type") or input_body.get("input_type") or "search_document"
-            input_body["texts"] = [text]
-        else:
-            # includes common provider == "amazon"
-            input_body["inputText"] = text
+        input_body["inputText"] = text
         body = json.dumps(input_body)
 
         try:
@@ -72,11 +67,7 @@ class BedrockEmbeddings(BaseModel, Embeddings):
 
             # format output based on provider
             response_body = json.loads(response.get("body").read())
-            if self.model_provider == "cohere":
-                return response_body.get("embeddings")[0]  # type: ignore
-            else:
-                # includes common provider == "amazon"
-                return response_body.get("embedding")  # type: ignore
+            return response_body.get("embedding")  # type: ignore
         except Exception as e:
             raise ValueError(f"Error raised by inference endpoint: {e}")  # noqa: B904
 
@@ -98,12 +89,8 @@ class BedrockEmbeddings(BaseModel, Embeddings):
             List of embeddings, one for each text.
         """
         results = []
-        kwargs = {}
-        if self.model_provider == "cohere":
-            kwargs["input_type"] = "search_document"
-
         for text in texts:
-            response = self._embedding_func(text, **kwargs)
+            response = self._embedding_func(text)
 
             if self.normalize:
                 response = self._normalize_vector(response)
@@ -123,10 +110,7 @@ class BedrockEmbeddings(BaseModel, Embeddings):
         -------
             Embeddings for the text.
         """
-        kwargs = {}
-        if self.model_provider == "cohere":
-            kwargs["input_type"] = "search_query"
-        embedding = self._embedding_func(text, **kwargs)
+        embedding = self._embedding_func(text)
 
         if self.normalize:
             return self._normalize_vector(embedding)

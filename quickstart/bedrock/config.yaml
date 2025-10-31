@@ -29,7 +29,7 @@ systemConfig:
         qaChainConfig:
             modelConfig:
                 provider: bedrock
-                modelId: anthropic.claude-3-haiku-20240307-v1:0
+                modelId: anthropic.claude-3-7-sonnet-20250219-v1:0
                 modelKwargs:
                     maxTokens: 1024
                     temperature: 0.1
@@ -50,15 +50,14 @@ systemConfig:
                 - context
     ragConfig:
         vectorStoreConfig:
-            vectorStoreType: pgvector
+            vectorStoreType: s3vectors
             vectorStoreProperties:
-                minCapacity: 1
-                maxCapacity: 3
+                distanceMetric: cosine
         embeddingsModels:
             - provider: bedrock
-              modelId: amazon.titan-embed-text-v1
-              modelRefKey: titan-embed-text-v1
-              dimensions: 1536
+              modelId: amazon.titan-embed-text-v2:0
+              modelRefKey: titan-embed-text-v2
+              dimensions: 1024
         corpusConfig:
             corpusType: knowledgebase
     wafConfig:
