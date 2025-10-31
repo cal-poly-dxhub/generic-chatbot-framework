@@ -304,6 +304,15 @@ def get_corpus_documents(
 
     request_payload["body"] = body
 
-    response = invoke_lambda_function(CORPUS_LAMBDA_FUNC_NAME, request_payload)
-
-    return response["documents"]  # type: ignore
+    try:
+        response = invoke_lambda_function(CORPUS_LAMBDA_FUNC_NAME, request_payload)
+        # Expect shape { "documents": [...] }. If missing, treat as no docs.
+        documents = response.get("documents") if isinstance(response, dict) else None  # type: ignore
+        if not isinstance(documents, list):
+            logger.warning("Corpus lambda response missing 'documents'; proceeding with empty context")
+            return []
+        return documents
+    except Exception as e:
+        logger.error(f"Corpus search failed: {e}")
+        # Fail open with no documents so the QA step can still return an answer
+        return []

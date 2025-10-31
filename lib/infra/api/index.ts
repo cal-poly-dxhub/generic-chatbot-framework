@@ -58,6 +58,24 @@ export class Api extends Construct {
             },
         });
 
+        // Ensure CORS headers are present on default 4XX/5XX responses
+        api.addGatewayResponse('Default4xxWithCors', {
+            type: apigw.ResponseType.DEFAULT_4XX,
+            responseHeaders: {
+                'Access-Control-Allow-Origin': "'*'",
+                'Access-Control-Allow-Headers': "'*'",
+                'Access-Control-Allow-Methods': "'*'",
+            },
+        });
+        api.addGatewayResponse('Default5xxWithCors', {
+            type: apigw.ResponseType.DEFAULT_5XX,
+            responseHeaders: {
+                'Access-Control-Allow-Origin': "'*'",
+                'Access-Control-Allow-Headers': "'*'",
+                'Access-Control-Allow-Methods': "'*'",
+            },
+        });
+
         const corpusLambda = this.createCorpusResources(api, props);
         const conversationLambda = this.createChatResources(api, props);
 
