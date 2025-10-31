@@ -50,11 +50,40 @@ export class S3VectorStore extends Construct {
         const indexName = `fr-index-${applicationName}`;
         const embeddingModel = props.baseInfra.systemConfig.ragConfig.embeddingsModels[0];
 
+        // Identify configurable vs fixed-dimension models
+        const modelId = embeddingModel.modelId;
+        const supportsConfigurableDimensions = modelId.startsWith('amazon.titan');
+
+        // Fixed-dimension map (extend if you add others later)
+        const fixedDims: Record<string, number> = {
+            'cohere.embed-multilingual-v3': 1024,
+            'cohere.embed-english-v3': 1024,
+        };
+
+        const fixedDim = fixedDims[modelId];
+
+        // Optional safety check: fail fast at synth if dimensions mismatch
+        if (
+            !supportsConfigurableDimensions &&
+            fixedDim &&
+            embeddingModel.dimensions &&
+            embeddingModel.dimensions !== fixedDim
+        ) {
+            throw new Error(
+                `Embedding model ${modelId} has fixed dimension ${fixedDim}, but you set ${embeddingModel.dimensions} in config.`
+            );
+        }
+
+        // Compute the actual index dimension
+        const indexDimension = supportsConfigurableDimensions
+            ? embeddingModel.dimensions // you control this (e.g., 256/512/1024 for Titan v2)
+            : fixedDim ?? embeddingModel.dimensions; // fall back if not in fixed map
+
         this.vectorIndex = new s3Vectors.Index(this, 'VectorIndex', {
             vectorBucketName: this.vectorBucket.vectorBucketName,
             indexName,
             dataType: 'float32',
-            dimension: embeddingModel.dimensions,
+            dimension: indexDimension,
             distanceMetric:
                 vectorStoreConfig.vectorStoreProperties?.distanceMetric ?? 'cosine',
             metadataConfiguration: vectorStoreConfig.vectorStoreProperties
@@ -75,19 +104,16 @@ export class S3VectorStore extends Construct {
         if (corpusConfig && corpusConfig.corpusType === 'knowledgebase') {
             // Get embedding model ARN
             const region = cdk.Stack.of(this).region;
-            const embeddingModelArn = `arn:aws:bedrock:${region}::foundation-model/${embeddingModel.modelId}`;
+            const embeddingModelArn = `arn:aws:bedrock:${region}::foundation-model/${modelId}`;
 
-            // Only include dimensions for models that support configurable dimensions (e.g., Amazon Titan)
-            // Cohere and some other models have fixed dimensions and don't accept this parameter
-            const supportsConfigurableDimensions =
-                embeddingModel.modelId.startsWith('amazon.titan');
-
+            // KB config: include dimensions only when configurable
+            // Use the same indexDimension computed above to ensure consistency
             const knowledgeBaseConfig: s3Vectors.KnowledgeBaseConfiguration =
                 supportsConfigurableDimensions
                     ? {
                           embeddingModelArn,
                           embeddingDataType: 'FLOAT32',
-                          dimensions: embeddingModel.dimensions.toString(),
+                          dimensions: indexDimension.toString(),
                       }
                     : {
                           embeddingModelArn,
