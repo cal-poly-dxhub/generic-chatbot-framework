@@ -21,6 +21,18 @@ systemConfig:
             vectorStoreType: s3vectors
             vectorStoreProperties:
                 distanceMetric: cosine
+                metadataConfiguration:
+                    nonFilterableMetadataKeys:
+                        - attributes
+                        - text
+                        - content
+                        - body
+                        - raw_text
+                        - chunk
+                        - chunk_text
+                        - html
+                        - markdown
+                        - metadata
         embeddingsModels:
             - provider: bedrock
               modelId: amazon.titan-embed-text-v2:0

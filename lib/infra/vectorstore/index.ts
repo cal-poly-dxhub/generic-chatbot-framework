@@ -54,7 +54,14 @@ export class S3VectorStore extends Construct {
         const modelId = embeddingModel.modelId;
         const indexDimension = embeddingModel.dimensions;
 
-        this.vectorIndex = new s3Vectors.Index(this, 'VectorIndex', {
+        // Use different construct ID when metadata config is present to force new index creation
+        // This allows CloudFormation to create new resources when metadata configuration changes
+        const indexConstructId = vectorStoreConfig.vectorStoreProperties
+            ?.metadataConfiguration?.nonFilterableMetadataKeys
+            ? 'VectorIndexWithMetadataConfig'
+            : 'VectorIndex';
+
+        this.vectorIndex = new s3Vectors.Index(this, indexConstructId, {
             vectorBucketName: this.vectorBucket.vectorBucketName,
             indexName,
             dataType: 'float32',
@@ -88,8 +95,19 @@ export class S3VectorStore extends Construct {
                 dimensions: indexDimension.toString(),
             };
 
-            this.knowledgeBase = new s3Vectors.KnowledgeBase(this, 'KnowledgeBase', {
-                knowledgeBaseName: `fr-kb-${applicationName}`,
+            // Knowledge Base storage configuration cannot be modified after creation.
+            // When metadata config is added, the old KB must be manually deleted first.
+            const knowledgeBaseName = `fr-kb-${applicationName}`;
+
+            // Use different construct ID when metadata config is present to force new KB creation
+            // This allows CloudFormation to create new resources when metadata configuration changes
+            const kbConstructId = vectorStoreConfig.vectorStoreProperties
+                ?.metadataConfiguration?.nonFilterableMetadataKeys
+                ? 'KnowledgeBaseWithMetadataConfig'
+                : 'KnowledgeBase';
+
+            this.knowledgeBase = new s3Vectors.KnowledgeBase(this, kbConstructId, {
+                knowledgeBaseName,
                 vectorBucketArn: this.vectorBucket.vectorBucketArn,
                 indexArn: this.vectorIndex.indexArn,
                 knowledgeBaseConfiguration: knowledgeBaseConfig,
