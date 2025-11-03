@@ -1,7 +1,7 @@
 from typing import Optional, Literal
 from pydantic import BaseModel
 
-ModelProvider = Literal["sagemaker", "bedrock"]
+ModelProvider = Literal["bedrock"]
 
 
 # TODO: where do these types belong?

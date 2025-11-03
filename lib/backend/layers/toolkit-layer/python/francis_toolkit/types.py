@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 
 class ModelHosting(str, Enum):
-    SAGEMAKER = "sagemaker"
     BEDROCK = "bedrock"
 
 
@@ -21,7 +20,6 @@ class EmbeddingModel(BaseModel):
     provider: str
     modelId: str
     modelRefKey: str
-    modelEndpointName: Optional[str] = None
     dimensions: int
 
 

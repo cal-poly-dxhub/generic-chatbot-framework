@@ -235,16 +235,11 @@ const configSchema = {
                             provider: {
                                 description: 'Provider of the embeddings model',
                                 type: 'string',
-                                enum: ['bedrock', 'sagemaker'],
+                                enum: ['bedrock'],
                             },
                             modelId: {
                                 description: 'ID of the embeddings model',
                                 type: 'string',
-                            },
-                            modelEndpointName: {
-                                type: 'string',
-                                description:
-                                    'Name of the SageMaker endpoint for the embeddings model',
                             },
                             modelRefKey: {
                                 description: 'Reference key for the embeddings model',
@@ -415,41 +410,7 @@ const configSchema = {
             },
         },
         LLMModel: {
-            oneOf: [
-                {
-                    $ref: '#/definitions/SageMakerLLMModel',
-                },
-                {
-                    $ref: '#/definitions/BedRockLLMModel',
-                },
-            ],
-        },
-        SageMakerLLMModel: {
-            type: 'object',
-            title: 'SageMakerLLMModel',
-            description: 'Configuration for a SageMaker LLM model',
-            required: ['provider', 'modelId', 'modelEndpointName'],
-            properties: {
-                provider: {
-                    type: 'string',
-                    const: 'sagemaker',
-                },
-                modelId: {
-                    type: 'string',
-                    description: 'ID of the LLM model',
-                },
-                modelEndpointName: {
-                    type: 'string',
-                    description: 'Name of the SageMaker endpoint for the LLM model',
-                },
-                modelKwargs: {
-                    $ref: '#/definitions/ModelKwargs',
-                },
-                region: {
-                    type: 'string',
-                    description: 'AWS region for the LLM model',
-                },
-            },
+            $ref: '#/definitions/BedRockLLMModel',
         },
         BedRockLLMModel: {
             type: 'object',

@@ -89,7 +89,6 @@ This software includes third party software subject to the following copyrights:
  pep8-naming                0.13.3       MIT License                                                   
  pexpect                    4.9.0        ISC License (ISCL)                                            
  pg8000                     1.31.2       BSD License                                                   
- pgvector                   0.2.5        MIT                                                           
  pickleshare                0.7.5        MIT License                                                   
  pipreqs                    0.5.0        Apache Software License                                       
  platformdirs               4.3.3        MIT License                                                   

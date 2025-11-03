@@ -15,18 +15,16 @@ from .clients import (
     bedrock_client,
     dynamodb_resource_client,
     lambda_client,
-    sagemaker_client,
     secrets_manager_client,
 )
 from .embeddings.bedrock_embeddings import BedrockEmbeddings
-from .embeddings.sagemaker_embeddings import SagemakerEndpointEmbeddings
 from .retrievers.knowledgebase_retriever import AmazonKnowledgeBasesRetriever, RetrievalConfig
 from .types import EmbeddingModel
 
 
 def get_embedding_models() -> List[EmbeddingModel]:
     # Load the embedding models from the environment variable
-    embedding_models_json = os.getenv("EMBEDDINGS_SAGEMAKER_MODELS", "[]")
+    embedding_models_json = os.getenv("EMBEDDINGS_MODELS", "[]")
     embedding_models = [EmbeddingModel(**model) for model in json.loads(embedding_models_json)]
     return embedding_models
 
@@ -48,19 +46,13 @@ def find_embedding_model_by_ref_key(
 
 
 def get_embeddings(embedding_model: EmbeddingModel) -> Embeddings:
-    if embedding_model.provider == "sagemaker":
-        return SagemakerEndpointEmbeddings(
-            endpoint_name=embedding_model.modelEndpointName,  # type: ignore
-            client=sagemaker_client,
-            model_kwargs={"model": embedding_model.modelId},
-        )
-    elif embedding_model.provider == "bedrock":
+    if embedding_model.provider == "bedrock":
         return BedrockEmbeddings(
             client=bedrock_client,
             model_id=embedding_model.modelId,
         )
     else:
-        raise ValueError(f"Invalid provider: {embedding_model.provider}")
+        raise ValueError(f"Invalid provider: {embedding_model.provider}. Only 'bedrock' is supported.")
 
 
 def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) -> BaseRetriever:

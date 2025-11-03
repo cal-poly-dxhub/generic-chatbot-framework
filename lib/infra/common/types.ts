@@ -43,7 +43,7 @@ export interface KnowledgeBaseCorpusConfig extends BaseCorpusConfig {
     };
 }
 
-export type ModelProvider = 'sagemaker' | 'bedrock';
+export type ModelProvider = 'bedrock';
 
 export interface ModelBase {
     readonly provider: ModelProvider;
@@ -61,11 +61,6 @@ export interface BedRockLLMModel extends LLMModelBase {
     readonly supportsSystemPrompt: boolean;
 }
 
-export interface SageMakerLLMModel extends LLMModelBase {
-    readonly provider: 'sagemaker';
-    readonly modelEndpointName: string;
-}
-
 export type RerankingModelBase = ModelBase;
 
 export interface BedRockRerankingModel extends RerankingModelBase {
@@ -77,18 +72,13 @@ export interface EmbeddingModelBase extends ModelBase {
     readonly modelRefKey: string;
 }
 
-export interface SageMakerEmbeddingModel extends EmbeddingModelBase {
-    readonly provider: 'sagemaker';
-    readonly modelEndpointName: string;
-}
-
 export interface BedRockEmbeddingModel extends EmbeddingModelBase {
     readonly provider: 'bedrock';
 }
 
-export type EmbeddingModel = SageMakerEmbeddingModel | BedRockEmbeddingModel;
+export type EmbeddingModel = BedRockEmbeddingModel;
 
-export type LLMModel = SageMakerLLMModel | BedRockLLMModel;
+export type LLMModel = BedRockLLMModel;
 
 export type RerankingModel = BedRockRerankingModel;
 

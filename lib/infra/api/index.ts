@@ -289,7 +289,7 @@ export class Api extends Construct {
                 ...constants.LAMBDA_COMMON_ENVIRONMENT,
                 /* eslint-disable @typescript-eslint/naming-convention */
                 POWERTOOLS_SERVICE_NAME: `${resourceName}-api`,
-                EMBEDDINGS_SAGEMAKER_MODELS: JSON.stringify(
+                EMBEDDINGS_MODELS: JSON.stringify(
                     props.baseInfra.systemConfig.ragConfig.embeddingsModels
                 ),
                 CONFIG_TABLE_NAME: props.baseInfra.configTable.tableName,

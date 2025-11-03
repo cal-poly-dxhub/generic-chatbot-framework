@@ -3,8 +3,6 @@
 import boto3
 from botocore.config import Config
 
-sagemaker_client = boto3.client("sagemaker-runtime", config=Config(retries={"max_attempts": 15, "mode": "adaptive"}))
-
 secrets_manager_client = boto3.client("secretsmanager")
 
 s3_client = boto3.client("s3")
