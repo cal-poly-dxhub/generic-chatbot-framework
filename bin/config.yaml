@@ -27,6 +27,8 @@ systemConfig:
                         - AMAZON_BEDROCK_METADATA
                         - x-amz-bedrock-kb-source-uri
                         - x-amz-bedrock-kb-data-source-id
+                        - x-amz-bedrock-kb-document-page-number
+                        - x-amz-bedrock-kb-chunk-id
         embeddingsModels:
             - provider: bedrock
               modelId: amazon.titan-embed-text-v2:0
