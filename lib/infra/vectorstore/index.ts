@@ -47,7 +47,8 @@ export class S3VectorStore extends Construct {
         });
 
         // Create vector index
-        const indexName = `fr-index-${applicationName}`;
+        // V4 suffix on resource name allows creating new index without deleting old one
+        const indexName = `fr-index-${applicationName}-v4`;
         const embeddingModel = props.baseInfra.systemConfig.ragConfig.embeddingsModels[0];
 
         // Compute the index dimension directly from config
@@ -55,11 +56,11 @@ export class S3VectorStore extends Construct {
         const indexDimension = embeddingModel.dimensions;
 
         // Use different construct ID when metadata config is present to force new index creation
-        // This allows CloudFormation to create new resources when metadata configuration changes
+        // V4 suffix allows CloudFormation to create new resources without manual deletion
         const indexConstructId = vectorStoreConfig.vectorStoreProperties
             ?.metadataConfiguration?.nonFilterableMetadataKeys
-            ? 'VectorIndexWithMetadataConfig'
-            : 'VectorIndex';
+            ? 'VectorIndexWithMetadataConfigV4'
+            : 'VectorIndexV4';
 
         this.vectorIndex = new s3Vectors.Index(this, indexConstructId, {
             vectorBucketName: this.vectorBucket.vectorBucketName,
@@ -96,15 +97,15 @@ export class S3VectorStore extends Construct {
             };
 
             // Knowledge Base storage configuration cannot be modified after creation.
-            // When metadata config is added, the old KB must be manually deleted first.
-            const knowledgeBaseName = `fr-kb-${applicationName}`;
+            // V4 suffix on resource name allows creating new KB without deleting old one
+            const knowledgeBaseName = `fr-kb-${applicationName}-v4`;
 
             // Use different construct ID when metadata config is present to force new KB creation
-            // This allows CloudFormation to create new resources when metadata configuration changes
+            // V4 suffix allows CloudFormation to create new resources without manual deletion
             const kbConstructId = vectorStoreConfig.vectorStoreProperties
                 ?.metadataConfiguration?.nonFilterableMetadataKeys
-                ? 'KnowledgeBaseWithMetadataConfig'
-                : 'KnowledgeBase';
+                ? 'KnowledgeBaseWithMetadataConfigV4'
+                : 'KnowledgeBaseV4';
 
             this.knowledgeBase = new s3Vectors.KnowledgeBase(this, kbConstructId, {
                 knowledgeBaseName,
@@ -120,7 +121,7 @@ export class S3VectorStore extends Construct {
 
             // Create data source if document bucket is provided
             if (props.documentBucket) {
-                this.dataSource = new bedrock.CfnDataSource(this, 'DataSource', {
+                this.dataSource = new bedrock.CfnDataSource(this, 'DataSourceV4', {
                     name: `fr-datasource-${applicationName}`,
                     knowledgeBaseId: this.knowledgeBase.knowledgeBaseId,
                     dataSourceConfiguration: {

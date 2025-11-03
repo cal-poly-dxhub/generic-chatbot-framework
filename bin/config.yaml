@@ -23,16 +23,10 @@ systemConfig:
                 distanceMetric: cosine
                 metadataConfiguration:
                     nonFilterableMetadataKeys:
-                        - attributes
-                        - text
-                        - content
-                        - body
-                        - raw_text
-                        - chunk
-                        - chunk_text
-                        - html
-                        - markdown
-                        - metadata
+                        - AMAZON_BEDROCK_TEXT
+                        - AMAZON_BEDROCK_METADATA
+                        - x-amz-bedrock-kb-source-uri
+                        - x-amz-bedrock-kb-data-source-id
         embeddingsModels:
             - provider: bedrock
               modelId: amazon.titan-embed-text-v2:0
