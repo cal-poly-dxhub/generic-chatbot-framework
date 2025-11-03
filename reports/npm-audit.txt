@@ -1,3 +1,0 @@
-found 0 vulnerabilities
- frontend
-found 0 vulnerabilities

@@ -1,31 +1,29 @@
 ### Table of contents
 
--   [Francis GenAI RAG ChatBot on AWS](#francis-genai-rag-chatbot-on-aws)
--   [Licence](#licence)
--   [Key Features](#key-features)
--   [Architecture overview](#architecture-overview)
-    -   [Architecture reference diagram](#architecture-reference-diagram)
-    -   [Solution components](#solution-components)
--   [Prerequisites](#prerequisites)
-    -   [Build environment specifications](#build-environment-specifications)
-    -   [AWS account](#aws-account)
-    -   [Tools](#tools)
--   [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
-    -   [Configuration](#configuration)
-    -   [Build and deploy](#build-and-deploy)
--   [RAG Processing Flows](#rag-processing-flows)
--   [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
--   [Access the solution web UI](#access-the-solution-web-ui)
--   [File structure](#file-structure)
--   [Uninstall the solution](#uninstall-the-solution)
+- [Generic RAG Chatbot Framework](#generic-rag-chatbot-framework)
+- [Licence](#licence)
+- [Key Features](#key-features)
+- [Architecture overview](#architecture-overview)
+    - [Solution components](#solution-components)
+- [Prerequisites](#prerequisites)
+    - [Build environment specifications](#build-environment-specifications)
+    - [AWS account](#aws-account)
+    - [Tools](#tools)
+- [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
+    - [Configuration](#configuration)
+    - [Build and deploy](#build-and-deploy)
+- [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
+- [Access the solution web UI](#access-the-solution-web-ui)
+- [File structure](#file-structure)
+- [Uninstall the solution](#uninstall-the-solution)
 
 ---
 
-## Francis GenAI RAG ChatBot on AWS
+## Generic RAG Chatbot Framework
 
-Francis is a GenAI RAG ChatBot reference architecture provided by AWS, designed to help developers quickly prototype, deploy, and launch Generative AI-powered products and services using Retrieval-Augmented Generation (RAG). By integrating advanced information retrieval with large language models, this architecture delivers accurate, contextually relevant natural language responses to user queries.
+This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused exclusively on Amazon S3 Vectors as the vector store. This framework is designed for developers who want a streamlined RAG (Retrieval-Augmented Generation) chatbot solution using AWS Bedrock and S3 Vectors.
 
-You can use this README file to find out how to build, deploy, use and test the code. You can also contribute to this project in various ways such as reporting bugs, submitting feature requests or additional documentation. For more information, refer to the [Contributing](CONTRIBUTING.md) topic.
+By integrating Amazon Bedrock Knowledge Base with S3 Vectors, this architecture provides a simplified, cost-effective solution for building RAG-powered chatbots with document ingestion and retrieval capabilities.
 
 ## Licence
 
@@ -37,75 +35,66 @@ or in the "license" file accompanying this file. This file is distributed on an 
 
 ## Key Features
 
-1. **Amazon Bedrock Knowledge Base Integration**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in Amazon S3 Vectors.
+1. **Amazon S3 Vectors**: Native vector storage and similarity search capabilities within Amazon S3, providing scalable and cost-effective vector storage for document embeddings.
 
-2. **Amazon S3 Vectors Support**:
-
-    - **S3 Vectors**: Native vector storage and similarity search capabilities within Amazon S3, providing scalable and cost-effective vector storage for document embeddings.
+2. **Amazon Bedrock Knowledge Base Integration**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in Amazon S3 Vectors.
 
 3. **AWS Bedrock Integration**:
-
     - Direct access to state-of-the-art foundation models through AWS Bedrock
     - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
-    - Support for various embedding models, text generation and reranking models
+    - Support for various embedding models and text generation models
     - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
     - Support for Bedrock Guardrails to filter harmful content and redact sensitive information
 
-3. **Interactive Chatbot Interface**: User-friendly interface supporting:
-
+4. **Interactive Chatbot Interface**: User-friendly interface supporting:
     - Natural language conversations
     - Context-aware responses
     - Real-time document querying
     - Follow-up questions and clarifications
 
-4. **Enterprise-Ready Features**:
+5. **Enterprise-Ready Features**:
     - Scalable architecture supporting serverless resources
     - Comprehensive security controls and encryption
-    - Flexible deployment options to match your requirements
+    - Simplified deployment focused on S3 Vectors
 
 ---
 
 ## Architecture overview
 
-### Architecture reference diagram
-
-The following diagram represents the solution's architecture design.
-
-![Diagram](docs/images/solution_architecture_diagram.png)
-
 ### Solution components
 
 The solution deploys the following components:
 
--   **Web Application Firewall**: AWS WAF is utilized to safeguard web frontend and API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources.
+- **Web Application Firewall**: AWS WAF is utilized to safeguard web frontend and API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources.
 
--   **Amazon CloudFront Distribution**: Amazon CloudFront distribution is used to serve the ChatBot Web UI. CloudFront delivers low latency, high performance, and secure static web hosting. An Amazon Simple Storage Service (Amazon S3) web UI bucket hosts the static web application artifacts.
+- **Amazon CloudFront Distribution**: Amazon CloudFront distribution is used to serve the ChatBot Web UI. CloudFront delivers low latency, high performance, and secure static web hosting. An Amazon Simple Storage Service (Amazon S3) web UI bucket hosts the static web application artifacts.
 
--   **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution's functionalities without extensive configuration.
+- **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution's functionalities without extensive configuration.
 
--   **Amazon API Gateway**: It exposes a set of RESTful APIs and routes incoming requests to the backend lambda functions.
+- **Amazon API Gateway**: It exposes a set of RESTful APIs and routes incoming requests to the backend lambda functions.
 
--   **Chat Lambda Function**: This lambda function stores and retrieves chat messages for user's chat sessions in a DynamoDB table, enabling the maintenance of conversational context.
+- **Chat Lambda Function**: This lambda function stores and retrieves chat messages for user's chat sessions in a DynamoDB table, enabling the maintenance of conversational context.
 
--   **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with Bedrock Knowledge Base to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
+- **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with Bedrock Knowledge Base to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
 
--   **Vector Store**: Amazon S3 Vectors provides native vector storage and similarity search capabilities within Amazon S3, offering scalable and cost-effective vector storage for document embeddings.
+- **Vector Store**: Amazon S3 Vectors provides native vector storage and similarity search capabilities within Amazon S3, offering scalable and cost-effective vector storage for document embeddings.
 
--   **Document Ingestion**: Amazon Bedrock Knowledge Base provides a managed document ingestion service that:
-    -   Performs built-in document processing and chunking
-    -   Generates embeddings automatically
-    -   Integrates directly with S3 Vectors
-    -   Enables simplified management through Bedrock console
+- **Document Ingestion**: Amazon Bedrock Knowledge Base provides a managed document ingestion service that:
+    - Performs built-in document processing and chunking
+    - Generates embeddings automatically
+    - Integrates directly with S3 Vectors
+    - Enables simplified management through Bedrock console
 
--   **Chat History Data Store**: A DynamoDB table which stores the user's chat session messages.
+- **Chat History Data Store**: A DynamoDB table which stores the user's chat session messages.
 
--   **Amazon Bedrock**: Provides access to:
-    -   Foundation Models for text generation
-    -   Embedding Models for vector generation
-    -   Knowledge Base for document ingestion and retrieval
-    -   Built-in RAG capabilities when using Knowledge Base
+- **Amazon Bedrock**: Provides access to:
+    - Foundation Models for text generation
+    - Embedding Models for vector generation
+    - Knowledge Base for document ingestion and retrieval
+    - Built-in RAG capabilities when using Knowledge Base
 
 The solution architecture uses Bedrock Knowledge Base with S3 Vectors:
+
 - Leverages managed document processing
 - Stores vectors in Amazon S3 Vectors
 - Offers simplified management and scalability
@@ -117,21 +106,21 @@ The solution architecture uses Bedrock Knowledge Base with S3 Vectors:
 
 ### Build environment specifications
 
--   To build and deploy this solution, we recommend using Ubuntu with minimum 4 cores CPU, 16GB RAM. Mac(Intel) or other Linux distributions are also supported.
--   The computer used to build the solution must be able to access the internet.
+- To build and deploy this solution, we recommend using Ubuntu with minimum 4 cores CPU, 16GB RAM. Mac(Intel) or other Linux distributions are also supported.
+- The computer used to build the solution must be able to access the internet.
 
 ### AWS account
 
--   **A CDK bootstrapped AWS account**: You must bootstrap your AWS CDK environment in the target region you want to deploy, using the AWS CDK toolkit's cdk bootstrap command. From the command line, authenticate into your AWS account, and run `cdk bootstrap aws://<YOUR ACCOUNT NUMBER>/<REGION>`. For more information, refer to the [AWS CDK's How to bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) page.
+- **A CDK bootstrapped AWS account**: You must bootstrap your AWS CDK environment in the target region you want to deploy, using the AWS CDK toolkit's cdk bootstrap command. From the command line, authenticate into your AWS account, and run `cdk bootstrap aws://<YOUR ACCOUNT NUMBER>/<REGION>`. For more information, refer to the [AWS CDK's How to bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) page.
 
--   **Access to Amazon Bedrock foundation models**: Access to Amazon Bedrock foundation models isn't granted by default. In order to gain access to a foundation model, an IAM user with sufficient permissions needs to request access to it through the console. Once access is provided to a model, it is available for all users in the account. To manage model access, sign into the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/). Then select Model access at the bottom of the left navigation pane.
+- **Access to Amazon Bedrock foundation models**: Access to Amazon Bedrock foundation models isn't granted by default. In order to gain access to a foundation model, an IAM user with sufficient permissions needs to request access to it through the console. Once access is provided to a model, it is available for all users in the account. To manage model access, sign into the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/). Then select Model access at the bottom of the left navigation pane.
 
 ### Tools
 
--   The latest version of the [AWS CLI](https://aws.amazon.com/cli/), installed and configured.
--   The latest version of the [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html).
--   [Nodejs](https://docs.npmjs.com/getting-started) version 18 or newer.
--   [Docker](https://docs.docker.com/get-docker/)
+- The latest version of the [AWS CLI](https://aws.amazon.com/cli/), installed and configured.
+- The latest version of the [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html).
+- [Nodejs](https://docs.npmjs.com/getting-started) version 18 or newer.
+- [Docker](https://docs.docker.com/get-docker/)
 
 ---
 
@@ -143,13 +132,7 @@ Time to deploy: approximately 20 minutes
 
 ### Configuration
 
-Use the `bin/config.yaml` file to configure the solution. It is recommended to copy from an example in the `quickstart` folder based on the hosting platform (`Amazon Bedrock` or `Amazon SageMaker`) for the large language models, and make changes to suit your use cases accordingly.
-
-Example:
-
-```bash
-cp quickstart/bedrock/config.yaml bin/
-```
+Use the `bin/config.yaml` file to configure the solution. You can use the existing `bin/config.yaml` as a template and customize it for your use case.
 
 **Data retention policy configuration (optional)**
 
@@ -169,133 +152,51 @@ applicationName: <string>
 
 **LLM configuration**
 
-Specify settings for the large language models, including streaming, conversation history length, corpus document limits, similarity thresholds, and prompt configurations for standalone question rephrasing and question-answering chains.
+Specify settings for the large language models, including streaming, conversation history length, corpus document limits, similarity thresholds, and prompt configurations for question-answering chains.
 
--   **streaming (optional)**: Whether to enable streaming responses from the language model. Default is false.
+- **streaming (optional)**: Whether to enable streaming responses from the language model. Default is false.
 
     ```yaml
     streaming: <true|false>
     ```
 
--   **maxConversationHistory (optional)**: The maximum number of chat messages to include in the conversation history for rephrasing a follow-up question into a standalone question. Default is 5.
+- **maxConversationHistory (optional)**: The maximum number of chat messages to include in the conversation history for rephrasing a follow-up question into a standalone question. Default is 5.
 
     ```yaml
     maxConversationHistory: <integer>
     ```
 
--   **maxCorpusDocuments (optional)**: The maximum number of documents to include in the context for a question-answering prompt. Default is 5.
+- **maxCorpusDocuments (optional)**: The maximum number of documents to include in the context for a question-answering prompt. Default is 5.
 
     ```yaml
     maxCorpusDocuments: <integer>
     ```
 
--   **corpusSimilarityThreshold (optional)**: The minimum similarity score required for a document to be considered relevant to the question. Default is 0.25.
+- **corpusSimilarityThreshold (optional)**: The minimum similarity score required for a document to be considered relevant to the question. Default is 0.25.
 
     ```yaml
     corpusSimilarityThreshold: <float>
     ```
 
--   **standaloneChainConfig (optional)**: Configuration for the standalone question rephrasing chain. If this chain is not configured, the original user questions will be used directly for answering without any rephrasing.
-
-    -   **modelConfig**: configuration for the language model used in this chain
-
-        ```yaml
-        modelConfig:
-            provider: <the provider of the language model (e.g., bedrock, sagemaker).>
-            modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
-            modelEndpointName: <the name of SageMaker endpoint if the model provider is set to sagemaker. Leave it to empty if the provider is bedrock.>
-            modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
-        ```
-
-        Example:
-
+- **qaChainConfig**: Configuration for the question-answering chain.
+    - **modelConfig**: Configuration for the language model used in this chain.
         ```yaml
         modelConfig:
             provider: bedrock
-            modelId: anthropic.claude-3-7-sonnet-20250219-v1:0
-            modelKwargs:
-                maxTokens: 1024
-                temperature: 0.1
-                topP: 0.99
-                stopSequences:
-                    - 'Asisstant:'
+            modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
+            modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
         ```
-
-        To find more information about `modelKwargs`, please refer to the [inference parameters](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-parameters.html).
-
-    -   **promptTemplate**: The prompt template used for rephrasing questions.
-
+    - **promptTemplate**: The prompt template used for answering questions.
         ```yaml
         promptTemplate: <string>
         ```
-
-        Example:
-
-        ```yaml
-        promptTemplate: |
-            Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language. 
-            If there is no chat history, just rephrase the question to be a standalone question.
-
-            Chat History:
-            ${chat_history}
-            Follow Up Input: ${question}
-        ```
-
-    -   **promptVariables**: The list of variables used in the prompt template.
-
+    - **promptVariables**: The list of variables used in the prompt template.
         ```yaml
         promptVariables:
             - <variable1>
             - <variable2>
         ```
-
-        Example:
-
-        ```yaml
-        promptVariables:
-            - chat_history
-            - question
-        ```
-
-    -   **kwargs**: Addtional keyword arguments used in this chain.
-
-        ```yaml
-        kwargs:
-            <key>: <value>
-        ```
-
-        Example:
-
-        ```yaml
-        kwargs:
-            system_prompt: |
-                You are an AI assistant. Your primary role is to assist users with a wide range of questions and tasks. However, do not provide advice or information related to buying or selling stocks, investments, or financial trading. If asked about these topics, politely decline and suggest the user consult a financial professional.
-            input_label: inputs
-            model_kwargs_label: parameters
-            output_label: generated_text
-        ```
-
--   **qaChainConfig**: Configuration for the question-answering chain.
-
-    -   **modelConfig**: Configuration for the language model used in this chain (similar to standaloneChainConfig.modelConfig).
-        ```yaml
-        modelConfig:
-            provider: <the provider of the language model (e.g., bedrock, sagemaker).>
-            modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
-            modelEndpointName: <The name of the SageMaker endpoint for the language model (required for SageMaker models).>
-            modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
-        ```
-    -   **promptTemplate**: The prompt template used for answering questions.
-        ```yaml
-        prompteTemplate: <string>
-        ```
-    -   **promptVariables**: The list of variables used in the prompt template.
-        ```yaml
-        promptVariables:
-            - <variable1>
-            - <variable2>
-        ```
-    -   **kwargs**: Addtional keyword arguments used in this chain.
+    - **kwargs**: Additional keyword arguments used in this chain.
         ```yaml
         kwargs:
             <key>: <value>
@@ -306,12 +207,12 @@ Specify settings for the large language models, including streaming, conversatio
             promotion_image_url: <s3>
         ```
 
--   **rerankingConfig (optional)**: Configuration for reranking retrieved documents to improve relevance and accuracy of responses. Reranking helps refine the initial similarity search results by applying a more sophisticated model to assess document relevance.
+- **rerankingConfig (optional)**: Configuration for reranking retrieved documents to improve relevance and accuracy of responses. Reranking helps refine the initial similarity search results by applying a more sophisticated model to assess document relevance.
 
     ```yaml
     rerankingConfig:
       modelConfig:
-        provider: <the provider of the reranking model (currently supports 'bedrock')>
+        provider: bedrock
         modelId: <the ID of the reranking model>
       kwargs:
         numberOfResults: <the number of top results to return after reranking>
@@ -319,24 +220,11 @@ Specify settings for the large language models, including streaming, conversatio
           <key>: <value>
     ```
 
-    Example:
-
-    ```yaml
-    rerankingConfig:
-        modelConfig:
-            provider: bedrock
-            modelId: amazon.titan-embed-text-v2:0
-        kwargs:
-            numberOfResults: 10
-            additionalModelRequestFields:
-                max_tokens_per_doc: 4000
-    ```
-
     When enabled, reranking is applied after the initial vector similarity search and before sending context to the LLM. This can significantly improve the quality of retrieved documents, especially for complex queries.
 
     > **Note**: Reranking may increase latency and costs as it involves an additional model inference step.
 
--   **guardrailConfig (optional)**: Configuration for content moderation and PII protection. Guardrails help ensure safe and compliant interactions by filtering inappropriate content and handling sensitive information.
+- **guardrailConfig (optional)**: Configuration for content moderation and PII protection. Guardrails help ensure safe and compliant interactions by filtering inappropriate content and handling sensitive information.
 
     ```yaml
     guardrailConfig:
@@ -352,37 +240,11 @@ Specify settings for the large language models, including streaming, conversatio
             output: <custom message for blocked output>
     ```
 
-    Example:
-
-    ```yaml
-    guardrailConfig:
-        contentFilters:
-            - type: HATE
-              inputStrength: HIGH
-              outputStrength: HIGH
-            - type: VIOLENCE
-              inputStrength: HIGH
-              outputStrength: HIGH
-            - type: SEXUAL
-              inputStrength: MEDIUM
-              outputStrength: MEDIUM
-        piiFilters:
-            - type: EMAIL
-              action: ANONYMIZE
-            - type: PHONE
-              action: ANONYMIZE
-            - type: NAME
-              action: ANONYMIZE
-        blockedMessages:
-            input: 'I apologize, but I cannot process your request as it may contain inappropriate content. Please rephrase your question.'
-            output: 'I apologize, but I cannot provide that type of response. Please try asking a different question.'
-    ```
-
     When enabled, guardrails are applied to both user inputs and AI responses. Content filters help prevent harmful or inappropriate content, while PII filters protect sensitive personal information.
 
 **RAG configuration**
 
--   **vectorStoreConfig**: Configuration for the vector store. This solution uses Amazon S3 Vectors.
+- **vectorStoreConfig**: Configuration for the vector store. This solution uses Amazon S3 Vectors.
 
     ```yaml
     vectorStoreConfig:
@@ -411,20 +273,19 @@ Specify settings for the large language models, including streaming, conversatio
                     - timestamp
     ```
 
--   **embeddingsModels**: A list of embeddings models used for generating document embeddings.
+- **embeddingsModels**: A list of embeddings models used for generating document embeddings.
 
     ```yaml
     embeddingsModels:
-        - provider: <The provider of the embeddings model (e.g., bedrock, sagemaker).>
+        - provider: bedrock
           modelId: <The ID of the embeddings model.>
           modelRefKey: <A reference key for the embeddings model.>
           dimensions: <The dimensionality of the embeddings produced by the model.>
-          modelEndpointName: <The name of the SageMaker endpoint for the embeddings model (required for SageMaker models).>
     ```
 
     If multiple embedding models are configured, the first model in the list will be chosen by default unless modelRefKey is specified.
 
--   **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution uses Amazon Bedrock Knowledge Base with S3 Vectors.
+- **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution uses Amazon Bedrock Knowledge Base with S3 Vectors.
 
     > **Important**: To use Amazon Bedrock Knowledge Base, you must configure S3 Vectors as your vector store in the `vectorStoreConfig` section.
 
@@ -456,12 +317,10 @@ chatHistoryConfig:
 **Handoff mechanism configuration (optional)**
 This solution supports a handoff mechanism to transfer the conversation to a human agent after a certain number of requests from the user.
 
-Under classificationChainConfig -> promptTemplate, the model should be configured to return another classification type "handoff_request". If handoff is not enabled, this type should not be present.
-
 ```yaml
 handoffConfig:
     model:
-        provider: <bedrock>
+        provider: bedrock
         modelId: <the Bedrock ID of the handoff model>
         supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
         modelKwArgs: # Optional; uses Bedrock defaults if not set
@@ -500,16 +359,10 @@ wafConfig:
 ### Build and deploy
 
 1. Open the terminal and navigate to the project root directory.
-2. Configure the solution in the `bin/config.yaml` as suggested
+2. Configure the solution in the `bin/config.yaml` file
 3. Install the dependencies: `npm install`
 4. Build the code: `npm run build`
 5. Deploy the solution: `npm run cdk deploy -- --parameters adminUserEmail=<ADMIN_EMAIL_ADDRESS>`
-
-## RAG Processing Flows
-
-The GenAI RAG chatbot supports three primary data flows: `Classification Flow`, `Condensing Flow`, and `Question/Answer Flow`. In the Classification Flow, the chatbot analyzes the incoming user query to determine its type and the appropriate processing path. The Condensing Flow is designed to enhance context understanding by rephrasing follow-up questions and the chat history into a standalone, contextually complete question, ensuring accurate downstream processing. Finally, the Question/Answer Flow retrieves relevant information from the knowledge corpus and generates precise, context-aware responses to user queries, leveraging retrieved documents and advanced generative capabilities. Together, these flows enable seamless and intelligent interactions.
-
-![Diagram](docs/images/sequence_diagram.png)
 
 ## How to ingest the documents into vector store
 
@@ -554,14 +407,12 @@ Upon successfully cloning the repository into your local development environment
 |- lib/                       # Infrastructure and backend code
    |- infra/                  # CDK Infrastructure
    |- backend/                # Backend code
-|- docs/                      # Documentation files
-   |- images/                 # Documentation images and diagrams
 |- frontend/                  # React ChatBot UI application
    |- src/                    # Source code files
    |- public/                 # Static assets
-|- quickstart/                # Quick start configuration examples
-   |- bedrock/                # Sample configuration files
-|- reports/                   # Security and dependency reports
+|- bin/                       # Configuration and deployment entry point
+   |- config.yaml             # Configuration file
+   |- infra.ts                # CDK app entry point
 |- .gitignore                 # Git ignore file
 |- LICENSE.txt                # Apache 2.0 license
 |- README.md                  # Project documentation
@@ -575,10 +426,10 @@ You can uninstall the solution by directly deleting the stacks from the AWS Clou
 
 To uninstall the solution, delete the stacks from the AWSCloudFormation console
 
--   Go to the AWS CloudFormation console, find and delete the following stacks:
-    -   All the stacks with the prefix `FrancisChatbotStack`
+- Go to the AWS CloudFormation console, find and delete the following stacks:
+    - All the stacks with the prefix `FrancisChatbotStack`
 
-Alternatively, you could also uninstall the solution by running `npm run cdk destroy` from the `source` folder.
+Alternatively, you could also uninstall the solution by running `npm run cdk destroy` from the project root directory.
 
 ---
 
