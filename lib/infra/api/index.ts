@@ -198,13 +198,18 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
 
-        const corpusApiHandler = this.createLambdaHandler('corpus', props, {});
+        const corpusApiHandler = this.createLambdaHandler('corpus', props, {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            KNOWLEDGE_BASE_ID: props.s3VectorStore?.knowledgeBase?.knowledgeBaseId ?? '',
+            /* eslint-enable @typescript-eslint/naming-convention */
+        });
         props.baseInfra.grantBedrockEmbeddingsModelAccess(corpusApiHandler);
 
         // Grant S3 vector permissions if using S3 vectors
         if (props.s3VectorStore) {
             props.s3VectorStore.grantVectorWrite(corpusApiHandler);
             props.s3VectorStore.grantVectorRead(corpusApiHandler);
+            props.s3VectorStore.grantKnowledgeBaseQuery(corpusApiHandler);
         }
 
         const embeddingResource = corpusResource.addResource('embedding', {
@@ -238,18 +243,14 @@ export class Api extends Construct {
             defaultCorsPreflightOptions,
         });
 
-        const inferenceLambda = this.createLambdaHandler(
-            'inference',
-            props,
-            {
-                /* eslint-disable @typescript-eslint/naming-convention */
-                CONVERSATION_LAMBDA_FUNC_NAME: conversationLambda.functionName,
-                CORPUS_LAMBDA_FUNC_NAME: corpusLambda.functionName,
-                GUARDRAIL_ARN: props.baseInfra.guardrail?.attrGuardrailArn ?? '',
-                KNOWLEDGE_BASE_ID: props.s3VectorStore?.knowledgeBase?.knowledgeBaseId ?? '',
-                /* eslint-enable @typescript-eslint/naming-convention */
-            }
-        );
+        const inferenceLambda = this.createLambdaHandler('inference', props, {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            CONVERSATION_LAMBDA_FUNC_NAME: conversationLambda.functionName,
+            CORPUS_LAMBDA_FUNC_NAME: corpusLambda.functionName,
+            GUARDRAIL_ARN: props.baseInfra.guardrail?.attrGuardrailArn ?? '',
+            KNOWLEDGE_BASE_ID: props.s3VectorStore?.knowledgeBase?.knowledgeBaseId ?? '',
+            /* eslint-enable @typescript-eslint/naming-convention */
+        });
         props.baseInfra.grantBedrockTextModelAccess(inferenceLambda);
         props.baseInfra.grantBedrockRerankingAccess(inferenceLambda);
         props.baseInfra.grantBedrockGuardrailAccess(inferenceLambda);

@@ -80,9 +80,13 @@ def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) ->
         raise ValueError(f"InvalidPayload: no embedding model found for ref key {corpus_config['embeddingModelRefKey']}.")
 
     if corpus_config and corpus_config["corpusType"] == "knowledgebase":
+        knowledge_base_id = os.getenv("KNOWLEDGE_BASE_ID", "")
+        if not knowledge_base_id:
+            raise ValueError("KNOWLEDGE_BASE_ID environment variable is not set or is empty")
+        
         _retriever = AmazonKnowledgeBasesRetriever(
             client=bedrock_agent_client,
-            knowledge_base_id=os.getenv("KNOWLEDGE_BASE_ID", ""),
+            knowledge_base_id=knowledge_base_id,
             retrieval_config=RetrievalConfig.parse_obj({"vectorSearchConfiguration": {"numberOfResults": k}}),
             min_score_confidence=score_threshold,
         )
