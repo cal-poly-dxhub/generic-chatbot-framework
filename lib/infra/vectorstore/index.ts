@@ -49,7 +49,7 @@ export class S3VectorStore extends Construct {
         // Create vector index
         // V6 suffix on resource name allows creating new index without deleting old one
         const indexName = `fr-index-${applicationName}-v6`;
-        const embeddingModel = props.baseInfra.systemConfig.ragConfig.embeddingsModels[0];
+        const embeddingModel = props.baseInfra.systemConfig.ragConfig.embeddingModel;
 
         // Compute the index dimension directly from config
         const modelId = embeddingModel.modelId;
@@ -82,9 +82,9 @@ export class S3VectorStore extends Construct {
         // Add dependency for vector index
         this.vectorIndex.node.addDependency(this.vectorBucket);
 
-        // Create knowledge base if using knowledge base corpus config
+        // Create knowledge base if corpus config is present
         const corpusConfig = props.baseInfra.systemConfig.ragConfig.corpusConfig;
-        if (corpusConfig && corpusConfig.corpusType === 'knowledgebase') {
+        if (corpusConfig) {
             // Get embedding model ARN
             const region = cdk.Stack.of(this).region;
             const embeddingModelArn = `arn:aws:bedrock:${region}::foundation-model/${modelId}`;

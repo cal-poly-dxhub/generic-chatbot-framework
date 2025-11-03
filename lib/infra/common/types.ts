@@ -12,10 +12,7 @@ export interface SolutionInfo {
     readonly solutionVersion: string;
 }
 
-export type VectorStoreType = 's3vectors';
-
 export interface S3VectorStoreConfig {
-    readonly vectorStoreType: 's3vectors';
     readonly vectorStoreProperties?: {
         readonly distanceMetric?: 'euclidean' | 'cosine';
         readonly metadataConfiguration?: {
@@ -30,50 +27,33 @@ export interface S3VectorStoreConfig {
 
 export type VectorStoreConfig = S3VectorStoreConfig;
 
-export type CorpusType = 'knowledgebase';
-
-export interface BaseCorpusConfig {
-    readonly corpusType: CorpusType;
-}
-
-export interface KnowledgeBaseCorpusConfig extends BaseCorpusConfig {
-    readonly corpusType: 'knowledgebase';
+export interface KnowledgeBaseCorpusConfig {
     readonly corpusProperties?: {
         chunkingConfiguration?: CfnDataSource.ChunkingConfigurationProperty;
     };
 }
 
-export type ModelProvider = 'bedrock';
-
-export interface ModelBase {
-    readonly provider: ModelProvider;
+export interface LLMModelBase {
     readonly modelId: string;
     readonly region?: string;
-}
-
-export interface LLMModelBase extends ModelBase {
     readonly modelKwargs?: ModelKwargs;
 }
 
 export interface BedRockLLMModel extends LLMModelBase {
-    readonly provider: 'bedrock';
     // NOTE: for review: this allows passing system prompts via Converse API when available
     readonly supportsSystemPrompt: boolean;
 }
 
-export type RerankingModelBase = ModelBase;
-
-export interface BedRockRerankingModel extends RerankingModelBase {
-    readonly provider: 'bedrock';
+export interface BedRockRerankingModel {
+    readonly modelId: string;
+    readonly region?: string;
 }
 
-export interface EmbeddingModelBase extends ModelBase {
+export interface BedRockEmbeddingModel {
+    readonly modelId: string;
+    readonly region?: string;
     readonly dimensions: number;
     readonly modelRefKey: string;
-}
-
-export interface BedRockEmbeddingModel extends EmbeddingModelBase {
-    readonly provider: 'bedrock';
 }
 
 export type EmbeddingModel = BedRockEmbeddingModel;
@@ -159,12 +139,10 @@ export interface SystemConfig {
     };
     ragConfig: {
         vectorStoreConfig: VectorStoreConfig;
-        embeddingsModels: EmbeddingModel[];
+        embeddingModel: EmbeddingModel;
         corpusConfig?: KnowledgeBaseCorpusConfig;
     };
-    chatHistoryConfig?: {
-        storeType: 'dynamodb';
-    };
+    chatHistoryConfig?: Record<string, never>;
     handoffConfig?: HandoffConfig;
     wafConfig?: WafConfig;
 }

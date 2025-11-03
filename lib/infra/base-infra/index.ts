@@ -244,25 +244,17 @@ export class BaseInfra extends Construct {
     }
 
     public grantBedrockEmbeddingsModelAccess(lambdaFunc: lambda.IFunction): void {
-        const regionModelIds = new Map<string, Set<string>>();
-
-        this.systemConfig.ragConfig.embeddingsModels.map((model) => {
-            if (model.provider === 'bedrock') {
-                const region = model.region ?? cdk.Aws.REGION;
-                const modelIds = regionModelIds.get(region) ?? new Set<string>();
-                modelIds.add(model.modelId);
-                regionModelIds.set(region, modelIds);
-            }
-        });
+        const model = this.systemConfig.ragConfig.embeddingModel;
+        const region = model.region ?? cdk.Aws.REGION;
+        const regionModelIds = new Map<string, Set<string>>([
+            [region, new Set([model.modelId])],
+        ]);
 
         this.grantBedrockModelAccess(lambdaFunc, regionModelIds);
     }
 
     public grantBedrockRerankingAccess(lambdaFunc: lambda.IFunction): void {
-        if (
-            this.systemConfig.llmConfig.rerankingConfig?.modelConfig.provider !==
-            'bedrock'
-        ) {
+        if (!this.systemConfig.llmConfig.rerankingConfig) {
             return;
         }
 
@@ -303,7 +295,7 @@ export class BaseInfra extends Construct {
             this.systemConfig.llmConfig.qaChainConfig,
         ];
         chains.forEach((chain) => {
-            if (chain && chain.modelConfig.provider === 'bedrock') {
+            if (chain) {
                 const region = chain.modelConfig.region ?? cdk.Aws.REGION;
                 const modelIds = regionModelIds.get(region) ?? new Set<string>();
                 modelIds.add(chain.modelConfig.modelId);
@@ -315,7 +307,7 @@ export class BaseInfra extends Construct {
     }
 
     public grantBedrockHandoffModelAccess(lambdaFunc: lambda.IFunction): void {
-        if (this.systemConfig.handoffConfig?.modelConfig.provider !== 'bedrock') {
+        if (!this.systemConfig.handoffConfig) {
             return;
         }
 

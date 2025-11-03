@@ -67,16 +67,11 @@ export class FrancisChatbotStack extends cdk.Stack {
             serverAccessLogsBucket: baseInfra.serverAccessLogsBucket,
         });
 
-        // Create S3 Vectors infrastructure if configured
-        let s3VectorStore: S3VectorStore | undefined;
-        if (
-            props.systemConfig.ragConfig.vectorStoreConfig.vectorStoreType === 's3vectors'
-        ) {
-            s3VectorStore = new S3VectorStore(this, 'S3VectorStore', {
-                baseInfra,
-                documentBucket: inputAssetsBucket,
-            });
-        }
+        // Create S3 Vectors infrastructure
+        const s3VectorStore = new S3VectorStore(this, 'S3VectorStore', {
+            baseInfra,
+            documentBucket: inputAssetsBucket,
+        });
 
         const api = new Api(this, 'Api', {
             baseInfra,

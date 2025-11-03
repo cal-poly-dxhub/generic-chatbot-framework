@@ -95,17 +95,12 @@ const configSchema = {
                             type: 'object',
                             description: 'Configuration for reranking model',
                             properties: {
-                                provider: {
-                                    type: 'string',
-                                    enum: ['bedrock'],
-                                    description: 'Provider of the reranking model',
-                                },
                                 modelId: {
                                     type: 'string',
                                     description: 'ID of the reranking model',
                                 },
                             },
-                            required: ['provider', 'modelId'],
+                            required: ['modelId'],
                         },
                         kwargs: {
                             type: 'object',
@@ -161,14 +156,9 @@ const configSchema = {
             type: 'object',
             properties: {
                 vectorStoreConfig: {
-                    description: 'Configuration for the vector store',
+                    description: 'Configuration for the S3 Vectors store',
                     type: 'object',
                     properties: {
-                        vectorStoreType: {
-                            description: 'Type of vector store',
-                            type: 'string',
-                            enum: ['s3vectors'],
-                        },
                         vectorStoreProperties: {
                             description: 'Properties of the S3 Vectors store',
                             type: 'object',
@@ -209,64 +199,42 @@ const configSchema = {
                             },
                         },
                     },
-                    required: ['vectorStoreType'],
                 },
                 corpusConfig: {
-                    description: 'Configuration for the document corpus and ingestion',
+                    description: 'Configuration for the document corpus and ingestion (Bedrock Knowledge Base)',
                     type: 'object',
                     properties: {
                         corpusProperties: {
                             description: 'Properties for corpus configuration',
                             type: 'object',
                         },
-                        corpusType: {
-                            description: 'Type of corpus',
-                            type: 'string',
-                            enum: ['knowledgebase'],
-                        },
                     },
                 },
-                embeddingsModels: {
-                    description: 'List of embeddings models',
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            provider: {
-                                description: 'Provider of the embeddings model',
-                                type: 'string',
-                                enum: ['bedrock'],
-                            },
-                            modelId: {
-                                description: 'ID of the embeddings model',
-                                type: 'string',
-                            },
-                            modelRefKey: {
-                                description: 'Reference key for the embeddings model',
-                                type: 'string',
-                            },
-                            dimensions: {
-                                description: 'Dimensions of the embeddings model',
-                                type: 'integer',
-                            },
+                embeddingModel: {
+                    description: 'Embeddings model configuration',
+                    type: 'object',
+                    properties: {
+                        modelId: {
+                            description: 'ID of the embeddings model',
+                            type: 'string',
                         },
-                        required: ['provider', 'modelId', 'modelRefKey', 'dimensions'],
+                        modelRefKey: {
+                            description: 'Reference key for the embeddings model',
+                            type: 'string',
+                        },
+                        dimensions: {
+                            description: 'Dimensions of the embeddings model',
+                            type: 'integer',
+                        },
                     },
+                    required: ['modelId', 'modelRefKey', 'dimensions'],
                 },
             },
-            required: ['vectorStoreConfig', 'embeddingsModels'],
+            required: ['vectorStoreConfig', 'embeddingModel'],
         },
         chatHistoryConfig: {
             type: 'object',
-            description: 'Configuration for chat history storage',
-            properties: {
-                storageType: {
-                    type: 'string',
-                    enum: ['dynamodb'],
-                    default: 'dynamodb',
-                    description: 'Type of storage for chat history',
-                },
-            },
+            description: 'Configuration for chat history storage (DynamoDB)',
         },
         handoffConfig: {
             type: 'object',
@@ -275,12 +243,8 @@ const configSchema = {
             properties: {
                 modelConfig: {
                     type: 'object',
-                    description: 'Configuration for the handoff summarizer LLM model',
+                    description: 'Configuration for the handoff summarizer LLM model (Bedrock)',
                     properties: {
-                        provider: {
-                            type: 'string',
-                            const: 'bedrock',
-                        },
                         modelId: {
                             type: 'string',
                             description:
@@ -302,6 +266,7 @@ const configSchema = {
                             },
                         },
                     },
+                    required: ['modelId'],
                 },
                 handoffThreshold: {
                     type: 'number',
@@ -416,12 +381,8 @@ const configSchema = {
             type: 'object',
             title: 'BedRockLLMModel',
             description: 'Configuration for a BedRock LLM model',
-            required: ['provider', 'modelId'],
+            required: ['modelId'],
             properties: {
-                provider: {
-                    type: 'string',
-                    const: 'bedrock',
-                },
                 modelId: {
                     type: 'string',
                     description: 'ID of the LLM model',

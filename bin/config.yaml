@@ -6,7 +6,6 @@ systemConfig:
         streaming: false
         qaChainConfig:
             modelConfig:
-                provider: bedrock
                 modelId: us.anthropic.claude-3-7-sonnet-20250219-v1:0
             promptTemplate: |
                 You are a helpful assistant.
@@ -18,7 +17,6 @@ systemConfig:
                 - question
     ragConfig:
         vectorStoreConfig:
-            vectorStoreType: s3vectors
             vectorStoreProperties:
                 distanceMetric: cosine
                 metadataConfiguration:
@@ -29,12 +27,9 @@ systemConfig:
                         - x-amz-bedrock-kb-data-source-id
                         - x-amz-bedrock-kb-document-page-number
                         - x-amz-bedrock-kb-chunk-id
-        embeddingsModels:
-            - provider: bedrock
-              modelId: amazon.titan-embed-text-v2:0
-              modelRefKey: titan-embed-text-v2
-              dimensions: 1024
-        corpusConfig:
-            corpusType: knowledgebase
-    chatHistoryConfig:
-        storeType: dynamodb
+        embeddingModel:
+            modelId: amazon.titan-embed-text-v2:0
+            modelRefKey: titan-embed-text-v2
+            dimensions: 1024
+        corpusConfig: {}
+    chatHistoryConfig: {}

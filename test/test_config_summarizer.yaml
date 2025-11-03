@@ -8,7 +8,6 @@ systemConfig:
         corpusSimilarityThreshold: 0.5
         classificationChainConfig:
             modelConfig:
-                provider: bedrock
                 modelId: anthropic.claude-3-7-sonnet-20250219-v1:0
                 modelKwargs:
                     maxTokens: 1024
@@ -100,7 +99,6 @@ systemConfig:
                     You are a chat assistant (chatbot). You are honest, polite and helpful when answering. Pay attention and follow every instruction carefully.
         standaloneChainConfig:
             modelConfig:
-                provider: bedrock
                 modelId: anthropic.claude-3-7-sonnet-20250219-v1:0
                 modelKwargs:
                     maxTokens: 1024
@@ -162,7 +160,6 @@ systemConfig:
                     You are a chat assistant (chatbot) for Vietnam company information. You are an expert about Retrieval Augmented Generation, which is the architecture this chatbot is based on. You are honest, polite and helpful. Pay attention and follow every instruction carefully.
         qaChainConfig:
             modelConfig:
-                provider: bedrock
                 modelId: anthropic.claude-3-7-sonnet-20250219-v1:0
                 modelKwargs:
                     maxTokens: 1024
@@ -216,19 +213,15 @@ systemConfig:
                     You are a chat assistant (chatbot) for Vietnam company information. You are honest, polite and helpful. You are confident in your answer. Pay attention and follow every instruction carefully.
     ragConfig:
         vectorStoreConfig:
-            vectorStoreType: s3vectors
             vectorStoreProperties:
                 distanceMetric: cosine
-        embeddingsModels:
-            - provider: bedrock
-              modelId: amazon.titan-embed-text-v2:0
-              modelRefKey: titan-embed-text-v2
-              dimensions: 1024
-        corpusConfig:
-            corpusType: knowledgebase
+        embeddingModel:
+            modelId: amazon.titan-embed-text-v2:0
+            modelRefKey: titan-embed-text-v2
+            dimensions: 1024
+        corpusConfig: {}
     handoffConfig:
         modelConfig:
-            provider: bedrock
             modelId: us.amazon.nova-lite-v1:0
             modelKwargs:
                 maxTokens: 1024

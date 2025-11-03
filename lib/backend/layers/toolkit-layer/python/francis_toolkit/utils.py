@@ -22,37 +22,29 @@ from .retrievers.knowledgebase_retriever import AmazonKnowledgeBasesRetriever, R
 from .types import EmbeddingModel
 
 
-def get_embedding_models() -> List[EmbeddingModel]:
-    # Load the embedding models from the environment variable
-    embedding_models_json = os.getenv("EMBEDDINGS_MODELS", "[]")
-    embedding_models = [EmbeddingModel(**model) for model in json.loads(embedding_models_json)]
-    return embedding_models
+def get_embedding_model() -> EmbeddingModel:
+    # Load the embedding model from the environment variable
+    embedding_model_json = os.getenv("EMBEDDING_MODEL", "{}")
+    return EmbeddingModel(**json.loads(embedding_model_json))
 
 
 def find_embedding_model_by_ref_key(
     model_ref_key: Optional[str] = None,
 ) -> Optional[EmbeddingModel]:
-    embedding_models: List[EmbeddingModel] = get_embedding_models()
+    embedding_model = get_embedding_model()
 
-    # Return the default model if no modelRefKey is provided. Default model is always placed at the first element in the list
-    if not model_ref_key:
-        return embedding_models[0]
-
-    for model in embedding_models:
-        if model.modelRefKey == model_ref_key:
-            return model
+    # Return the model if no modelRefKey is provided or if it matches
+    if not model_ref_key or embedding_model.modelRefKey == model_ref_key:
+        return embedding_model
 
     return None
 
 
 def get_embeddings(embedding_model: EmbeddingModel) -> Embeddings:
-    if embedding_model.provider == "bedrock":
-        return BedrockEmbeddings(
-            client=bedrock_client,
-            model_id=embedding_model.modelId,
-        )
-    else:
-        raise ValueError(f"Invalid provider: {embedding_model.provider}. Only 'bedrock' is supported.")
+    return BedrockEmbeddings(
+        client=bedrock_client,
+        model_id=embedding_model.modelId,
+    )
 
 
 def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) -> BaseRetriever:
@@ -64,9 +56,9 @@ def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) ->
 
     embedding_model = find_embedding_model_by_ref_key(modelRefKey)
     if not embedding_model:
-        raise ValueError(f"InvalidPayload: no embedding model found for ref key {corpus_config['embeddingModelRefKey']}.")
+        raise ValueError(f"InvalidPayload: no embedding model found for ref key {modelRefKey}.")
 
-    if corpus_config and corpus_config["corpusType"] == "knowledgebase":
+    if corpus_config:
         _retriever = AmazonKnowledgeBasesRetriever(
             client=bedrock_agent_client,
             knowledge_base_id=os.getenv("KNOWLEDGE_BASE_ID", ""),
@@ -74,7 +66,7 @@ def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) ->
             min_score_confidence=score_threshold,
         )
     else:
-        raise ValueError("This build only supports 'knowledgebase' corpus with S3 Vectors")
+        raise ValueError("Corpus config is required for knowledge base retrieval")
 
     return _retriever
 

@@ -291,21 +291,8 @@ class BedrockLLM(LLMBase):
 
 def get_llm_class(provider: str, region_name: Optional[str] = None) -> LLMBase:
     region_name = region_name or os.getenv("AWS_DEFAULT_REGION")
-
-    if provider == ModelHosting.BEDROCK:
-        llm_class = BedrockLLM(region_name=region_name)  # type: ignore
-    else:
-        raise ValueError(f"Unsupported LLM provider: {provider}. Only 'bedrock' is supported.")
-
-    return llm_class
+    return BedrockLLM(region_name=region_name)  # type: ignore
 
 def get_reranker_class(provider: str, region_name: Optional[str] = None) -> RerankerBase:
     region_name = region_name or os.getenv("AWS_DEFAULT_REGION")
-
-    if provider == ModelHosting.BEDROCK:
-        reranker_class = BedrockReranker(region_name=region_name)  # type: ignore
-    else:
-        # No current implementation for non-bedrock rerankers
-        raise ValueError(f"Unsupported reranker provider: %s", provider)
-
-    return reranker_class
+    return BedrockReranker(region_name=region_name)  # type: ignore

@@ -179,10 +179,9 @@ Specify settings for the large language models, including streaming, conversatio
     ```
 
 - **qaChainConfig**: Configuration for the question-answering chain.
-    - **modelConfig**: Configuration for the language model used in this chain.
+    - **modelConfig**: Configuration for the Bedrock language model used in this chain.
         ```yaml
         modelConfig:
-            provider: bedrock
             modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
             modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
         ```
@@ -212,7 +211,6 @@ Specify settings for the large language models, including streaming, conversatio
     ```yaml
     rerankingConfig:
       modelConfig:
-        provider: bedrock
         modelId: <the ID of the reranking model>
       kwargs:
         numberOfResults: <the number of top results to return after reranking>
@@ -244,11 +242,10 @@ Specify settings for the large language models, including streaming, conversatio
 
 **RAG configuration**
 
-- **vectorStoreConfig**: Configuration for the vector store. This solution uses Amazon S3 Vectors.
+- **vectorStoreConfig**: Configuration for the S3 Vectors store.
 
     ```yaml
     vectorStoreConfig:
-        vectorStoreType: s3vectors
         vectorStoreProperties:
             distanceMetric: <'euclidean' | 'cosine', default is 'cosine'>
             metadataConfiguration: # Optional
@@ -264,7 +261,6 @@ Specify settings for the large language models, including streaming, conversatio
 
     ```yaml
     vectorStoreConfig:
-        vectorStoreType: s3vectors
         vectorStoreProperties:
             distanceMetric: cosine
             metadataConfiguration:
@@ -273,25 +269,19 @@ Specify settings for the large language models, including streaming, conversatio
                     - timestamp
     ```
 
-- **embeddingsModels**: A list of embeddings models used for generating document embeddings.
+- **embeddingModel**: Configuration for the embeddings model used for generating document embeddings.
 
     ```yaml
-    embeddingsModels:
-        - provider: bedrock
-          modelId: <The ID of the embeddings model.>
-          modelRefKey: <A reference key for the embeddings model.>
-          dimensions: <The dimensionality of the embeddings produced by the model.>
+    embeddingModel:
+        modelId: <The ID of the Bedrock embeddings model>
+        modelRefKey: <A reference key for the embeddings model>
+        dimensions: <The dimensionality of the embeddings produced by the model>
     ```
-
-    If multiple embedding models are configured, the first model in the list will be chosen by default unless modelRefKey is specified.
 
 - **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution uses Amazon Bedrock Knowledge Base with S3 Vectors.
 
-    > **Important**: To use Amazon Bedrock Knowledge Base, you must configure S3 Vectors as your vector store in the `vectorStoreConfig` section.
-
     ```yaml
     corpusConfig:
-      corpusType: knowledgebase
       corpusProperties:
         chunkingConfiguration:
           chunkingStrategy: <'FIXED_SIZE' | 'SEMANTIC', default is 'FIXED_SIZE'>
@@ -307,11 +297,10 @@ Specify settings for the large language models, including streaming, conversatio
     ```
 
 **Chat history configuration (optional)**
-By default, this solution uses DynamoDB to store chat history.
+This solution uses DynamoDB to store chat history. The configuration is optional and can be left empty:
 
 ```yaml
-chatHistoryConfig:
-    storeType: dynamodb
+chatHistoryConfig: {}
 ```
 
 **Handoff mechanism configuration (optional)**
@@ -319,8 +308,7 @@ This solution supports a handoff mechanism to transfer the conversation to a hum
 
 ```yaml
 handoffConfig:
-    model:
-        provider: bedrock
+    modelConfig:
         modelId: <the Bedrock ID of the handoff model>
         supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
         modelKwArgs: # Optional; uses Bedrock defaults if not set

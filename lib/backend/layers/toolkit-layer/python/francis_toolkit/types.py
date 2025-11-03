@@ -17,7 +17,6 @@ class Document(BaseModel):
 
 
 class EmbeddingModel(BaseModel):
-    provider: str
     modelId: str
     modelRefKey: str
     dimensions: int
