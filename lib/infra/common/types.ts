@@ -30,7 +30,7 @@ export interface S3VectorStoreConfig {
 
 export type VectorStoreConfig = S3VectorStoreConfig;
 
-export type CorpusType = 'knowledgebase' | 'default';
+export type CorpusType = 'knowledgebase';
 
 export interface BaseCorpusConfig {
     readonly corpusType: CorpusType;
@@ -40,16 +40,6 @@ export interface KnowledgeBaseCorpusConfig extends BaseCorpusConfig {
     readonly corpusType: 'knowledgebase';
     readonly corpusProperties?: {
         chunkingConfiguration?: CfnDataSource.ChunkingConfigurationProperty;
-    };
-}
-
-export interface DefaultCorpusConfig extends BaseCorpusConfig {
-    readonly corpusType: 'default';
-    readonly corpusProperties?: {
-        chunkingConfiguration?: {
-            chunkSize?: number;
-            chunkOverlap?: number;
-        };
     };
 }
 
@@ -180,7 +170,7 @@ export interface SystemConfig {
     ragConfig: {
         vectorStoreConfig: VectorStoreConfig;
         embeddingsModels: EmbeddingModel[];
-        corpusConfig?: KnowledgeBaseCorpusConfig | DefaultCorpusConfig;
+        corpusConfig?: KnowledgeBaseCorpusConfig;
     };
     chatHistoryConfig?: {
         storeType: 'dynamodb';

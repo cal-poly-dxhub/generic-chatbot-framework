@@ -222,7 +222,7 @@ const configSchema = {
                         corpusType: {
                             description: 'Type of corpus',
                             type: 'string',
-                            enum: ['default', 'knowledgebase'],
+                            enum: ['knowledgebase'],
                         },
                     },
                 },
