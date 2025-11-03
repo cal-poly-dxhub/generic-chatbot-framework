@@ -9,7 +9,6 @@ from typing import Any, List, Literal, Optional, Tuple
 import botocore
 from langchain_core.embeddings import Embeddings
 from langchain_core.retrievers import BaseRetriever
-from langchain_core.vectorstores import VectorStore
 
 from .clients import (
     bedrock_agent_client,
@@ -64,10 +63,6 @@ def get_embeddings(embedding_model: EmbeddingModel) -> Embeddings:
         raise ValueError(f"Invalid provider: {embedding_model.provider}")
 
 
-def get_vector_store(embedding_model: EmbeddingModel, **kwargs: Any) -> VectorStore:  # pragma: no cover
-    raise NotImplementedError("PGVector is not supported in the minimal S3 Vectors build")
-
-
 def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) -> BaseRetriever:
     _retriever: BaseRetriever
 
@@ -80,13 +75,9 @@ def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) ->
         raise ValueError(f"InvalidPayload: no embedding model found for ref key {corpus_config['embeddingModelRefKey']}.")
 
     if corpus_config and corpus_config["corpusType"] == "knowledgebase":
-        knowledge_base_id = os.getenv("KNOWLEDGE_BASE_ID", "")
-        if not knowledge_base_id:
-            raise ValueError("KNOWLEDGE_BASE_ID environment variable is not set or is empty")
-        
         _retriever = AmazonKnowledgeBasesRetriever(
             client=bedrock_agent_client,
-            knowledge_base_id=knowledge_base_id,
+            knowledge_base_id=os.getenv("KNOWLEDGE_BASE_ID", ""),
             retrieval_config=RetrievalConfig.parse_obj({"vectorSearchConfiguration": {"numberOfResults": k}}),
             min_score_confidence=score_threshold,
         )
@@ -94,10 +85,6 @@ def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) ->
         raise ValueError("This build only supports 'knowledgebase' corpus with S3 Vectors")
 
     return _retriever
-
-
-def get_rds_connection_string() -> str:  # pragma: no cover
-    raise NotImplementedError("RDS/PGVector is not supported in the minimal S3 Vectors build")
 
 
 def get_calling_identity(cognito_authentication_provider: str) -> Tuple[str, str]:

@@ -183,7 +183,7 @@ export interface SystemConfig {
         corpusConfig?: KnowledgeBaseCorpusConfig | DefaultCorpusConfig;
     };
     chatHistoryConfig?: {
-        storeType: 'dynamodb' | 'aurora_postgres';
+        storeType: 'dynamodb';
     };
     handoffConfig?: HandoffConfig;
     wafConfig?: WafConfig;

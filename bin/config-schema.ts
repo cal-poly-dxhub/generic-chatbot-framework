@@ -267,7 +267,7 @@ const configSchema = {
             properties: {
                 storageType: {
                     type: 'string',
-                    enum: ['dynamodb', 'aurora_postgres'],
+                    enum: ['dynamodb'],
                     default: 'dynamodb',
                     description: 'Type of storage for chat history',
                 },
