@@ -8,5 +8,4 @@ from .base import (
 )
 from .utils import (
     get_chat_history_store,
-    update_cost,
 )

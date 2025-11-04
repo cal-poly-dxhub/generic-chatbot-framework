@@ -85,11 +85,6 @@ class BaseChatHistoryStore(ABC):
     ) -> None:
         raise NotImplementedError("This method should be implemented by subclasses.")
 
-    # NOTE: to reviewer: Added this to test the Dynamo backend
-    @abstractmethod
-    def update_cost(self, user_id: str, chat_id: str, tokens: int, model_id: str, message_type: str) -> Chat:
-        raise NotImplementedError("This method should be implemented by subclasses.")
-
     @abstractmethod
     def list_chat_messages(
         self, user_id: str, chat_id: str, next_token: Optional[str] = None, limit: int = 50, ascending: bool = True

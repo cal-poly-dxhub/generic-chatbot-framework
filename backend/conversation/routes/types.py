@@ -29,9 +29,3 @@ class CreateInternalChatMessagesInput(BaseModel):
     content: str
     role: Literal["user", "assistant", "system"]
     sources: Optional[List[Dict[str, Any]]] = None
-
-
-class UpdateCostsInput(BaseModel):
-    input_tokens: int
-    output_tokens: int
-    model_id: str

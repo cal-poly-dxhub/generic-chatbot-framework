@@ -23,30 +23,3 @@ def get_chat_history_store() -> BaseChatHistoryStore:
             dynamodb_resource_client, table_name=table_name, index_name=index_name
         )
     return _chat_history_store
-
-
-def update_cost(
-    user_id: str,
-    chat_id: str,
-    input_tokens: int,
-    output_tokens: int,
-    model_id: str,
-) -> None:
-    chat_history_store = get_chat_history_store()
-
-    # TODO: update_cost should take human/ai as message type, not user/assistant
-    chat_history_store.update_cost(
-        user_id=user_id,
-        chat_id=chat_id,
-        tokens=input_tokens,
-        model_id=model_id,
-        message_type="user",
-    )
-
-    chat_history_store.update_cost(
-        user_id=user_id,
-        chat_id=chat_id,
-        tokens=output_tokens,
-        model_id=model_id,
-        message_type="assistant",
-    )

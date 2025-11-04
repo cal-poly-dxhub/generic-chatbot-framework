@@ -1,7 +1,7 @@
 from francis_toolkit.utils import load_config_from_dynamodb
 import os
 from typing import Optional, Iterator
-from conversation_store.utils import get_chat_history_store, update_cost
+from conversation_store.utils import get_chat_history_store
 from conversation_store.base import BaseChatHistoryStore, ChatMessage
 from summarization.summarizer import Summarizer
 from aws_lambda_powertools.event_handler.api_gateway import Router
@@ -72,14 +72,6 @@ def handoff_chat(chat_id: str, user_id: str) -> dict:
 
     summarizer = Summarizer(handoff_config=handoff_config)
     summary_response = summarizer.summarize(messages)
-
-    update_cost(
-        user_id=user_id,
-        chat_id=chat_id,
-        input_tokens=summary_response["input_tokens"],
-        output_tokens=summary_response["output_tokens"],
-        model_id=handoff_config.modelConfig.modelId,
-    )
 
     handoff_ticket = {
         "data": {
