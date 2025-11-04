@@ -1,437 +1,385 @@
-### Table of contents
+# Retrieval Augmented Chatbot
 
-- [Generic RAG Chatbot Framework](#generic-rag-chatbot-framework)
-- [Licence](#licence)
-- [Key Features](#key-features)
-- [Architecture overview](#architecture-overview)
-  - [Solution components](#solution-components)
-- [Prerequisites](#prerequisites)
-  - [Build environment specifications](#build-environment-specifications)
-  - [AWS account](#aws-account)
-  - [Tools](#tools)
-- [How to build and deploy the solution](#how-to-build-and-deploy-the-solution)
-  - [Configuration](#configuration)
-  - [Build and deploy](#build-and-deploy)
-- [How to ingest the documents into vector store](#how-to-ingest-the-documents-into-vector-store)
-- [Access the solution web UI](#access-the-solution-web-ui)
-- [File structure](#file-structure)
-- [Uninstall the solution](#uninstall-the-solution)
+> A production-ready RAG (Retrieval-Augmented Generation) chatbot framework powered by AWS Bedrock and S3 Vectors
 
----
+## Index
 
-## Generic RAG Chatbot Framework
+- Overview
+- Features
+- Quickstart
+- Usage
+- Configuration
+- Architecture
+- Deployment
+- Troubleshooting
+- Roadmap
+- License
+- Credits
 
-This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused exclusively on Amazon S3 Vectors as the vector store. This framework is designed for developers who want a streamlined RAG (Retrieval-Augmented Generation) chatbot solution using AWS Bedrock and S3 Vectors.
+## Overview
 
-By integrating Amazon Bedrock Knowledge Base with S3 Vectors, this architecture provides a simplified, cost-effective solution for building RAG-powered chatbots with document ingestion and retrieval capabilities.
+A complete RAG (Retrieval-Augmented Generation) chatbot solution for developers so they can build production-ready conversational AI applications with document ingestion, vector storage, and context-aware responses using AWS Bedrock and Amazon S3 Vectors.
 
-## Licence
+This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused exclusively on Amazon S3 Vectors as the vector store. By integrating Amazon Bedrock Knowledge Base with S3 Vectors, this architecture provides a simplified, cost-effective solution for building RAG-powered chatbots with document ingestion and retrieval capabilities.
 
-Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
+## Features
 
-    http://www.apache.org/licenses/
+- **RAG (Retrieval-Augmented Generation)**: Core RAG pipeline that retrieves relevant context from documents and generates accurate, context-aware responses using large language models
 
-or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+- **Amazon S3 Vectors**: Native vector storage and similarity search capabilities within Amazon S3, providing scalable and cost-effective vector storage for document embeddings
 
-## Key Features
+- **Amazon Bedrock Knowledge Base Integration**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in Amazon S3 Vectors
 
-1. **Amazon S3 Vectors**: Native vector storage and similarity search capabilities within Amazon S3, providing scalable and cost-effective vector storage for document embeddings.
+- **AWS Bedrock Integration**:
 
-2. **Amazon Bedrock Knowledge Base Integration**: A managed ingestion path that leverages Amazon Bedrock's built-in capabilities for document processing and storage in Amazon S3 Vectors.
+  - Direct access to state-of-the-art foundation models through AWS Bedrock
+  - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
+  - Support for various embedding models and text generation models
+  - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
+  - Support for Bedrock Guardrails to filter harmful content and redact sensitive information
 
-3. **AWS Bedrock Integration**:
-   - Direct access to state-of-the-art foundation models through AWS Bedrock
-   - Seamless integration with Bedrock Knowledge Base for enhanced RAG capabilities
-   - Support for various embedding models and text generation models
-   - Built-in document processing and chunking capabilities when using Bedrock Knowledge Base
-   - Support for Bedrock Guardrails to filter harmful content and redact sensitive information
+- **Interactive Chatbot Interface**: User-friendly interface supporting:
 
-4. **Interactive Chatbot Interface**: User-friendly interface supporting:
-   - Natural language conversations
-   - Context-aware responses
-   - Real-time document querying
-   - Follow-up questions and clarifications
+  - Natural language conversations
+  - Context-aware responses powered by RAG
+  - Real-time document querying
+  - Follow-up questions and clarifications
 
-5. **Enterprise-Ready Features**:
-   - Scalable architecture supporting serverless resources
-   - Comprehensive security controls and encryption
-   - Simplified deployment focused on S3 Vectors
+- **Enterprise-Ready Features**:
+  - Scalable architecture supporting serverless resources
+  - Comprehensive security controls and encryption
+  - Simplified deployment focused on S3 Vectors
+  - AWS WAF integration for API protection
 
----
+## Quickstart
 
-## Architecture overview
+```bash
+git clone <REPO_URL>
+cd generic-chatbot-framework
 
-### Solution components
+# Install infrastructure dependencies
+cd infra
+npm install
 
-The solution deploys the following components:
+# Build the solution
+npm run build
 
-- **Web Application Firewall**: AWS WAF is utilized to safeguard web frontend and API endpoints from prevalent web vulnerabilities and automated bots that could potentially impact availability, compromise security, or overutilize resources.
-
-- **Amazon CloudFront Distribution**: Amazon CloudFront distribution is used to serve the ChatBot Web UI. CloudFront delivers low latency, high performance, and secure static web hosting. An Amazon Simple Storage Service (Amazon S3) web UI bucket hosts the static web application artifacts.
-
-- **Amazon Cognito**: An Amazon Cognito user pool to provide customers a quick and convenient authentication mechanism to explore the solution's functionalities without extensive configuration.
-
-- **Amazon API Gateway**: It exposes a set of RESTful APIs and routes incoming requests to the backend lambda functions.
-
-- **Chat Lambda Function**: This lambda function stores and retrieves chat messages for user's chat sessions in a DynamoDB table, enabling the maintenance of conversational context.
-
-- **Inference Lambda Function**: The Inference Lambda Function handles user queries and provides natural language responses. It interacts with Bedrock Knowledge Base to retrieve relevant context information based on the user's query and fetches the user's chat session messages from the chat lambda function. By combining context retrieval, chat session awareness, and leveraging large language models, the Inference Lambda Function ensures accurate and contextually relevant answers to user queries.
-
-- **Vector Store**: Amazon S3 Vectors provides native vector storage and similarity search capabilities within Amazon S3, offering scalable and cost-effective vector storage for document embeddings.
-
-- **Document Ingestion**: Amazon Bedrock Knowledge Base provides a managed document ingestion service that:
-  - Performs built-in document processing and chunking
-  - Generates embeddings automatically
-  - Integrates directly with S3 Vectors
-  - Enables simplified management through Bedrock console
-
-- **Chat History Data Store**: A DynamoDB table which stores the user's chat session messages.
-
-- **Amazon Bedrock**: Provides access to:
-  - Foundation Models for text generation
-  - Embedding Models for vector generation
-  - Knowledge Base for document ingestion and retrieval
-  - Built-in RAG capabilities when using Knowledge Base
-
-The solution architecture uses Bedrock Knowledge Base with S3 Vectors:
-
-- Leverages managed document processing
-- Stores vectors in Amazon S3 Vectors
-- Offers simplified management and scalability
-- Enables built-in Bedrock RAG capabilities
-
----
-
-## Prerequisites
-
-### Build environment specifications
-
-- To build and deploy this solution, we recommend using Ubuntu with minimum 4 cores CPU, 16GB RAM. Mac(Intel) or other Linux distributions are also supported.
-- The computer used to build the solution must be able to access the internet.
-
-### AWS account
-
-- **A CDK bootstrapped AWS account**: You must bootstrap your AWS CDK environment in the target region you want to deploy, using the AWS CDK toolkit's cdk bootstrap command. From the command line, authenticate into your AWS account, and run `cdk bootstrap aws://<YOUR ACCOUNT NUMBER>/<REGION>`. For more information, refer to the [AWS CDK's How to bootstrap](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html) page.
-
-- **Access to Amazon Bedrock foundation models**: Access to Amazon Bedrock foundation models isn't granted by default. In order to gain access to a foundation model, an IAM user with sufficient permissions needs to request access to it through the console. Once access is provided to a model, it is available for all users in the account. To manage model access, sign into the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/). Then select Model access at the bottom of the left navigation pane.
-
-### Tools
-
-- The latest version of the [AWS CLI](https://aws.amazon.com/cli/), installed and configured.
-- The latest version of the [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html).
-- [Nodejs](https://docs.npmjs.com/getting-started) version 18 or newer.
-- [Docker](https://docs.docker.com/get-docker/)
-
----
-
-## How to build and deploy the solution
-
-Before you deploy the solution, review the architecture and prerequisites sections in this guide. Follow the step-by-step instructions in this section to configure and deploy the solution into your account.
-
-Time to deploy: approximately 20 minutes
-
-### Configuration
-
-Use the `infra/bin/config.yaml` file to configure the solution. You can use the existing `infra/bin/config.yaml` as a template and customize it for your use case.
-
-**Data retention policy configuration (optional)**
-
-By default, all solution data (S3 buckets, DynamoDB tables, etc.) will be kept when you uninstall the solution. To remove this data, in the configuration file, set the `retainData` flag to `false`. You are liable for the service charges when solution data is retained in the default configuration.
-
-```yaml
-retainData: false,
+# Deploy (requires AWS credentials configured)
+npm run cdk deploy -- --parameters adminUserEmail=<YOUR_EMAIL>
 ```
 
-**Application name (optional)**
+**Prerequisites:**
 
-An unique identifier, composed of ASCII characters, is used to support multiple deployments within the same account. The application name will be appended to the CloudFormation stack name, ensuring each CloudFormation stack remains unique.
+- AWS account with CDK bootstrapped in target region
+- Node.js 18+ installed
+- Docker installed
+- AWS CLI installed and configured
+- Access to Amazon Bedrock foundation models (request via Bedrock console)
 
-```yaml
-applicationName: <string>
+## Usage
+
+### 1. Ingest Documents for RAG
+
+The solution uses Amazon Bedrock Knowledge Base for document ingestion into the RAG vector store:
+
+1. Find the input bucket name from deployment output (starts with `InputBucket`). Upload documents to the input bucket:
+
+```bash
+aws s3 cp <local_dir> s3://<input_bucket>/<input_prefix>/ --recursive
 ```
 
-**LLM configuration**
+2. Find the knowledge base ID and data source ID from deployment output (starts with `KnowledgeBase`). Start the ingestion job:
 
-Specify settings for the large language models, including streaming, conversation history length, corpus document limits, similarity thresholds, and prompt configurations for question-answering chains.
+```bash
+aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id>
+```
 
-- **streaming (optional)**: Whether to enable streaming responses from the language model. Default is false.
+3. Monitor the ingestion job status:
 
-  ```yaml
-  streaming: <true|false>
-  ```
+```bash
+aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id> --ingestion-job-id <job-id>
+```
 
-- **maxConversationHistory (optional)**: The maximum number of chat messages to include in the conversation history for rephrasing a follow-up question into a standalone question. Default is 5.
+### 2. Access the Web UI
 
-  ```yaml
-  maxConversationHistory: <integer>
-  ```
+1. Find the website URL from deployment output (starts with `CloudFrontDomain`) and open it in your browser
+2. Sign in with the email address specified during deployment (`adminEmail`) and use the temporary password received via email
+3. Set a new password when signing in for the first time
+4. Start chatting - the RAG system will retrieve relevant context from your documents and generate responses
 
-- **maxCorpusDocuments (optional)**: The maximum number of documents to include in the context for a question-answering prompt. Default is 5.
+### 3. RAG Workflow
 
-  ```yaml
-  maxCorpusDocuments: <integer>
-  ```
+The chatbot follows a standard RAG workflow:
 
-- **corpusSimilarityThreshold (optional)**: The minimum similarity score required for a document to be considered relevant to the question. Default is 0.25.
+- **Document Ingestion**: Documents are uploaded to S3 and processed by Bedrock Knowledge Base
+- **Vector Storage**: Document chunks are embedded and stored in S3 Vectors
+- **Retrieval**: User queries trigger similarity search to find relevant document chunks
+- **Generation**: Retrieved context is combined with the query and sent to the LLM for response generation
 
-  ```yaml
-  corpusSimilarityThreshold: <float>
-  ```
+## Configuration
 
-- **qaChainConfig**: Configuration for the question-answering chain.
-  - **modelConfig**: Configuration for the Bedrock language model used in this chain.
-    ```yaml
-    modelConfig:
-      modelId: <the ID of the language model or inference profile (e.g., anthropic.claude-3-7-sonnet-20250219-v1:0, us.anthropic.claude-3-7-sonnet-20250219-v1:0)>
-      modelKwargs: <Additional keyword arguments for the language model, such as topP, temperature etc.>
-    ```
-  - **promptTemplate**: The prompt template used for answering questions.
-    ```yaml
-    promptTemplate: <string>
-    ```
-  - **promptVariables**: The list of variables used in the prompt template.
-    ```yaml
-    promptVariables:
-      - <variable1>
-      - <variable2>
-    ```
-  - **kwargs**: Additional keyword arguments used in this chain.
-    ```yaml
-    kwargs:
-      <key>: <value>
-    ```
-    To enable promotion image handling, firstly you need to upload the document to the input bucket, and then specify the promotion image URL using the `promotion_image_url` parameter in the `kwargs`.
-    ```yaml
-    kwargs:
-      promotion_image_url: <s3>
-    ```
+Create and customize `infra/bin/config.yaml` to configure the solution:
 
-- **rerankingConfig (optional)**: Configuration for reranking retrieved documents to improve relevance and accuracy of responses. Reranking helps refine the initial similarity search results by applying a more sophisticated model to assess document relevance.
+### LLM Configuration
 
-  ```yaml
-  rerankingConfig:
-    modelConfig:
-      modelId: <the ID of the reranking model>
-    kwargs:
-      numberOfResults: <the number of top results to return after reranking>
-      additionalModelRequestFields: <model-specific parameters for reranking requests>
-        <key>: <value>
-  ```
+```yaml
+systemConfig:
+  llmConfig:
+    streaming: false # Enable streaming responses
+    maxConversationHistory: 5 # Max chat messages for context
+    maxCorpusDocuments: 5 # Max documents in RAG context
+    corpusSimilarityThreshold: 0.25 # Minimum similarity score
+    qaChainConfig:
+      modelConfig:
+        modelId: us.anthropic.claude-3-7-sonnet-20250219-v1:0
+        modelKwargs:
+          temperature: 0.7
+          topP: 0.9
+      promptTemplate: |
+        You are a helpful assistant.
+        Context: ${context}
+        Question: ${question}
+      promptVariables:
+        - context
+        - question
+```
 
-  When enabled, reranking is applied after the initial vector similarity search and before sending context to the LLM. This can significantly improve the quality of retrieved documents, especially for complex queries.
+### RAG Configuration (Core)
 
-  > **Note**: Reranking may increase latency and costs as it involves an additional model inference step.
+```yaml
+systemConfig:
+  ragConfig:
+    # Vector store configuration
+    vectorStoreConfig:
+      vectorStoreProperties:
+        distanceMetric: cosine # 'cosine' or 'euclidean'
+        metadataConfiguration:
+          nonFilterableMetadataKeys:
+            - source
+            - timestamp
 
-- **guardrailConfig (optional)**: Configuration for content moderation and PII protection. Guardrails help ensure safe and compliant interactions by filtering inappropriate content and handling sensitive information.
+    # Embedding model for RAG
+    embeddingModel:
+      modelId: amazon.titan-embed-text-v2:0
+      modelRefKey: titan-embed-text-v2
+      dimensions: 1024
 
-  ```yaml
-  guardrailConfig:
-    contentFilters:
-      - type: <content filter type (HATE, VIOLENCE, SEXUAL)>
-        inputStrength: <filter strength for input (LOW, MEDIUM, HIGH)>
-        outputStrength: <filter strength for output (LOW, MEDIUM, HIGH)>
-    piiFilters:
-      - type: <PII filter type (EMAIL, PHONE, NAME, etc.)>
-        action: <action to take on PII (ANONYMIZE, BLOCK)>
-    blockedMessages:
-      input: <custom message for blocked input>
-      output: <custom message for blocked output>
-  ```
-
-  When enabled, guardrails are applied to both user inputs and AI responses. Content filters help prevent harmful or inappropriate content, while PII filters protect sensitive personal information.
-
-**RAG configuration**
-
-- **vectorStoreConfig**: Configuration for the S3 Vectors store.
-
-  ```yaml
-  vectorStoreConfig:
-    vectorStoreProperties:
-      distanceMetric: <'euclidean' | 'cosine', default is 'cosine'>
-      metadataConfiguration: # Optional
-        nonFilterableMetadataKeys:
-          - <key1>
-          - <key2>
-      encryptionConfiguration: # Optional
-        sseType: <'AES256' | 'aws:kms'>
-        kmsKey: <KMS Key ID/ARN if sseType is 'aws:kms'>
-  ```
-
-  Example:
-
-  ```yaml
-  vectorStoreConfig:
-    vectorStoreProperties:
-      distanceMetric: cosine
-      metadataConfiguration:
-        nonFilterableMetadataKeys:
-          - source
-          - timestamp
-  ```
-
-- **embeddingModel**: Configuration for the embeddings model used for generating document embeddings.
-
-  ```yaml
-  embeddingModel:
-    modelId: <The ID of the Bedrock embeddings model>
-    modelRefKey: <A reference key for the embeddings model>
-    dimensions: <The dimensionality of the embeddings produced by the model>
-  ```
-
-- **corpusConfig (optional)**: Configuration for the document corpus and ingestion settings. The solution uses Amazon Bedrock Knowledge Base with S3 Vectors.
-
-  ```yaml
-  corpusConfig:
-    corpusProperties:
-      chunkingConfiguration:
-        chunkingStrategy: <'FIXED_SIZE' | 'SEMANTIC', default is 'FIXED_SIZE'>
-          # For FIXED_SIZE strategy
+    # Corpus/document ingestion configuration
+    corpusConfig:
+      corpusProperties:
+        chunkingConfiguration:
+          chunkingStrategy: FIXED_SIZE # or 'SEMANTIC'
           fixedSizeChunkingConfiguration:
-            maxTokens: <Maximum tokens per chunk (1-1000), default is 512>
-            overlapPercentage: <Overlap between chunks (0-100), default is 20>
-          # For SEMANTIC strategy
-          semanticChunkingConfiguration:
-            maxTokens: <Maximum tokens per chunk (1-1000)>
-            overlapPercentage: <Overlap between chunks (0-100)>
-            boundaryType: <'SENTENCE' | 'PARAGRAPH'>
-  ```
+            maxTokens: 512
+            overlapPercentage: 20
+```
 
-**Chat history configuration (optional)**
-This solution uses DynamoDB to store chat history. The configuration is optional and can be left empty:
+### Advanced RAG Features
+
+**Reranking** (optional): Improve document relevance before generation:
+
+```yaml
+rerankingConfig:
+  modelConfig:
+    modelId: <reranking-model-id>
+  kwargs:
+    numberOfResults: 5
+```
+
+**Guardrails** (optional): Content moderation and PII protection:
+
+```yaml
+guardrailConfig:
+  contentFilters:
+    - type: HATE
+      inputStrength: MEDIUM
+      outputStrength: MEDIUM
+  piiFilters:
+    - type: EMAIL
+      action: ANONYMIZE
+```
+
+### Other Configuration
+
+**Chat History** (optional):
 
 ```yaml
 chatHistoryConfig: {}
 ```
 
-**Handoff mechanism configuration (optional)**
-This solution supports a handoff mechanism to transfer the conversation to a human agent after a certain number of requests from the user.
+**Handoff Mechanism** (optional):
 
 ```yaml
 handoffConfig:
   modelConfig:
-    modelId: <the Bedrock ID of the handoff model>
-    supportsSystemPrompt: <true | false - whether the model supports system prompts via Converse API>
-    modelKwArgs: # Optional; uses Bedrock defaults if not set
-      maxTokens: 1024
-      temperature: 0.1
-      topP: 0.99
-      stopSequences: ["..."]
-  handoffThreshold: <the (integer) number of requests after which the handoff mechanism is triggered>
-  details: <optional list of details for the summarizer LLM to focus on>
-  handoffPrompts: # Each field is individually optional and handoffPrompts is optional
-    handoffRequested: <optional prompt for the model when the user requests a handoff and one has not been triggered>
-    handoffJustTriggered: <optional prompt for the model when the most recent request triggered handoff>
-    handoffCompleting: <optional prompt for the model when the handoff has been triggered and the user asks for a human again>
+    modelId: <bedrock-model-id>
+    supportsSystemPrompt: true
+  handoffThreshold: 5
 ```
 
-**AWS WAF configuration (optional)**
-This solution provisions AWS WAF Web ACL for API Gateway resources, by default. For a CloudFront distribution WAF Web ACL, the solution allows users to associate their existing AWS WAF Web ACL for CloudFront with the CloudFront distribution created by the solution. Refer to the configuration options below for configuring your AWS WAF Web ACL.
-
-```yaml
-wafConfig:
-  enableApiGatewayWaf: <true|false>
-  cloudfrontWebAclArn: <The ARN of existing Waf WebAcl to link with CloudFront. It has to be created on us-east-1.>
-  allowedExternalIpRanges: <A list of IP prefixes. e.g. 192.168.0.0/24, 10.0.0.0/8>
-```
-
-Example WAF Configuration:
+**AWS WAF** (optional):
 
 ```yaml
 wafConfig:
   enableApiGatewayWaf: true
   allowedExternalIpRanges:
     - 192.168.0.0/24
-    - 10.0.0.0/8
 ```
 
-### Build and deploy
+**Data Retention** (optional):
 
-1. Open the terminal and navigate to the project root directory.
-2. Configure the solution in the `infra/bin/config.yaml` file
-3. Navigate to the infrastructure directory: `cd infra`
-4. Install the dependencies: `npm install`
-5. Build the code: `npm run build`
-6. Deploy the solution: `npm run cdk deploy -- --parameters adminUserEmail=<ADMIN_EMAIL_ADDRESS>`
+```yaml
+systemConfig:
+  retainData: false # Set to false to delete data on uninstall
+```
 
-## How to ingest the documents into vector store
+## Architecture
 
-The solution uses Amazon Bedrock Knowledge Base for document ingestion. This section provides instructions on how to ingest documents into Amazon Bedrock Knowledge Base using the AWS CLI.
+- **Frontend**: React/TypeScript web application served via CloudFront and S3, with Cloudscape Design components
 
-1. Find the input bucket name from deployment output starting with `InputBucket`. Upload the documents from local directory to the input bucket.
+- **Backend**: Python Lambda functions for:
+
+  - **Inference Lambda**: Handles RAG queries, retrieves context from S3 Vectors via Bedrock Knowledge Base, and generates responses using Bedrock LLMs
+  - **Chat Lambda**: Manages conversation history in DynamoDB
+
+- **RAG Pipeline**:
+
+  - **Document Ingestion**: Bedrock Knowledge Base processes documents from S3 input bucket
+  - **Vector Storage**: Amazon S3 Vectors stores document embeddings
+  - **Retrieval**: Bedrock Knowledge Base performs similarity search on S3 Vectors
+  - **Generation**: Bedrock LLM generates responses using retrieved context
+
+- **Data**:
+
+  - Amazon S3 Vectors for vector storage
+  - DynamoDB for chat history
+  - S3 buckets for document input and web UI hosting
+
+- **Infrastructure**: AWS CDK (TypeScript) for infrastructure as code
+
+- **Security**:
+
+  - Amazon Cognito for authentication
+  - AWS WAF for API protection
+  - API Gateway for RESTful APIs
+
+- **Additional Components**:
+  - Amazon CloudFront for content delivery
+  - WebSocket support for real-time communication
+
+## Deployment
+
+### Prerequisites
+
+1. **AWS Account**: CDK bootstrapped in target region
+
+   ```bash
+   cdk bootstrap aws://<YOUR_ACCOUNT_NUMBER>/<REGION>
+   ```
+
+2. **Amazon Bedrock Access**: Request model access via [Bedrock console](https://console.aws.amazon.com/bedrock/)
+
+3. **Tools Required**:
+   - AWS CLI (latest version)
+   - AWS CDK (latest version)
+   - Node.js 18+
+   - Docker
+
+### Build Environment
+
+Recommended: Ubuntu with minimum 4 cores CPU, 16GB RAM. Mac (Intel) or other Linux distributions also supported. The build machine must have internet access.
+
+### Deployment Steps
+
+1. Configure the solution in `infra/bin/config.yaml`
+
+2. Navigate to infrastructure directory:
+
+   ```bash
+   cd infra
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+4. Build the solution:
+
+   ```bash
+   npm run build
+   ```
+
+5. Deploy:
+
+   ```bash
+   npm run cdk deploy -- --parameters adminUserEmail=<ADMIN_EMAIL_ADDRESS>
+   ```
+
+   Deployment time: approximately 20 minutes
+
+6. After deployment, note the output values:
+   - `CloudFrontDomain`: Web UI URL
+   - `InputBucket`: S3 bucket for document uploads
+   - `KnowledgeBase`: Knowledge base ID and data source ID
+
+### Uninstall
+
+To uninstall the solution:
+
+**Option 1**: Delete stacks from AWS CloudFormation console
+
+- Go to AWS CloudFormation console
+- Find and delete all stacks with prefix `FrancisChatbotStack`
+
+**Option 2**: Use CDK destroy
 
 ```bash
-aws s3 cp <local_dir> s3://<input_bucket>/<input_prefix>/ --recursive
+cd infra
+npm run cdk destroy
 ```
 
-2. Find the knowledge base ID and data source ID from deployment output starting with 'KnowledgeBase'. Start the ingestion job using the AWS CLI.
+**Note**: By default, solution data (S3 buckets, DynamoDB tables, etc.) will be retained when uninstalling. Set `retainData: false` in `config.yaml` to remove data on uninstall. You are liable for service charges when data is retained.
 
-```bash
-aws bedrock-agent start-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id>
-```
+## Troubleshooting
 
-Capture the ID of ingestion job.
+- **Bedrock model access denied** → Request model access through the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/). Go to Model access and request access to the models you need.
 
-3. Monitor the ingestion job status with the AWS CLI.
+- **CDK bootstrap error** → Ensure your AWS account is bootstrapped in the target region: `cdk bootstrap aws://<ACCOUNT>/<REGION>`
 
-```bash
-aws bedrock-agent get-ingestion-job --knowledge-base-id <knowledge-base-id> --data-source-id <data-source-id> --ingestion-job-id <job-id>
-```
+- **Deployment fails with permissions error** → Verify AWS credentials are configured correctly and have sufficient permissions for CDK deployment
 
-## Access the solution web UI
+- **Ingestion job stuck or failed** → Check ingestion job status with AWS CLI: `aws bedrock-agent get-ingestion-job --knowledge-base-id <id> --data-source-id <id> --ingestion-job-id <job-id>`. Review CloudWatch logs for detailed error messages.
 
-After the solution stack has been deployed and launched, you can sign in to the web interface.
+- **RAG retrieval returns no results** → Verify documents were successfully ingested, check `corpusSimilarityThreshold` in config (may be too high), and ensure embeddings model is configured correctly
 
-1. Find the website URL from deployment output starting with `CloudFrontDomain` and open it in your browser. We recommend using Chrome. You will be redirected to the sign in page that requires username and password.
-2. Sign in with the email address specified during deployment (`adminEmail`) and use the temporary password received via email after deployment. You will receive a temporary password from `no-reply@verificationemail.com`.
-3. During the sign in, you are required to set a new password when signing in for the first time.
-4. After signing in, you can view the solution's web UI.
+- **Can't access web UI** → Check CloudFront distribution status, verify Cognito user pool is active, and confirm you're using the correct email and password
 
----
+- **WebSocket connection issues** → Verify WebSocket API is deployed and check authorizer Lambda permissions
 
-## File structure
+## Roadmap
 
-Upon successfully cloning the repository into your local development environment but prior to running the initialization script, you will see the following file structure in your editor.
+- [ ] CloudFormation support for S3 vectors
+- [ ] Enhanced reranking capabilities
+- [ ] Multi-language support
+- [ ] Advanced analytics and monitoring
 
-```
-|- infra/                     # Infrastructure/CDK code
-   |- bin/                     # Configuration and deployment entry point
-   │  |- config.yaml           # Configuration file
-   │  └── infra.ts             # CDK app entry point
-   |- lib/
-   │  └── infra/               # CDK Infrastructure code
-   |- test/                    # Infrastructure tests
-   |- package.json             # Infrastructure dependencies
-   └── cdk.json                # CDK configuration
-|- backend/                    # Python backend code
-|- frontend/                   # React ChatBot UI application
-   |- src/                     # Source code files
-   └── public/                 # Static assets
-|- pyproject.toml              # Python dependencies
-|- poetry.lock                 # Python lock file
-|- .gitignore                  # Git ignore file
-|- LICENSE.txt                 # Apache 2.0 license
-└── README.md                  # Project documentation
-```
+## License
 
----
-
-## Uninstall the solution
-
-You can uninstall the solution by directly deleting the stacks from the AWS CloudFormation console.
-
-To uninstall the solution, delete the stacks from the AWSCloudFormation console
-
-- Go to the AWS CloudFormation console, find and delete the following stacks:
-  - All the stacks with the prefix `FrancisChatbotStack`
-
-Alternatively, you could also uninstall the solution by running `npm run cdk destroy` from the `infra/` directory.
-
----
-
-Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Apache-2.0
 
 Licensed under the Apache License Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
 
     http://www.apache.org/licenses/
 
 or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+## Credits
+
+- Amazon.com, Inc. or its affiliates
+- Based on the Francis GenAI RAG Chatbot framework
+
+---
+
+Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
