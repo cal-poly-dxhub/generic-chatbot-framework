@@ -20,6 +20,7 @@ frontend/build/
 # Config
 infra/bin/config.yaml
 
+# OS files
 .DS_Store
 
 # Cursor
