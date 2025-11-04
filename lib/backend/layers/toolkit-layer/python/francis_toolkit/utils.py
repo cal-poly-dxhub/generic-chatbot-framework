@@ -50,23 +50,49 @@ def get_embeddings(embedding_model: EmbeddingModel) -> Embeddings:
 def get_retriever(modelRefKey: str, k: int = 5, score_threshold: float = 0.0) -> BaseRetriever:
     _retriever: BaseRetriever
 
-    system_config = load_config_from_dynamodb(os.getenv("CONFIG_TABLE_NAME", ""), "system_configuration")
+    config_table_name = os.getenv("CONFIG_TABLE_NAME", "")
+    if not config_table_name:
+        raise ValueError(
+            "CONFIG_TABLE_NAME environment variable is not set. "
+            "Cannot load system configuration from DynamoDB."
+        )
 
-    corpus_config = system_config["ragConfig"].get("corpusConfig")
+    system_config = load_config_from_dynamodb(config_table_name, "system_configuration")
+    
+    if system_config is None:
+        raise ValueError(
+            f"System configuration not found in DynamoDB table '{config_table_name}' "
+            f"with key 'system_configuration'. Please ensure the configuration exists."
+        )
+
+    if "ragConfig" not in system_config:
+        raise ValueError(
+            f"System configuration missing 'ragConfig' key. "
+            f"Available keys: {list(system_config.keys())}"
+        )
+
+    rag_config = system_config.get("ragConfig", {})
+    corpus_config = rag_config.get("corpusConfig")
 
     embedding_model = find_embedding_model_by_ref_key(modelRefKey)
     if not embedding_model:
         raise ValueError(f"InvalidPayload: no embedding model found for ref key {modelRefKey}.")
 
-    if corpus_config:
-        _retriever = AmazonKnowledgeBasesRetriever(
-            client=bedrock_agent_client,
-            knowledge_base_id=os.getenv("KNOWLEDGE_BASE_ID", ""),
-            retrieval_config=RetrievalConfig.parse_obj({"vectorSearchConfiguration": {"numberOfResults": k}}),
-            min_score_confidence=score_threshold,
-        )
-    else:
-        raise ValueError("Corpus config is required for knowledge base retrieval")
+    knowledge_base_id = os.getenv("KNOWLEDGE_BASE_ID", "")
+    
+    # Allow empty corpusConfig if KNOWLEDGE_BASE_ID is set (KB created at infrastructure time)
+    if corpus_config is None and not knowledge_base_id:
+        raise ValueError("Corpus config is required for knowledge base retrieval.")
+    
+    if not knowledge_base_id:
+        raise ValueError("KNOWLEDGE_BASE_ID environment variable is not set.")
+
+    _retriever = AmazonKnowledgeBasesRetriever(
+        client=bedrock_agent_client,
+        knowledge_base_id=knowledge_base_id,
+        retrieval_config=RetrievalConfig.parse_obj({"vectorSearchConfiguration": {"numberOfResults": k}}),
+        min_score_confidence=score_threshold,
+    )
 
     return _retriever
 

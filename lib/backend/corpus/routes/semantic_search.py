@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Any, Dict, Optional
 
-from aws_lambda_powertools import Logger, Tracer
+from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler.api_gateway import Router
 from francis_toolkit.utils import get_retriever
 from pydantic import BaseModel
 
 tracer = Tracer()
 router = Router()
-logger = Logger()
 
 
 class SimilaritySearchRequest(BaseModel):
