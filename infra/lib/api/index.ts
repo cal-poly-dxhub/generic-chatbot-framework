@@ -59,6 +59,7 @@ export class Api extends Construct {
         });
 
         // Ensure CORS headers are present on default 4XX/5XX responses
+        /* eslint-disable @typescript-eslint/naming-convention */
         api.addGatewayResponse('Default4xxWithCors', {
             type: apigw.ResponseType.DEFAULT_4XX,
             responseHeaders: {
@@ -75,6 +76,7 @@ export class Api extends Construct {
                 'Access-Control-Allow-Methods': "'*'",
             },
         });
+        /* eslint-enable @typescript-eslint/naming-convention */
 
         const corpusLambda = this.createCorpusResources(api, props);
         const conversationLambda = this.createChatResources(api, props);

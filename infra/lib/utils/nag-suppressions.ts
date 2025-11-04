@@ -4,6 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 */
 import { Stack } from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
+import { Construct } from 'constructs';
 
 export const applyNagSuppressions = (stack: Stack): void => {
     NagSuppressions.addResourceSuppressionsByPath(
@@ -301,7 +302,10 @@ export const applyNagSuppressions = (stack: Stack): void => {
     // The custom resource ID is dynamically hashed based on configuration (memory, storage, etc.)
     // The custom resource appears directly under the stack, not under FrontendDeployment
     // We need to find all constructs with Custom::CDKBucketDeployment in their path
-    const findAllResources = (construct: any, results: any[] = []): any[] => {
+    const findAllResources = (
+        construct: Construct,
+        results: Construct[] = []
+    ): Construct[] => {
         // Check if this construct's node path contains the custom resource pattern
         const nodePath = construct.node.path;
         if (nodePath.includes('Custom::CDKBucketDeployment')) {

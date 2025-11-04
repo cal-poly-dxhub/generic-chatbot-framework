@@ -201,7 +201,8 @@ const configSchema = {
                     },
                 },
                 corpusConfig: {
-                    description: 'Configuration for the document corpus and ingestion (Bedrock Knowledge Base)',
+                    description:
+                        'Configuration for the document corpus and ingestion (Bedrock Knowledge Base)',
                     type: 'object',
                     properties: {
                         corpusProperties: {
@@ -243,7 +244,8 @@ const configSchema = {
             properties: {
                 modelConfig: {
                     type: 'object',
-                    description: 'Configuration for the handoff summarizer LLM model (Bedrock)',
+                    description:
+                        'Configuration for the handoff summarizer LLM model (Bedrock)',
                     properties: {
                         modelId: {
                             type: 'string',
