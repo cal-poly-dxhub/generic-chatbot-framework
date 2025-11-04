@@ -49,7 +49,7 @@ fi
 # Check and run bandit
 if command_exists bandit; then
     echo "Running bandit..."
-    bandit -r ./lib/backend > reports/bandit.txt
+    bandit -r ./backend > reports/bandit.txt
 else
     echo "bandit not found. Skipping bandit scan."
 fi

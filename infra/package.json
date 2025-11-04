@@ -8,13 +8,13 @@
     },
     "scripts": {
         "lint": "eslint --fix --ext .ts .",
-        "build:frontend": "cd frontend && npm run build && cd -",
+        "build:frontend": "cd ../frontend && npm run build && cd -",
         "build": "npm run lint && npm run build:frontend && npm run cdk synth",
         "cleanup:tsc": "tsc --build ./ --clean",
         "watch": "tsc -w",
         "test": "jest --silent",
         "cdk": "cdk",
-        "postinstall": "npm install --prefix frontend && (cd node_modules/cdk-s3-vectors/lib/lambda && npm install --production || true)"
+        "postinstall": "npm install --prefix ../frontend && (cd node_modules/cdk-s3-vectors/lib/lambda && npm install --production || true)"
     },
     "devDependencies": {
         "@aws-crypto/sha256-js": "^5.2.0",

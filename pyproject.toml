@@ -2,7 +2,7 @@
 description = ""
 authors = ["AWS Prototyping ASEAN <aws-pace-asean@amazon.com>"]
 readme = "README.md"
-packages = [{include = "lib/backend"}]
+packages = [{include = "backend"}]
 package-mode = false
 
 [tool.poetry.dependencies]
@@ -60,8 +60,8 @@ fmt_lint = { cmd = "task fmt && task lint", help = "format and lint" }
 test = { cmd = "pytest -s -vv --cov=. --cov-branch", help = "runs all unit tests" }
 fmt = { cmd = "task fmt_black && task fmt_isort", help = "format code" }
 lint = { cmd = "task lint_black && task lint_ruff", help = "exec lint" }
-fmt_black = "black lib/backend"
-fmt_isort = "ruff check lib/backend --select I --fix-only --exit-zero"
-lint_ruff = "ruff check lib/backend"
-lint_mypy = "mypy lib/backend"
-lint_black = "black --check lib/backend"
+fmt_black = "black backend"
+fmt_isort = "ruff check backend --select I --fix-only --exit-zero"
+lint_ruff = "ruff check backend"
+lint_mypy = "mypy backend"
+lint_black = "black --check backend"

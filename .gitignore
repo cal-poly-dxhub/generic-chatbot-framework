@@ -8,6 +8,7 @@ node_modules
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+infra/cdk.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -17,6 +18,6 @@ __pycache__/
 frontend/build/
 
 # Config
-bin/config.yaml
+infra/bin/config.yaml
 
 .DS_Store
