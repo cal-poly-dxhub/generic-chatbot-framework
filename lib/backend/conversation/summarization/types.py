@@ -1,7 +1,5 @@
-from typing import Optional, Literal
+from typing import Optional
 from pydantic import BaseModel
-
-ModelProvider = Literal["bedrock"]
 
 
 # TODO: where do these types belong?
@@ -12,18 +10,10 @@ class ModelKwargs(BaseModel):
     stopSequences: list[str] = []
 
 
-class ModelBase(BaseModel):
-    provider: ModelProvider
+class BedRockLLMModel(BaseModel):
     modelId: str
     region: Optional[str] = None
-
-
-class LLMModelBase(ModelBase):
     modelKwargs: Optional[ModelKwargs] = None
-
-
-class BedRockLLMModel(LLMModelBase):
-    provider: ModelProvider = "bedrock"
     supportsSystemPrompt: bool = False
 
 

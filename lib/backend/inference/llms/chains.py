@@ -164,7 +164,7 @@ def run_qa_step(
     model_config = chain_config["modelConfig"]
     kwargs = chain_config.get("kwargs", {})
 
-    llm = get_llm_class(model_config.get("provider"), model_config.get("region", None))
+    llm = get_llm_class(model_config.get("region", None))
     documents = []
     context = "No context document found"
 
@@ -181,7 +181,7 @@ def run_qa_step(
         if documents:
             if reranking_config:
                 reranking_model_config = reranking_config.get("modelConfig", {})
-                reranker = get_reranker_class(reranking_model_config.get("provider"), reranking_model_config.get("region"))
+                reranker = get_reranker_class(reranking_model_config.get("region"))
                 reranking_kwargs = reranking_config.get("kwargs", {})
                 reranked_documents = reranker.rerank_text(
                     reranker_config=reranking_config, query=question, documents=documents, **reranking_kwargs
@@ -218,7 +218,7 @@ def run_standalone_step(chain_config: dict, history_limit: int, user_q: str, cha
 
     model_config = chain_config["modelConfig"]
 
-    llm = get_llm_class(model_config.get("provider"), model_config.get("region", None))
+    llm = get_llm_class(model_config.get("region", None))
 
     kwargs = chain_config.get("kwargs", {})
     kwargs["chat_history"] = chat_history
@@ -248,7 +248,7 @@ def run_classification_step(
     handoff is triggered.
     """
     model_config = chain_config["modelConfig"]
-    llm = get_llm_class(model_config.get("provider"), model_config.get("region", None))
+    llm = get_llm_class(model_config.get("region", None))
 
     kwargs = chain_config.get("kwargs", {})
     kwargs["question"] = question

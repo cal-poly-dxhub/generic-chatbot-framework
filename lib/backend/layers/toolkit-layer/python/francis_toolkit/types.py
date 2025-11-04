@@ -1,13 +1,8 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
-from enum import Enum
 from typing import Any, List, Optional
 
 from pydantic import BaseModel
-
-
-class ModelHosting(str, Enum):
-    BEDROCK = "bedrock"
 
 
 class Document(BaseModel):

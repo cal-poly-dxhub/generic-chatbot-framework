@@ -1,7 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 import os
-from abc import ABC, abstractmethod
 from typing import Optional
 
 import boto3
@@ -11,47 +10,16 @@ from common.app_trace import app_trace
 from common.types import ClassificationType, StreamingContext
 from common.utils import download_image_from_s3, format_template_variables
 from common.websocket_utils import stream_llm_response
-from francis_toolkit.types import ModelHosting
 
 logger = Logger()
 
 promotion_image_bytes = None
 
 
-class LLMBase(ABC):
+class BedrockReranker:
+    """Bedrock document reranking implementation."""
     def __init__(self, region_name: str) -> None:
         self.region_name = region_name
-
-    @abstractmethod
-    def call_text_llms(
-        self,
-        model_config: dict,
-        prompt_template: str,
-        prompt_variables: list,
-        classification_type: ClassificationType = ClassificationType.QUESTION,
-        streaming_context: Optional[StreamingContext] = None,
-        **kwargs: dict,
-    ) -> tuple[str, int, int]:
-        pass
-
-class RerankerBase(ABC):
-    """Base class for document reranking implementations."""
-    def __init__(self, region_name: str) -> None:
-        self.region_name = region_name
-    
-    @abstractmethod
-    def rerank_text(
-        self,
-        reranker_config: dict,
-        query: str,
-        documents: list[dict],
-        **kwargs: dict,
-    ) -> list[dict]:
-        pass
-
-class BedrockReranker(RerankerBase):
-    def __init__(self, region_name: str) -> None:
-        super().__init__(region_name)
         self.client = boto3.client("bedrock-agent-runtime", region_name=region_name)
 
     def _format_documents_for_reranking(self, documents: list[dict]) -> list:
@@ -131,9 +99,9 @@ class BedrockReranker(RerankerBase):
             return documents
         
 
-class BedrockLLM(LLMBase):
+class BedrockLLM:
     def __init__(self, region_name: str) -> None:
-        super().__init__(region_name)
+        self.region_name = region_name
         self.client = boto3.client("bedrock-runtime", region_name=region_name)
 
     def call_text_llms(
@@ -289,10 +257,10 @@ class BedrockLLM(LLMBase):
         return ("", 0, 0)
 
 
-def get_llm_class(provider: str, region_name: Optional[str] = None) -> LLMBase:
+def get_llm_class(region_name: Optional[str] = None) -> BedrockLLM:
     region_name = region_name or os.getenv("AWS_DEFAULT_REGION")
-    return BedrockLLM(region_name=region_name)  # type: ignore
+    return BedrockLLM(region_name=region_name)
 
-def get_reranker_class(provider: str, region_name: Optional[str] = None) -> RerankerBase:
+def get_reranker_class(region_name: Optional[str] = None) -> BedrockReranker:
     region_name = region_name or os.getenv("AWS_DEFAULT_REGION")
-    return BedrockReranker(region_name=region_name)  # type: ignore
+    return BedrockReranker(region_name=region_name)
