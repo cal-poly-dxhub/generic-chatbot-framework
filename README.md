@@ -18,9 +18,9 @@
 
 ## Overview
 
-A complete RAG (Retrieval-Augmented Generation) chatbot solution for developers so they can build production-ready conversational AI applications with document ingestion, vector storage, and context-aware responses using AWS Bedrock and Amazon S3 Vectors.
+A complete RAG (Retrieval-Augmented Generation) chatbot solution for production-ready conversational AI applications with document ingestion, vector storage, and context-aware responses using AWS Bedrock and Amazon S3 Vectors.
 
-This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused exclusively on Amazon S3 Vectors as the vector store. By integrating Amazon Bedrock Knowledge Base with S3 Vectors, this architecture provides a simplified, cost-effective solution for building RAG-powered chatbots with document ingestion and retrieval capabilities.
+This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused exclusively on Amazon S3 Vectors as the vector store. By integrating Amazon Bedrock Knowledge Base with S3 Vectors, this architecture provides a cost-effective yet comprehensive solution for building RAG-powered chatbots with document ingestion and retrieval capabilities.
 
 ## Features
 
@@ -48,7 +48,7 @@ This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused ex
 - **Enterprise-Ready Features**:
   - Scalable architecture supporting serverless resources
   - Comprehensive security controls and encryption
-  - Simplified deployment focused on S3 Vectors
+  - Simplified configuration and CDK deployment
   - AWS WAF integration for API protection
 
 ## Quickstart
