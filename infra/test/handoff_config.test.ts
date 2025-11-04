@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 import Ajv from 'ajv';
 import * as yaml from 'js-yaml';
 import configSchema from '../bin/config-schema';
-import { SystemConfig } from '../lib/infra/common/types';
+import { SystemConfig } from '../lib/common/types';
 import * as path from 'path';
 import * as fs from 'fs';
 

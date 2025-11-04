@@ -53,4 +53,4 @@ export const BUCKET_COMMON_PROPERTIES = {
     encryption: s3.BucketEncryption.S3_MANAGED,
 };
 
-export const BACKEND_DIR = path.join(__dirname, '../../backend');
+export const BACKEND_DIR = path.join(__dirname, '../../../backend');

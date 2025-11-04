@@ -5,16 +5,16 @@ SPDX-License-Identifier: Apache-2.0
 */
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import * as constants from '../lib/infra/common/constants';
+import * as constants from '../lib/common/constants';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import configSchema from './config-schema';
 import Ajv from 'ajv';
-import { FrancisChatbotStack } from '../lib/infra/stacks/francis-stack';
-import { SystemConfig } from '../lib/infra/common/types';
+import { FrancisChatbotStack } from '../lib/stacks/francis-stack';
+import { SystemConfig } from '../lib/common/types';
 import { AwsSolutionsChecks } from 'cdk-nag';
-import { applyNagSuppressions } from '../lib/infra/utils/nag-suppressions';
+import { applyNagSuppressions } from '../lib/utils/nag-suppressions';
 
 process.env.DOCKER_DEFAULT_PLATFORM = constants.LAMBDA_ARCHITECTURE.dockerPlatform;
 
