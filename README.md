@@ -54,9 +54,6 @@ This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused ex
 ## Quickstart
 
 ```bash
-git clone <REPO_URL>
-cd generic-chatbot-framework
-
 # Install infrastructure dependencies
 cd infra
 npm install
