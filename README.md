@@ -54,6 +54,9 @@ This is a simplified fork of the Francis GenAI RAG ChatBot framework, focused ex
 ## Quickstart
 
 ```bash
+git clone https://github.com/pitt-cic/retrieval-augmented-chatbot.git
+cd retrieval-augmented-chatbot
+
 # Install infrastructure dependencies
 cd infra
 npm install
